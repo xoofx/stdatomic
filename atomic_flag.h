@@ -17,6 +17,8 @@ _Bool atomic_flag_test_and_set_explicit(volatile atomic_flag*, memory_order);
 void atomic_flag_clear(volatile atomic_flag*);
 void atomic_flag_clear_explicit(volatile atomic_flag*, memory_order);
 
+#define ATOMIC_FLAG_INIT { .f = 0, }
+
 #define atomic_flag_test_and_set(A) atomic_flag_test_and_set_explicit((A), memory_order_seq_cst)
 #define atomic_flag_clear(A) atomic_flag_clear_explicit((A), memory_order_seq_cst)
 
