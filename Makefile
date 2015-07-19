@@ -18,7 +18,7 @@ FUNCS =						\
 
 .INTERMEDIATE : atomic_generic-tmp.o
 
-OBJOPTS := ${shell echo ${FUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --redefine-sym=atomic_\1_internal=__\1 /g'}
+OBJOPTS := ${shell echo ${FUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
 
 CFLAGS ?= -O3 -Wall -Wno-shadow
 
@@ -30,7 +30,7 @@ atomic_generic-tmp.o : atomic_generic.c
 	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
 
 atomic_generic.o : atomic_generic-tmp.o
-	objcopy -v ${OBJOPTS} atomic_generic-tmp.o atomic_generic.o
+	${LD} -r ${OBJOPTS} atomic_generic-tmp.o -o atomic_generic.o
 
 
 %.s : %.c
