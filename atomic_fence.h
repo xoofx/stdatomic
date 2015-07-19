@@ -8,7 +8,11 @@ void atomic_thread_fence(memory_order mo);
 
 void atomic_signal_fence(memory_order mo);
 
-
+#define kill_dependency(X)                      \
+({                                              \
+  register __typeof__(X) kill_dependency = (X); \
+  kill_dependency;                              \
+ })
 
 #ifndef __ATOMIC_FORCE_SYNC
 # define atomic_thread_fence(MO) __atomic_thread_fence(MO)
