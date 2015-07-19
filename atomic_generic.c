@@ -1,83 +1,124 @@
-#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "atomic_fence.h"
-#include "atomic_lock.h"
+#include <limits.h>
+#include <stdio.h>
+#include <math.h>
+#include "stdatomic.h"
 
-enum { len = 1024 };
+/* the size of this table has a trade off between the probability of
+   collisions (the bigger the table, the better) and the waste of
+   space (the smaller, the better). */
 
-static atomic_lock table[len];
+#ifndef HBIT
+# define HBIT 8
+#endif
+/* len is a power of two such that we just can mask out higher bits */
+enum { LEN = 1<<HBIT, };
+enum { ptrbit = sizeof(uintptr_t)*CHAR_BIT, };
 
-// Hash function found by Thomas Mueller in an answer to SO question
-// https://stackoverflow.com/questions/664014
+static atomic_lock table[LEN];
+
+#ifdef HASH_STAT
+static _Atomic(size_t) draw[LEN];
+#endif
+
+/* Chose a medium sized prime number as a factor. The multiplication
+   by it is a bijection modulo any LEN. */
+#define MAGIC 14530039U
+
+
 static
-uint32_t hash32(uint32_t x) {
-  x = ((x >> 16) ^ x) * 0x45d9f3b;
-  x = ((x >> 16) ^ x) * 0x45d9f3b;
-  x = ((x >> 16) ^ x);
+unsigned hash(void* X) {
+  uintptr_t const len = LEN;
+  uintptr_t x = (uintptr_t)X;
+  x *= MAGIC;
+  /* Be sure to use all bits in the result. */
+  if (ptrbit > 8*HBIT)  x ^= (x / (len*len*len*len*len*len*len*len));
+  if (ptrbit > 4*HBIT)  x ^= (x / (len*len*len*len));
+  if (ptrbit > 2*HBIT)  x ^= (x / (len*len));
+  if (ptrbit > 1*HBIT)  x ^= (x / len);
+  x %= len;
+#ifdef HASH_STAT
+  atomic_fetch_add_explicit(&draw[x], 1, memory_order_relaxed);
+#endif
   return x;
 }
 
-#if UINTPTR_MAX == UINT32_MAX
-static
-size_t hash(void* p) {
-  return hash32((uintptr_t)p)%len;
-}
-#else
-static
-size_t hash(void* p) {
-  uint64_t bits = (uintptr_t)p;
-  return (hash32(bits) ^ hash32(bits >> 32)) % len;
-}
-#endif
-
-
 void atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
-  size_t pos = hash(ptr);
+  unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
-  memcpy(ret, ptr, size);
+  __builtin_memcpy(ret, ptr, size);
   atomic_lock_unlock(table+pos);
 }
 
 void atomic_store_internal (size_t size, void* ptr, void* val, int mo) {
-  size_t pos = hash(ptr);
+  unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
-  memcpy(ptr, val, size);
+  __builtin_memcpy(ptr, val, size);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
   atomic_lock_unlock(table+pos);
 }
 
-void atomic_exchange_internal (size_t size, void* ptr, void* val, void* ret, int mo) {
-  size_t pos = hash(ptr);
-  void* backup = (val == ret) ? malloc(size) : ret;
+static
+void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void*__restrict__ val, void*__restrict__ ret, int mo) {
+  unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
-  memcpy(backup, ptr, size);
+  __builtin_memcpy(ret, ptr, size);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
-  memcpy(ptr, val, size);
+  __builtin_memcpy(ptr, val, size);
   atomic_lock_unlock(table+pos);
+}
+
+void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void* val, void* ret, int mo) {
   if (val == ret) {
-    memcpy(ret, backup, size);
-    free(backup);
+    unsigned char buffer[size];
+    atomic_exchange_internal_restrict(size, ptr, val, buffer, mo);
+    __builtin_memcpy(ret, buffer, size);
+  } else {
+    atomic_exchange_internal_restrict(size, ptr, val, ret, mo);
   }
 }
 
 _Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void* desired, _Bool weak, int mos, int mof) {
-  size_t pos = hash(ptr);
+  unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
-  _Bool ret = !memcmp(ptr, expected, size);
+  _Bool ret = !__builtin_memcmp(ptr, expected, size);
   if (ret) {
-    memcpy(ptr, desired, size);
+    __builtin_memcpy(ptr, desired, size);
     if (mos == memory_order_seq_cst)
       atomic_thread_fence(memory_order_seq_cst);
   } else {
     if (mof == memory_order_seq_cst)
       atomic_thread_fence(memory_order_seq_cst);
-    memcpy(expected, ptr, size);
+    __builtin_memcpy(expected, ptr, size);
   }
   atomic_lock_unlock(table+pos);
   return ret;
+}
+
+void atomic_print_stat(void) {
+#ifdef HASH_STAT
+  size_t x1 = 0;
+  size_t x2 = 0;
+  size_t min = -1;
+  size_t max = 0;
+  for (size_t i = 0; i < LEN; i++) {
+    size_t val = atomic_load(&draw[i]);
+    x1 += val;
+    x2 += val*val;
+    if (val < min) min = val;
+    if (val > max) max = val;
+  }
+  double avg1 = (x1+0.0)/LEN;
+  double avg2 = (x2+0.0)/LEN;
+  double var = avg2 - avg1*avg1;
+  fprintf(stderr, "hash utilisation: %zu < %e (+%e) < %zu\n",
+          min, avg1, sqrt(var), max);
+#else
+  fputs("To collect hash statistics about atomics, compile with ``HASH_STAT''\n", stderr);
+#endif
 }
