@@ -21,7 +21,7 @@ FUNCS =						\
 
 OBJOPTS := ${shell echo ${FUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
 
-CFLAGS ?= -O3 -Wall -Wno-shadow
+CFLAGS ?= -O3 -Wall -Wno-shadow -isystem `pwd`
 
 CFLAGS := ${CFLAGS} ${CONFIG}
 

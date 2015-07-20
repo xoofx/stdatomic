@@ -34,10 +34,10 @@
  **/
 
 
-#include "atomic_constants.h"
-#include "atomic_flag.h"
-#include "atomic_lock.h"
-#include "atomic_fence.h"
+#include <atomic_constants.h>
+#include <atomic_flag.h>
+#include <atomic_lock.h>
+#include <atomic_fence.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -64,13 +64,13 @@
 
 
 #ifdef __ATOMIC_FORCE_SYNC
-#include "atomic_gcc_sync.h"
+#include <atomic_gcc_sync.h>
 #elif defined(__clang__)
-#include "atomic_clang_c11.h"
+#include <atomic_clang_c11.h>
 #else
-#include "atomic_gcc_atomic.h"
+#include <atomic_gcc_atomic.h>
 #endif
 
-#include "atomic_types.h"
+#include <atomic_types.h>
 
 #endif

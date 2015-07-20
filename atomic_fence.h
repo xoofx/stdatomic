@@ -1,7 +1,7 @@
 #ifndef _STDATOMIC_ATOMIC_FENCE_H_
 #define _STDATOMIC_ATOMIC_FENCE_H_ 1
 
-#include "atomic_constants.h"
+#include <atomic_constants.h>
 
 
 void atomic_thread_fence(memory_order mo);

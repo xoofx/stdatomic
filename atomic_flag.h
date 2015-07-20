@@ -1,7 +1,7 @@
 #ifndef _STDATOMIC_ATOMIC_FLAG_H_
 #define _STDATOMIC_ATOMIC_FLAG_H_ 1
 
-#include "atomic_constants.h"
+#include <atomic_constants.h>
 
 #ifndef __GCC_ATOMIC_TEST_AND_SET_TRUEVAL
 # define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1

@@ -1,9 +1,9 @@
 #ifndef _STDATOMIC_GCC_SYNC_H_
 #define _STDATOMIC_GCC_SYNC_H_ 1
 
-#include "atomic_constants.h"
-#include "atomic_flag.h"
-#include "atomic_generic.h"
+#include <atomic_constants.h>
+#include <atomic_flag.h>
+#include <atomic_generic.h>
 #include <stdint.h>
 #include <stdlib.h>
 
