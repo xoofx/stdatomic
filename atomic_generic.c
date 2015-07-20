@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "stdatomic.h"
+#include "atomic_generic.h"
 
 /* the size of this table has a trade off between the probability of
    collisions (the bigger the table, the better) and the waste of
@@ -53,7 +54,7 @@ void atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
   atomic_lock_unlock(table+pos);
 }
 
-void atomic_store_internal (size_t size, void* ptr, void* val, int mo) {
+void atomic_store_internal (size_t size, void* ptr, void const* val, int mo) {
   unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
   __builtin_memcpy(ptr, val, size);
@@ -63,7 +64,7 @@ void atomic_store_internal (size_t size, void* ptr, void* val, int mo) {
 }
 
 static
-void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void*__restrict__ val, void*__restrict__ ret, int mo) {
+void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void const*__restrict__ val, void*__restrict__ ret, int mo) {
   unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
   __builtin_memcpy(ret, ptr, size);
@@ -73,7 +74,7 @@ void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void
   atomic_lock_unlock(table+pos);
 }
 
-void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void* val, void* ret, int mo) {
+void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* val, void* ret, int mo) {
   if (val == ret) {
     unsigned char buffer[size];
     atomic_exchange_internal_restrict(size, ptr, val, buffer, mo);
@@ -83,7 +84,7 @@ void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void* val, vo
   }
 }
 
-_Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void* desired, _Bool weak, int mos, int mof) {
+_Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, _Bool weak, int mos, int mof) {
   unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
   _Bool ret = !__builtin_memcmp(ptr, expected, size);
