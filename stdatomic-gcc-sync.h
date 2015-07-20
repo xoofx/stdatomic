@@ -28,7 +28,7 @@
 
 #define _Atomic(T) __typeof__(__attribute__ ((__aligned__(_Chose_align(T)))) __typeof__(T)[1])
 
-#define ATOMIC_VAR_INIT(L) { [0] = L, }
+#define ATOMIC_VAR_INIT(...) { [0] = __VA_ARGS__, }
 
 /* Map all explicit macros to the non-explicit ones. */
 #define atomic_fetch_add_explicit(X, Y, MO) atomic_fetch_add((X), (Y))

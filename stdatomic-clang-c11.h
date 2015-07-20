@@ -1,6 +1,8 @@
 #ifndef _STDATOMIC_CLANG_C11_H_
 #define _STDATOMIC_CLANG_C11_H_ 1
 
+#define ATOMIC_VAR_INIT(...) __VA_ARGS__
+
 /* Map operations to the special builtins that clang provides. */
 
 /* Map all non-explicit macros to the builtin with forced memory order. */
