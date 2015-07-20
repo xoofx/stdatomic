@@ -1,6 +1,39 @@
 #ifndef _STDATOMIC_H_
 #define _STDATOMIC_H_ 1
 
+/* Copyright 2015, Jens Gustedt, France. */
+
+/**
+ ** @file
+ **
+ ** @brief An realization of the stdatomic.h interface by means of gcc
+ ** or clang compiler extensions.
+ **
+ ** This has three different realizations, using intrinsics for modern
+ ** clang (__c11_atomic ...), modern gcc (__atomic ...) or for the old
+ ** gcc __sync interface. The later should be available on a lot of
+ ** platforms, many other compilers, including clang implement these
+ ** interfaces.
+ **
+ ** For the first two, user code should be able to use all C11 atomic
+ ** features without problems.
+ **
+ ** For the __sync interface, we can't assume that there is support
+ ** for operators on atomics, so such code should simply not use
+ ** them. But the "functional" approach to atomics should work even
+ ** then. That is code that uses the _Atomic() variant to declare
+ ** atomic objects and only uses the atomic_... macros as of the C11
+ ** standard to act upon these objects should work.
+ **
+ ** The sync code also depends a lot of other gcc extensions to C:
+ **
+ ** - compound expressions
+ ** - __typeof__
+ ** - __alignof__
+ ** - __attribute__((aligned(something)))
+ **/
+
+
 #include "atomic_constants.h"
 #include "atomic_flag.h"
 #include "atomic_lock.h"
@@ -31,11 +64,11 @@
 
 
 #ifdef __ATOMIC_FORCE_SYNC
-#include "stdatomic-gcc-sync.h"
+#include "atomic_gcc_sync.h"
 #elif defined(__clang__)
-#include "stdatomic-clang-c11.h"
+#include "atomic_clang_c11.h"
 #else
-#include "stdatomic-gcc-atomic.h"
+#include "atomic_gcc_atomic.h"
 #endif
 
 #include "atomic_types.h"

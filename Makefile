@@ -3,6 +3,7 @@ TARGET = libatomic.a
 SOURCES :=					\
 	atomic_flag.c				\
 	atomic_fence.c				\
+	atomic_gcc_sync.c			\
 	atomic_lock.c
 
 OBJECTS := ${SOURCES:.c=.o} atomic_generic.o
