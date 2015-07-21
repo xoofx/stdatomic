@@ -2,6 +2,7 @@
 #define _STDATOMIC_GCC_ATOMIC_H_ 1
 
 #define ATOMIC_VAR_INIT(...) __VA_ARGS__
+#define atomic_init(X, V) ((void)((*(X))=(V)))
 
 /* Map all non-explicit macros to the explicit version. */
 #define atomic_fetch_add(X, Y)                  atomic_fetch_add_explicit((X), (Y), memory_order_seq_cst)

@@ -2,6 +2,7 @@
 #define _STDATOMIC_CLANG_C11_H_ 1
 
 #define ATOMIC_VAR_INIT(...) __VA_ARGS__
+#define atomic_init __c11_atomic_init
 
 /* Map operations to the special builtins that clang provides. */
 
