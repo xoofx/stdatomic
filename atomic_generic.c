@@ -21,6 +21,7 @@ static atomic_lock table[LEN];
 
 #ifdef HASH_STAT
 static _Atomic(size_t) draw[LEN];
+static _Atomic(size_t) draws;
 #endif
 
 /* Chose a medium sized prime number as a factor. The multiplication
@@ -28,8 +29,7 @@ static _Atomic(size_t) draw[LEN];
 #define MAGIC 14530039U
 
 
-static
-unsigned hash(void* X) {
+unsigned shift_hash(void* X) {
   uintptr_t const len = LEN;
   uintptr_t x = (uintptr_t)X;
   x *= MAGIC;
@@ -41,9 +41,63 @@ unsigned hash(void* X) {
   x %= len;
 #ifdef HASH_STAT
   atomic_fetch_add_explicit(&draw[x], 1, memory_order_relaxed);
+  atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
 #endif
   return x;
 }
+
+unsigned jenkins_one_at_a_time_hash(void *k) {
+  union {
+    unsigned char b[sizeof k];
+    uintptr_t v;
+    void* k;
+  } key = { .k = k, };
+  uintptr_t x = 0;
+  for(uintptr_t i = 0; i < sizeof(uintptr_t); ++i) {
+    x += key.b[i];
+    x += (x << 10);
+    x ^= (x >> 6);
+  }
+  x += (x << 3);
+  x ^= (x >> 11);
+  x += (x << 15);
+  x %= LEN;
+#ifdef HASH_STAT
+  atomic_fetch_add_explicit(&draw[x], 1, memory_order_relaxed);
+  atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
+#endif
+  return x;
+}
+
+uintptr_t fmix(void* x) {
+  uintptr_t h = (uintptr_t)x;
+  h ^= h >> 16;
+  h *= 0x85ebca6b;
+  h ^= h >> 13;
+  h *= 0xc2b2ae35;
+  h ^= h >> 16;
+  h %= LEN;
+#ifdef HASH_STAT
+  atomic_fetch_add_explicit(&draw[h], 1, memory_order_relaxed);
+  atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
+#endif
+  return h;
+}
+
+uintptr_t f8(void* x) {
+  uintptr_t h = (uintptr_t)x;
+  h >>= 8;
+  h %= LEN;
+#ifdef HASH_STAT
+  atomic_fetch_add_explicit(&draw[h], 1, memory_order_relaxed);
+  atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
+#endif
+  return h;
+}
+
+
+#define hash shift_hash
+
 
 void atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
   unsigned pos = hash(ptr);
@@ -98,6 +152,9 @@ _Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, 
     __builtin_memcpy(expected, ptr, size);
   }
   atomic_lock_unlock(table+pos);
+  /* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
+  /*         ptr, size, pos, ret ? "suceeded" : "failed", */
+  /*         expected, desired); */
   return ret;
 }
 
@@ -109,16 +166,19 @@ void atomic_print_stat(void) {
   size_t max = 0;
   for (size_t i = 0; i < LEN; i++) {
     size_t val = atomic_load(&draw[i]);
+    fprintf(stderr, "\t%zu", val);
+    if ((i % 8) == 7) fputc('\n', stderr);
     x1 += val;
     x2 += val*val;
     if (val < min) min = val;
     if (val > max) max = val;
   }
+  fputc('\n', stderr);
   double avg1 = (x1+0.0)/LEN;
   double avg2 = (x2+0.0)/LEN;
   double var = avg2 - avg1*avg1;
-  fprintf(stderr, "hash utilisation: %zu < %e (+%e) < %zu\n",
-          min, avg1, sqrt(var), max);
+  fprintf(stderr, "hash utilisation, %d positions, %zu draws: %zu < %e (+%e) < %zu\n",
+            LEN, atomic_load(&draws), min, avg1, sqrt(var), max);
 #else
   fputs("To collect hash statistics about atomics, compile with ``HASH_STAT''\n", stderr);
 #endif
