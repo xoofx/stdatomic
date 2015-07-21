@@ -6,8 +6,16 @@ SOURCES :=					\
 	atomic_gcc_sync.c			\
 	atomic_lock.c
 
-OBJECTS := ${SOURCES:.c=.o} atomic_generic.o 	atomic_generic_n.o
-ASSEMBS := ${SOURCES:.c=.s}
+GENERICS :=					\
+	atomic_generic.c			\
+	atomic_generic_1.c			\
+	atomic_generic_2.c			\
+	atomic_generic_4.c			\
+	atomic_generic_8.c			\
+	atomic_generic_16.c
+
+OBJECTS := ${SOURCES:.c=.o} ${GENERICS:.c=.o}
+ASSEMBS := ${SOURCES:.c=.s} ${GENERICS:.c=.s}
 DEPENDS := ${OBJECTS:.o=.dep}
 MEMBERS := ${patsubst %.o, ${TARGET}(%.o),${OBJECTS}}
 
@@ -39,7 +47,7 @@ RFUNCS =					\
 	exchange_16				\
 	compare_exchange_16
 
-.INTERMEDIATE : atomic_generic-tmp.o atomic_generic_n-tmp.o
+.INTERMEDIATE :  ${GENERICS:.c=-tmp.o}
 
 LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
 
@@ -69,11 +77,35 @@ atomic_generic-tmp.o : atomic_generic.c
 atomic_generic.o : atomic_generic-tmp.o
 	${LD} -r ${LDOPTS} atomic_generic-tmp.o -o atomic_generic.o
 
-atomic_generic_n-tmp.o : atomic_generic_n.c
-	${CC} -c ${CFLAGS} -o atomic_generic_n-tmp.o atomic_generic_n.c
+atomic_generic_1-tmp.o : atomic_generic_1.c
+	${CC} -c ${CFLAGS} -o atomic_generic_1-tmp.o atomic_generic_1.c
 
-atomic_generic_n.o : atomic_generic_n-tmp.o
-	 objcopy -v ${OBJOPTS} atomic_generic_n-tmp.o atomic_generic_n.o
+atomic_generic_1.o : atomic_generic_1-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_generic_1-tmp.o atomic_generic_1.o
+
+atomic_generic_2-tmp.o : atomic_generic_2.c
+	${CC} -c ${CFLAGS} -o atomic_generic_2-tmp.o atomic_generic_2.c
+
+atomic_generic_2.o : atomic_generic_2-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_generic_2-tmp.o atomic_generic_2.o
+
+atomic_generic_4-tmp.o : atomic_generic_4.c
+	${CC} -c ${CFLAGS} -o atomic_generic_4-tmp.o atomic_generic_4.c
+
+atomic_generic_4.o : atomic_generic_4-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_generic_4-tmp.o atomic_generic_4.o
+
+atomic_generic_8-tmp.o : atomic_generic_8.c
+	${CC} -c ${CFLAGS} -o atomic_generic_8-tmp.o atomic_generic_8.c
+
+atomic_generic_8.o : atomic_generic_8-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_generic_8-tmp.o atomic_generic_8.o
+
+atomic_generic_16-tmp.o : atomic_generic_16.c
+	${CC} -c ${CFLAGS} -o atomic_generic_16-tmp.o atomic_generic_16.c
+
+atomic_generic_16.o : atomic_generic_16-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_generic_16-tmp.o atomic_generic_16.o
 
 
 %.s : %.c
