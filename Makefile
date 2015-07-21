@@ -25,7 +25,17 @@ CFLAGS ?= -O3 -Wall -Wno-shadow -isystem `pwd`
 
 CFLAGS := ${CFLAGS} ${CONFIG}
 
-${TARGET} : ${MEMBERS}
+target : libatomic.a
+
+ifeq (${MAKELEVEL},0)
+# compile all objects in parallel mode and then recurse
+libatomic.a : ${OBJECTS}
+	${MAKE} libatomic.a
+else
+# now, addition of the archive members should be done sequentially
+.NOTPARALLEL :
+libatomic.a : ${MEMBERS}
+endif
 
 atomic_generic-tmp.o : atomic_generic.c
 	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
