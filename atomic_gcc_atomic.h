@@ -39,15 +39,15 @@
 
 #define atomic_exchange_explicit(X, V, MO)              \
 ({                                                      \
-  __atyp(*E) _r[1];                                     \
+  __atyp(*X) _r;                                        \
   __atomic_exchange((X), __atmp(*X, V), _r, (MO));      \
   __aret(_r[0]);                                        \
  })
 
 #define atomic_compare_exchange_weak_explicit(X, E, V, MOS, MOF)        \
-  __atomic_compare_exchange((X), (E), __atmp(*E, V), 1, (MOS), (MOF))
+  __atomic_compare_exchange((X), (E), __atmp(*(X), (V)), 1, (MOS), (MOF))
 
-#define atomic_compare_exchange_strong_explicit(X, E, V, MOS, MOF)      \
-  __atomic_compare_exchange((X), (E), __atmp(*E, V), 0, (MOS), (MOF))
+#define atomic_compare_exchange_strong_explicit(X, E, V, MOS, MOF)       \
+  __atomic_compare_exchange((X), (E), __atmp(*(X), (V)), 0, (MOS), (MOF))
 
 #endif
