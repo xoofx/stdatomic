@@ -84,7 +84,7 @@ void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* v
   }
 }
 
-_Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, _Bool weak, int mos, int mof) {
+_Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, int mos, int mof) {
   unsigned pos = hash(ptr);
   atomic_lock_lock(table+pos);
   _Bool ret = !__builtin_memcmp(ptr, expected, size);
