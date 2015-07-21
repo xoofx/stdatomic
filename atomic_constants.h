@@ -83,5 +83,44 @@ typedef enum memory_order memory_order;
 #define ATOMIC_CHAR32_T_LOCK_FREE   __GCC_ATOMIC_CHAR32_T_LOCK_FREE
 #define ATOMIC_WCHAR_T_LOCK_FREE    __GCC_ATOMIC_WCHAR_T_LOCK_FREE
 
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1
+# define ATOMIC_UINT8_LOCK_FREE 2
+#else
+# define ATOMIC_UINT8_LOCK_FREE 0
+#endif
+
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2
+# define ATOMIC_UINT16_LOCK_FREE 2
+#else
+# define ATOMIC_UINT16_LOCK_FREE 0
+#endif
+
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
+# define ATOMIC_UINT32_LOCK_FREE 2
+#else
+# define ATOMIC_UINT32_LOCK_FREE 0
+#endif
+
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
+# define ATOMIC_UINT64_LOCK_FREE 2
+#else
+# define ATOMIC_UINT64_LOCK_FREE 0
+#endif
+
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_16
+# define ATOMIC_UINT128_LOCK_FREE 2
+#else
+# define ATOMIC_UINT128_LOCK_FREE 0
+#endif
+
+
+#define atomic_is_lock_free(O)                                  \
+(sizeof*(O) == 1 ? ATOMIC_UINT8_LOCK_FREE                       \
+ : (sizeof*(O) == 2 ? ATOMIC_UINT16_LOCK_FREE                   \
+    : (sizeof*(O) == 4 ? ATOMIC_UINT32_LOCK_FREE                \
+       : ((sizeof*(O) == 8) ? ATOMIC_UINT64_LOCK_FREE           \
+          : ((sizeof*(O) == 16) ? ATOMIC_UINT128_LOCK_FREE      \
+             : 0)))))
+
 
 #endif

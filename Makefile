@@ -3,25 +3,50 @@ TARGET = libatomic.a
 SOURCES :=					\
 	atomic_flag.c				\
 	atomic_fence.c				\
-	atomic_gcc_sync.c			\
 	atomic_lock.c
 
-OBJECTS := ${SOURCES:.c=.o} atomic_generic.o
+OBJECTS := ${SOURCES:.c=.o} atomic_generic.o 	atomic_gcc_sync.o
 ASSEMBS := ${SOURCES:.c=.s}
-DEPENDS := ${SOURCES:.c=.dep}
+DEPENDS := ${OBJECTS:.o=.dep}
 MEMBERS := ${patsubst %.o, ${TARGET}(%.o),${OBJECTS}}
 
-FUNCS =						\
+EFUNCS =					\
 	load					\
 	store					\
 	exchange				\
 	compare_exchange
 
-.INTERMEDIATE : atomic_generic-tmp.o
+RFUNCS =					\
+	load_1					\
+	store_1					\
+	exchange_1				\
+	compare_exchange_1                      \
+	load_2					\
+	store_2					\
+	exchange_2				\
+	compare_exchange_2                      \
+	load_4					\
+	store_4					\
+	exchange_4				\
+	compare_exchange_4                      \
+	load_8					\
+	store_8					\
+	exchange_8				\
+	compare_exchange_8                      \
+	load_16					\
+	store_16				\
+	exchange_16				\
+	compare_exchange_16
 
-OBJOPTS := ${shell echo ${FUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
+.INTERMEDIATE : atomic_generic-tmp.o atomic_gcc_sync-tmp.o
 
-CFLAGS ?= -O3 -Wall -Wno-shadow -isystem `pwd`
+LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
+
+OBJOPTS := ${shell echo ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --redefine-sym=atomic_\1_internal=__atomic_\1 /g'}
+
+COPTS ?= -O3 -march=native
+
+CFLAGS ?= -Wall -Wno-shadow -isystem `pwd` ${COPTS}
 
 CFLAGS := ${CFLAGS} ${CONFIG}
 
@@ -41,7 +66,13 @@ atomic_generic-tmp.o : atomic_generic.c
 	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
 
 atomic_generic.o : atomic_generic-tmp.o
-	${LD} -r ${OBJOPTS} atomic_generic-tmp.o -o atomic_generic.o
+	${LD} -r ${LDOPTS} atomic_generic-tmp.o -o atomic_generic.o
+
+atomic_gcc_sync-tmp.o : atomic_gcc_sync.c
+	${CC} -c ${CFLAGS} -o atomic_gcc_sync-tmp.o atomic_gcc_sync.c
+
+atomic_gcc_sync.o : atomic_gcc_sync-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_gcc_sync-tmp.o atomic_gcc_sync.o
 
 
 %.s : %.c

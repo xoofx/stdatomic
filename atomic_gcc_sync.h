@@ -58,7 +58,7 @@
 
 #define INSTANTIATE_CAS(N, T)                                           \
 extern inline                                                           \
-_Bool atomic_compare_exchange_strong_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D); \
+_Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D); \
 extern inline                                                           \
 void atomic_load_ ## N(void*__restrict__ _X, void*__restrict__ _E);     \
 extern inline                                                           \
@@ -66,9 +66,27 @@ void atomic_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, voi
  extern inline                                                          \
 void atomic_store_ ## N(void*__restrict__ _X, void const* _V)
 
+#define INSTANTIATE_STUB(N, T)                                          \
+T atomic_load_ ## N ## _internal(T* _X, int _mo) {                      \
+  T _E;                                                                 \
+  atomic_load_ ## N(_X, &_E);                                           \
+  return _E;                                                            \
+}                                                                       \
+void atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {      \
+  atomic_store_ ## N(_X, &_V);                                          \
+}                                                                       \
+T atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {      \
+  T _R;                                                                 \
+  atomic_exchange_ ## N(_X, &_V, &_R);                                  \
+  return _R;                                                            \
+}                                                                       \
+_Bool atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _V, int _mos, int _mof) { \
+  return atomic_compare_exchange_ ## N(_X, _E, &_V);                    \
+}
+
 #define DECLARE_CAS_SYNC(N, T)                                          \
 inline                                                                  \
-_Bool atomic_compare_exchange_strong_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
+_Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
   T* _x = _X;                                                           \
   T* _e = _E;                                                           \
   T const* _d = _D;                                                     \
@@ -121,8 +139,8 @@ inline                                                                  \
 #define DECLARE_CAS_GENERIC(N, T)                                       \
                                                                         \
 inline                                                                  \
-_Bool atomic_compare_exchange_strong_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
-  return atomic_compare_exchange_internal(N, _X, _E, _D, 0, memory_order_seq_cst, memory_order_seq_cst); \
+_Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
+  return atomic_compare_exchange_internal(N, _X, _E, _D, memory_order_seq_cst, memory_order_seq_cst); \
 }                                                                       \
                                                                         \
 inline                                                                  \
@@ -175,10 +193,10 @@ DECLARE_CAS_GENERIC(16, __uint128_t);
   _Bool ret;                                                            \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: ret = atomic_compare_exchange_strong_8((X), (E), &_d); break; \
-  case 4: ret = atomic_compare_exchange_strong_4((X), (E), &_d); break; \
-  case 2: ret = atomic_compare_exchange_strong_2((X), (E), &_d); break; \
-  case 1: ret = atomic_compare_exchange_strong_1((X), (E), &_d); break; \
+  case 8: ret = atomic_compare_exchange_8((X), (E), &_d); break;        \
+  case 4: ret = atomic_compare_exchange_4((X), (E), &_d); break;        \
+  case 2: ret = atomic_compare_exchange_2((X), (E), &_d); break;        \
+  case 1: ret = atomic_compare_exchange_1((X), (E), &_d); break;        \
   default: ret = atomic_compare_exchange_internal(sizeof _d, (X), (E), &_d, 0, memory_order_seq_cst, memory_order_seq_cst); \
   }                                                                     \
   __aret(ret);                                                          \
