@@ -3,9 +3,10 @@ TARGET = libatomic.a
 SOURCES :=					\
 	atomic_flag.c				\
 	atomic_fence.c				\
+	atomic_gcc_sync.c			\
 	atomic_lock.c
 
-OBJECTS := ${SOURCES:.c=.o} atomic_generic.o 	atomic_gcc_sync.o
+OBJECTS := ${SOURCES:.c=.o} atomic_generic.o 	atomic_generic_n.o
 ASSEMBS := ${SOURCES:.c=.s}
 DEPENDS := ${OBJECTS:.o=.dep}
 MEMBERS := ${patsubst %.o, ${TARGET}(%.o),${OBJECTS}}
@@ -38,7 +39,7 @@ RFUNCS =					\
 	exchange_16				\
 	compare_exchange_16
 
-.INTERMEDIATE : atomic_generic-tmp.o atomic_gcc_sync-tmp.o
+.INTERMEDIATE : atomic_generic-tmp.o atomic_generic_n-tmp.o
 
 LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
 
@@ -46,7 +47,7 @@ OBJOPTS := ${shell echo ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --redefine-s
 
 COPTS ?= -O3 -march=native
 
-CFLAGS ?= -Wall -Wno-shadow -isystem `pwd` ${COPTS}
+CFLAGS ?= -Wall -Wno-shadow -isystem `pwd`  -fno-common -fdata-sections -ffunction-sections ${COPTS}
 
 CFLAGS := ${CFLAGS} ${CONFIG}
 
@@ -68,11 +69,11 @@ atomic_generic-tmp.o : atomic_generic.c
 atomic_generic.o : atomic_generic-tmp.o
 	${LD} -r ${LDOPTS} atomic_generic-tmp.o -o atomic_generic.o
 
-atomic_gcc_sync-tmp.o : atomic_gcc_sync.c
-	${CC} -c ${CFLAGS} -o atomic_gcc_sync-tmp.o atomic_gcc_sync.c
+atomic_generic_n-tmp.o : atomic_generic_n.c
+	${CC} -c ${CFLAGS} -o atomic_generic_n-tmp.o atomic_generic_n.c
 
-atomic_gcc_sync.o : atomic_gcc_sync-tmp.o
-	 objcopy -v ${OBJOPTS} atomic_gcc_sync-tmp.o atomic_gcc_sync.o
+atomic_generic_n.o : atomic_generic_n-tmp.o
+	 objcopy -v ${OBJOPTS} atomic_generic_n-tmp.o atomic_generic_n.o
 
 
 %.s : %.c
