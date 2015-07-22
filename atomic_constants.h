@@ -5,8 +5,26 @@
 # error "this implementation of stdatomic need support that is compatible with the gcc ABI"
 #endif
 
-#if !defined(__ATOMIC_RELAXED) && !defined(__ATOMIC_FORCE_SYNC)
+#if !defined(__ATOMIC_RELAXED) || (__GNUC__ < 5 && __GNUC_MINOR__ < 8)
+#undef __ATOMIC_FORCE_SYNC
 #define __ATOMIC_FORCE_SYNC 1
+#endif
+
+#define __atomic_align(T)                       \
+(sizeof(T) == 1 ? 1                             \
+ : (sizeof(T) == 2 ? 2                          \
+    : (sizeof(T) == 4 ? 4                       \
+       : ((sizeof(T) == 8) ? 8                  \
+          : ((sizeof(T) == 16) ? 16             \
+             : __alignof__(T))))))
+
+/* gcc 4.8 implements atomic operations but not atomic types. This
+   test is meant to stay simple, we don't know of any other compiler
+   that fakes to be gcc 4.8 or 4.8.x */
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 8
+#define _Atomic(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T) volatile
+#elif __ATOMIC_FORCE_SYNC
+#define _Atomic(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T[1])
 #endif
 
 #ifndef __ATOMIC_RELAXED

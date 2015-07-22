@@ -18,16 +18,6 @@
    these special cases is as wide as possible, namely sizeof the
    type. */
 
-#define _Chose_align(T)                         \
-(sizeof(T) == 1 ? 1                             \
- : (sizeof(T) == 2 ? 2                          \
-    : (sizeof(T) == 4 ? 4                       \
-       : ((sizeof(T) == 8) ? 8                  \
-          : ((sizeof(T) == 16) ? 16             \
-             : __alignof__(T))))))
-
-#define _Atomic(T) __typeof__(__attribute__ ((__aligned__(_Chose_align(T)))) __typeof__(T)[1])
-
 #define ATOMIC_VAR_INIT(...) { [0] = __VA_ARGS__, }
 #define atomic_init(X, V) ((void)((*(X))[0]=(V)))
 
