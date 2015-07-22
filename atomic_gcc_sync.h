@@ -48,35 +48,35 @@
 
 #define INSTANTIATE_CAS(N, T)                                           \
 extern inline                                                           \
-_Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D); \
+_Bool __atomic_sync_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D); \
 extern inline                                                           \
-void atomic_load_ ## N(void*__restrict__ _X, void*__restrict__ _E);     \
+void __atomic_sync_load_ ## N(void*__restrict__ _X, void*__restrict__ _E); \
 extern inline                                                           \
-void atomic_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R); \
+void __atomic_sync_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R); \
  extern inline                                                          \
-void atomic_store_ ## N(void*__restrict__ _X, void const* _V)
+void __atomic_sync_store_ ## N(void*__restrict__ _X, void const* _V)
 
 #define INSTANTIATE_STUB(N, T)                                          \
-T atomic_load_ ## N ## _internal(T* _X, int _mo) {                      \
+T __atomic_load_ ## N ## _internal(T* _X, int _mo) {                    \
   T _E;                                                                 \
-  atomic_load_ ## N(_X, &_E);                                           \
+  __atomic_sync_load_ ## N(_X, &_E);                                    \
   return _E;                                                            \
 }                                                                       \
-void atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {      \
-  atomic_store_ ## N(_X, &_V);                                          \
+void __atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
+  __atomic_sync_store_ ## N(_X, &_V);                                   \
 }                                                                       \
-T atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {      \
+T __atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
   T _R;                                                                 \
-  atomic_exchange_ ## N(_X, &_V, &_R);                                  \
+  __atomic_sync_exchange_ ## N(_X, &_V, &_R);                           \
   return _R;                                                            \
 }                                                                       \
-_Bool atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _V, int _mos, int _mof) { \
-  return atomic_compare_exchange_ ## N(_X, _E, &_V);                    \
+_Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _V, int _mos, int _mof) { \
+  return __atomic_sync_compare_exchange_ ## N(_X, _E, &_V);             \
 }
 
 #define DECLARE_CAS_SYNC(N, T)                                          \
 inline                                                                  \
-_Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
+_Bool __atomic_sync_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
   T* _x = _X;                                                           \
   T* _e = _E;                                                           \
   T const* _d = _D;                                                     \
@@ -88,14 +88,14 @@ _Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, 
 }                                                                       \
                                                                         \
 inline                                                                  \
-void atomic_load_ ## N(void*__restrict__ _X, void*__restrict__ _E) {    \
+void __atomic_sync_load_ ## N(void*__restrict__ _X, void*__restrict__ _E) {    \
   T* _x = _X;                                                           \
   T* _e = _E;                                                           \
   *_e = __sync_val_compare_and_swap(_x, (T)0, (T)0);                    \
 }                                                                       \
                                                                         \
 inline                                                                  \
- void atomic_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R) { \
+ void __atomic_sync_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R) { \
   T* _x = _X;                                                           \
   T const* _v = _V;                                                     \
   T* _r = _R;                                                           \
@@ -111,7 +111,7 @@ inline                                                                  \
 }                                                                       \
                                                                         \
 inline                                                                  \
- void atomic_store_ ## N(void*__restrict__ _X, void const* _V) {        \
+ void __atomic_sync_store_ ## N(void*__restrict__ _X, void const* _V) {        \
   T* _x = _X;                                                           \
   T const* _v = _V;                                                     \
   T _e = *_v;                                                           \
@@ -129,23 +129,23 @@ inline                                                                  \
 #define DECLARE_CAS_GENERIC(N, T)                                       \
                                                                         \
 inline                                                                  \
-_Bool atomic_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
-  return atomic_compare_exchange_internal(N, _X, _E, _D, memory_order_seq_cst, memory_order_seq_cst); \
+_Bool __atomic_sync_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
+  return __atomic_compare_exchange_internal(N, _X, _E, _D, memory_order_seq_cst, memory_order_seq_cst); \
 }                                                                       \
                                                                         \
 inline                                                                  \
-void atomic_load_ ## N(void*__restrict__ _X, void*__restrict__ _E) {    \
-  atomic_load_internal(N, _X, _E, memory_order_seq_cst);                \
+void __atomic_sync_load_ ## N(void*__restrict__ _X, void*__restrict__ _E) { \
+  __atomic_load_internal(N, _X, _E, memory_order_seq_cst);              \
 }                                                                       \
                                                                         \
 inline                                                                  \
-void atomic_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R) { \
-  atomic_exchange_internal(N, _X, _V, _R, memory_order_seq_cst);        \
+void __atomic_sync_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R) { \
+  __atomic_exchange_internal(N, _X, _V, _R, memory_order_seq_cst);      \
 }                                                                       \
                                                                         \
 inline                                                                  \
-void atomic_store_ ## N(void*__restrict__ _X, void const* _V) {         \
-  atomic_store_internal(N, _X, _V, memory_order_seq_cst);               \
+void __atomic_sync_store_ ## N(void*__restrict__ _X, void const* _V) {  \
+  __atomic_store_internal(N, _X, _V, memory_order_seq_cst);             \
 }
 
 #ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1
@@ -183,11 +183,11 @@ DECLARE_CAS_GENERIC(16, __uint128_t);
   _Bool ret;                                                            \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: ret = atomic_compare_exchange_8((X), (E), &_d); break;        \
-  case 4: ret = atomic_compare_exchange_4((X), (E), &_d); break;        \
-  case 2: ret = atomic_compare_exchange_2((X), (E), &_d); break;        \
-  case 1: ret = atomic_compare_exchange_1((X), (E), &_d); break;        \
-  default: ret = atomic_compare_exchange_internal(sizeof _d, (X), (E), &_d, 0, memory_order_seq_cst, memory_order_seq_cst); \
+  case 8: ret = __atomic_sync_compare_exchange_8((X), (E), &_d); break;        \
+  case 4: ret = __atomic_sync_compare_exchange_4((X), (E), &_d); break;        \
+  case 2: ret = __atomic_sync_exchange_2((X), (E), &_d); break;        \
+  case 1: ret = __atomic_sync_compare_exchange_1((X), (E), &_d); break;        \
+  default: ret = __atomic_compare_exchange_internal(sizeof _d, (X), (E), &_d, 0, memory_order_seq_cst, memory_order_seq_cst); \
   }                                                                     \
   __aret(ret);                                                          \
  })
@@ -196,11 +196,11 @@ DECLARE_CAS_GENERIC(16, __uint128_t);
 ({                                                                      \
   __typeof__((*X)[0]) _r;                                               \
   switch (sizeof _r) {                                                  \
-  case 8: atomic_load_8((X), &_r); break;                               \
-  case 4: atomic_load_4((X), &_r); break;                               \
-  case 2: atomic_load_2((X), &_r); break;                               \
-  case 1: atomic_load_1((X), &_r); break;                               \
-  default: atomic_load_internal(sizeof _r, (&(*X)[0]), &_r, memory_order_seq_cst); \
+  case 8: __atomic_sync_load_8((X), &_r); break;                               \
+  case 4: __atomic_sync_load_4((X), &_r); break;                               \
+  case 2: __atomic_sync_load_2((X), &_r); break;                               \
+  case 1: __atomic_sync_load_1((X), &_r); break;                               \
+  default: __atomic_load_internal(sizeof _r, (&(*X)[0]), &_r, memory_order_seq_cst); \
   }                                                                     \
   __aret(_r);                                                           \
  })
@@ -210,11 +210,11 @@ DECLARE_CAS_GENERIC(16, __uint128_t);
   __typeof__((*X)[0]) _r;                                               \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: atomic_load_8((X), &_d, &_r); break;                          \
-  case 4: atomic_load_4((X), &_d, &_r); break;                          \
-  case 2: atomic_load_2((X), &_d, &_r); break;                          \
-  case 1: atomic_load_1((X), &_d, &_r); break;                          \
-  default: atomic_exchange_internal(sizeof _d, (&(*X)[0]), &_d, &_r, memory_order_seq_cst); \
+  case 8: __atomic_sync_load_8((X), &_d, &_r); break;                          \
+  case 4: __atomic_sync_load_4((X), &_d, &_r); break;                          \
+  case 2: __atomic_sync_load_2((X), &_d, &_r); break;                          \
+  case 1: __atomic_sync_load_1((X), &_d, &_r); break;                          \
+  default: __atomic_exchange_internal(sizeof _d, (&(*X)[0]), &_d, &_r, memory_order_seq_cst); \
   }                                                                     \
   __aret(_r);                                                           \
  })
@@ -223,11 +223,11 @@ DECLARE_CAS_GENERIC(16, __uint128_t);
 ({                                                                      \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: atomic_load_8((X), &_d); break;                               \
-  case 4: atomic_load_4((X), &_d); break;                               \
-  case 2: atomic_load_2((X), &_d); break;                               \
-  case 1: atomic_load_1((X), &_d); break;                               \
-  default: atomic_store_internal(sizeof _d, (&(*X)[0]), &_d, memory_order_seq_cst); \
+  case 8: __atomic_sync_load_8((X), &_d); break;                               \
+  case 4: __atomic_sync_load_4((X), &_d); break;                               \
+  case 2: __atomic_sync_load_2((X), &_d); break;                               \
+  case 1: __atomic_sync_load_1((X), &_d); break;                               \
+  default: __atomic_store_internal(sizeof _d, (&(*X)[0]), &_d, memory_order_seq_cst); \
   }                                                                     \
  })
 

@@ -17,7 +17,7 @@
 enum { LEN = 1<<HBIT, };
 enum { ptrbit = sizeof(uintptr_t)*CHAR_BIT, };
 
-static atomic_lock table[LEN];
+static __atomic_lock table[LEN];
 
 #ifdef HASH_STAT
 static _Atomic(size_t) draw[LEN];
@@ -29,7 +29,7 @@ static _Atomic(size_t) draws;
 #define MAGIC 14530039U
 
 
-unsigned shift_hash(void* X) {
+unsigned __shift_hash(void* X) {
   uintptr_t const len = LEN;
   uintptr_t x = (uintptr_t)X;
   x *= MAGIC;
@@ -46,7 +46,7 @@ unsigned shift_hash(void* X) {
   return x;
 }
 
-unsigned jenkins_one_at_a_time_hash(void *k) {
+unsigned __jenkins_one_at_a_time_hash(void *k) {
   union {
     unsigned char b[sizeof k];
     uintptr_t v;
@@ -69,7 +69,7 @@ unsigned jenkins_one_at_a_time_hash(void *k) {
   return x;
 }
 
-uintptr_t fmix(void* x) {
+uintptr_t __fmix(void* x) {
   uintptr_t h = (uintptr_t)x;
   h ^= h >> 16;
   h *= 0x85ebca6b;
@@ -84,7 +84,7 @@ uintptr_t fmix(void* x) {
   return h;
 }
 
-uintptr_t f8(void* x) {
+uintptr_t __f8(void* x) {
   uintptr_t h = (uintptr_t)x;
   h >>= 8;
   h %= LEN;
@@ -96,39 +96,39 @@ uintptr_t f8(void* x) {
 }
 
 
-#define hash shift_hash
+#define hash __shift_hash
 
 
-void atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
+void __atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
   unsigned pos = hash(ptr);
-  atomic_lock_lock(table+pos);
+  __atomic_lock_lock(table+pos);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
   __builtin_memcpy(ret, ptr, size);
-  atomic_lock_unlock(table+pos);
+  __atomic_lock_unlock(table+pos);
 }
 
-void atomic_store_internal (size_t size, void* ptr, void const* val, int mo) {
+void __atomic_store_internal (size_t size, void* ptr, void const* val, int mo) {
   unsigned pos = hash(ptr);
-  atomic_lock_lock(table+pos);
+  __atomic_lock_lock(table+pos);
   __builtin_memcpy(ptr, val, size);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
-  atomic_lock_unlock(table+pos);
+  __atomic_lock_unlock(table+pos);
 }
 
 static
 void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void const*__restrict__ val, void*__restrict__ ret, int mo) {
   unsigned pos = hash(ptr);
-  atomic_lock_lock(table+pos);
+  __atomic_lock_lock(table+pos);
   __builtin_memcpy(ret, ptr, size);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
   __builtin_memcpy(ptr, val, size);
-  atomic_lock_unlock(table+pos);
+  __atomic_lock_unlock(table+pos);
 }
 
-void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* val, void* ret, int mo) {
+void __atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* val, void* ret, int mo) {
   if (val == ret) {
     unsigned char buffer[size];
     atomic_exchange_internal_restrict(size, ptr, val, buffer, mo);
@@ -138,9 +138,9 @@ void atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* v
   }
 }
 
-_Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, int mos, int mof) {
+_Bool __atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, int mos, int mof) {
   unsigned pos = hash(ptr);
-  atomic_lock_lock(table+pos);
+  __atomic_lock_lock(table+pos);
   _Bool ret = !__builtin_memcmp(ptr, expected, size);
   if (ret) {
     __builtin_memcpy(ptr, desired, size);
@@ -151,14 +151,14 @@ _Bool atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, 
       atomic_thread_fence(memory_order_seq_cst);
     __builtin_memcpy(expected, ptr, size);
   }
-  atomic_lock_unlock(table+pos);
+  __atomic_lock_unlock(table+pos);
   /* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
   /*         ptr, size, pos, ret ? "suceeded" : "failed", */
   /*         expected, desired); */
   return ret;
 }
 
-void atomic_print_stat(void) {
+void __atomic_print_stat(void) {
 #ifdef HASH_STAT
   size_t x1 = 0;
   size_t x2 = 0;

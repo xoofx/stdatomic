@@ -49,9 +49,9 @@ RFUNCS =					\
 
 .INTERMEDIATE :  ${GENERICS:.c=-tmp.o}
 
-LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=atomic_\1_internal /g'}
+LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=__atomic_\1_internal /g'}
 
-OBJOPTS := ${shell echo ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --redefine-sym=atomic_\1_internal=__atomic_\1 /g'}
+OBJOPTS := ${shell echo ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --redefine-sym=__atomic_\1_internal=__atomic_\1 /g'}
 
 COPTS ?= -O3 -march=native
 
