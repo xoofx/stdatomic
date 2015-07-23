@@ -52,8 +52,8 @@ unsigned __jenkins_one_at_a_time_hash(void *k) {
     uintptr_t v;
     void* k;
   } key = { .k = k, };
-  uintptr_t x = 0;
-  for(uintptr_t i = 0; i < sizeof(uintptr_t); ++i) {
+  uintptr_t i, x = 0;
+  for(i = 0; i < sizeof(uintptr_t); ++i) {
     x += key.b[i];
     x += (x << 10);
     x ^= (x >> 6);
