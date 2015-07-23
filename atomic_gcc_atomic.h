@@ -2,6 +2,7 @@
 #define _STDATOMIC_GCC_ATOMIC_H_ 1
 
 #include <atomic_generic.h>
+#include <atomic_stub.h>
 
 #define ATOMIC_VAR_INIT(...) __VA_ARGS__
 #define atomic_init(X, V) ((void)((*(X))=(V)))
@@ -81,70 +82,6 @@ T __atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
 _Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _V, int _mos, int _mof) { \
   return __atomic_compare_exchange_n(_X, _E, _V, 0, _mos, _mof);        \
 }
-
-#define INSTANTIATE_STUB_LC(N, T)                                       \
-T __atomic_fetch_add_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  T exp = 0;                                                            \
-  T rep = _V;                                                           \
-  int mof = _mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume; \
-  while (!__atomic_compare_exchange_internal(N, _X, &exp, &rep, _mo, mof)){ \
-    rep = exp + _V;                                                     \
-  }                                                                     \
-  return exp;                                                           \
-}                                                                       \
-T __atomic_fetch_sub_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  T exp = 0;                                                            \
-  T rep = _V;                                                           \
-  int mof = _mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume; \
-  while (!__atomic_compare_exchange_internal(N, _X, &exp, &rep, _mo, mof)){ \
-    rep = exp - _V;                                                     \
-  }                                                                     \
-  return exp;                                                           \
-}                                                                       \
-T __atomic_fetch_and_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  T exp = 0;                                                            \
-  T rep = _V;                                                           \
-  int mof = _mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume; \
-  while (!__atomic_compare_exchange_internal(N, _X, &exp, &rep, _mo, mof)){ \
-    rep = exp & _V;                                                     \
-  }                                                                     \
-  return exp;                                                           \
-}                                                                       \
-T __atomic_fetch_xor_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  T exp = 0;                                                            \
-  T rep = _V;                                                           \
-  int mof = _mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume; \
-  while (!__atomic_compare_exchange_internal(N, _X, &exp, &rep, _mo, mof)){ \
-    rep = exp ^ _V;                                                     \
-  }                                                                     \
-  return exp;                                                           \
-}                                                                       \
-T __atomic_fetch_or_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  T exp = 0;                                                            \
-  T rep = _V;                                                           \
-  int mof = _mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume; \
-  while (!__atomic_compare_exchange_internal(N, _X, &exp, &rep, _mo, mof)){ \
-    rep = exp | _V;                                                     \
-  }                                                                     \
-  return exp;                                                           \
-}                                                                       \
-T __atomic_load_ ## N ## _internal(T* _X, int _mo) {                    \
-  T ret;                                                                \
-  __atomic_load_internal(N, _X, &ret, _mo);                             \
-  return ret;                                                           \
-}                                                                       \
-void __atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  __atomic_store_internal(N, _X, &_V, _mo);                             \
-}                                                                       \
-T __atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  T ret;                                                                \
-  __atomic_exchange_internal(N, _X, &_V, &ret, _mo);                    \
-  return ret;                                                           \
-}                                                                       \
-_Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _V, int _mos, int _mof) { \
-  return __atomic_compare_exchange_internal(N, _X, _E, &_V, _mos, _mof); \
-}
-
 
 #define INSTANTIATE_STUB(N, T) INSTANTIATE_STUB_ ## N(T)
 
