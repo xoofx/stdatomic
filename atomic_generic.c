@@ -1,10 +1,11 @@
-#include <stdint.h>
-#include <string.h>
 #include <limits.h>
-#include <stdio.h>
-#include <math.h>
 #include "stdatomic.h"
 #include "atomic_generic.h"
+
+#ifdef HASH_STAT
+# include <math.h>
+# include <stdio.h>
+#endif
 
 /* the size of this table has a trade off between the probability of
    collisions (the bigger the table, the better) and the waste of
@@ -101,31 +102,31 @@ uintptr_t __f8(void* x) {
 
 void __atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
   unsigned pos = hash(ptr);
-  __atomic_lock_lock(table+pos);
+  LOCK(table+pos);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
   __builtin_memcpy(ret, ptr, size);
-  __atomic_lock_unlock(table+pos);
+  UNLOCK(table+pos);
 }
 
 void __atomic_store_internal (size_t size, void* ptr, void const* val, int mo) {
   unsigned pos = hash(ptr);
-  __atomic_lock_lock(table+pos);
+  LOCK(table+pos);
   __builtin_memcpy(ptr, val, size);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
-  __atomic_lock_unlock(table+pos);
+  UNLOCK(table+pos);
 }
 
 static
 void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void const*__restrict__ val, void*__restrict__ ret, int mo) {
   unsigned pos = hash(ptr);
-  __atomic_lock_lock(table+pos);
+  LOCK(table+pos);
   __builtin_memcpy(ret, ptr, size);
   if (mo == memory_order_seq_cst)
     atomic_thread_fence(memory_order_seq_cst);
   __builtin_memcpy(ptr, val, size);
-  __atomic_lock_unlock(table+pos);
+  UNLOCK(table+pos);
 }
 
 void __atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* val, void* ret, int mo) {
@@ -140,7 +141,7 @@ void __atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const*
 
 _Bool __atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, int mos, int mof) {
   unsigned pos = hash(ptr);
-  __atomic_lock_lock(table+pos);
+  LOCK(table+pos);
   _Bool ret = !__builtin_memcmp(ptr, expected, size);
   if (ret) {
     __builtin_memcpy(ptr, desired, size);
@@ -151,20 +152,23 @@ _Bool __atomic_compare_exchange_internal (size_t size, void* ptr, void* expected
       atomic_thread_fence(memory_order_seq_cst);
     __builtin_memcpy(expected, ptr, size);
   }
-  __atomic_lock_unlock(table+pos);
+  UNLOCK(table+pos);
   /* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
   /*         ptr, size, pos, ret ? "suceeded" : "failed", */
   /*         expected, desired); */
   return ret;
 }
 
+/* To collect hash statistics about atomics, compile with
+   ``HASH_STAT'' */
 void __atomic_print_stat(void) {
 #ifdef HASH_STAT
   size_t x1 = 0;
   size_t x2 = 0;
   size_t min = -1;
   size_t max = 0;
-  for (size_t i = 0; i < LEN; i++) {
+  size_t i;
+  for (i = 0; i < LEN; i++) {
     size_t val = atomic_load(&draw[i]);
     fprintf(stderr, "\t%zu", val);
     if ((i % 8) == 7) fputc('\n', stderr);
@@ -179,7 +183,5 @@ void __atomic_print_stat(void) {
   double var = avg2 - avg1*avg1;
   fprintf(stderr, "hash utilisation, %d positions, %zu draws: %zu < %e (+%e) < %zu\n",
             LEN, atomic_load(&draws), min, avg1, sqrt(var), max);
-#else
-  fputs("To collect hash statistics about atomics, compile with ``HASH_STAT''\n", stderr);
 #endif
 }

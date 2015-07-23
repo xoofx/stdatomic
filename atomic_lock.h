@@ -3,20 +3,20 @@
 
 #include <atomic_flag.h>
 
-typedef atomic_flag __atomic_lock;
+/* This is size compatible with musl's internal locks*/
+/* The lock itself must be lock-free, so in general the can only be an
+   atomic_flag if we know nothing else about the platform. */
+union __atomic_lock {
+  atomic_flag l;
+  int volatile d[2];
+};
+typedef union __atomic_lock __atomic_lock;
 
 void __atomic_lock_lock(volatile __atomic_lock*);
 void __atomic_lock_unlock(volatile __atomic_lock*);
 
-#define __atomic_lock_unlock(F) atomic_flag_clear_explicit((F), memory_order_release)
-
-#define __atomic_lock_lock(F)                                           \
-({                                                                      \
-  __atomic_lock volatile* __atomic_lock_lock = (F);                     \
-  do {                                                                  \
-    /* busy loop */                                                     \
-  } while (atomic_flag_test_and_set_explicit(__atomic_lock_lock, memory_order_acquire)); \
- })
-
+/* make the use similar to musl */
+#define LOCK(L) __atomic_lock_lock(L)
+#define UNLOCK(L) __atomic_lock_unlock(L)
 
 #endif
