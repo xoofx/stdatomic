@@ -8,16 +8,6 @@
 #include <stdlib.h>
 
 
-/* There is no compiler support for _Atomic type qualification, so we
-   use the type specifier variant. The idea is to use a one element
-   array to ensure that such an _Atomic(something) can never be used
-   in operators.
-
-   Underneath we will use uintXX_t for special cases. To be sure that
-   no bad things can happen, then, we ensure that the alignment for
-   these special cases is as wide as possible, namely sizeof the
-   type. */
-
 #define ATOMIC_VAR_INIT(...) { [0] = __VA_ARGS__, }
 #define atomic_init(X, V) ((void)((*(X))[0]=(V)))
 

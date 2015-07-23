@@ -24,6 +24,15 @@
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 8
 #define _Atomic(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T) volatile
 #elif __ATOMIC_FORCE_SYNC
+/* There is no compiler support for _Atomic type qualification, so we
+   use the type specifier variant. The idea is to use a one element
+   array to ensure that such an _Atomic(something) can never be used
+   in operators.
+
+   Underneath we will use uintXX_t for special cases. To be sure that
+   no bad things can happen, then, we ensure that the alignment for
+   these special cases is as wide as possible, namely sizeof the
+   type. */
 #define _Atomic(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T[1])
 #endif
 
