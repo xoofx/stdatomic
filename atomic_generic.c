@@ -1,11 +1,21 @@
 #include <limits.h>
-#include "stdatomic.h"
+#include "stdatomic-impl.h"
+#include "atomic_lock.h"
 #include "atomic_generic.h"
+#include "libc.h"
 
 #ifdef HASH_STAT
 # include <math.h>
 # include <stdio.h>
 #endif
+
+/* This is size compatible with musl's internal locks*/
+/* The lock itself must be lock-free, so in general the can only be an
+   atomic_flag if we know nothing else about the platform. */
+
+typedef int volatile __atomic_lock[2];
+
+
 
 /* the size of this table has a trade off between the probability of
    collisions (the bigger the table, the better) and the waste of

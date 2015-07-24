@@ -1,5 +1,5 @@
 
-#include <stdatomic.h>
+#include "stdatomic-impl.h"
 
 #ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2
 INSTANTIATE_STUB_LF(2, uint16_t)

@@ -1,12 +1,11 @@
-#include "atomic_fence.h"
-#include "atomic_lock.h"
+#include "stdatomic-impl.h"
 
-void (__atomic_lock_unlock)(volatile __atomic_lock* f) {
-	atomic_flag_clear_explicit(&f->l, memory_order_release);
+void (__atomic_lock_unlock)(_Atomic(int) volatile* f) {
+	atomic_store_explicit(f, 0, memory_order_release);
 }
 
-void (__atomic_lock_lock)(volatile __atomic_lock* f) {
+void (__atomic_lock_lock)(_Atomic(int) volatile* f) {
 	do {
 		/* busy loop */
-	} while (atomic_flag_test_and_set_explicit(&f->l, memory_order_acq_rel));
+	} while (atomic_compare_exchange_strong_explicit(f, 0, 1, memory_order_acq_rel, memory_order_consume));
 }

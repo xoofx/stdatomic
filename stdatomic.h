@@ -36,7 +36,6 @@
 
 #include <atomic_constants.h>
 #include <atomic_flag.h>
-#include <atomic_lock.h>
 #include <atomic_fence.h>
 #include <stdint.h>
 #include <stdlib.h>
