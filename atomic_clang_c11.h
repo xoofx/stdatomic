@@ -27,10 +27,11 @@
 #define atomic_fetch_and_explicit                                  __c11_atomic_fetch_and
 #define atomic_fetch_or_explicit                                   __c11_atomic_fetch_or
 #define atomic_fetch_xor_explicit                                  __c11_atomic_fetch_xor
-#define atomic_load_explicit(X, MO)                                __c11_atomic_load
-#define atomic_store_explicit(X, V, MO)                            __c11_atomic_store
-#define atomic_exchange_explicit(X, V, MO)                         __c11_atomic_exchange
-#define atomic_compare_exchange_strong_explicit(X, E, V, MOS, MOF) __c11_atomic_compare_exchange
+#define atomic_load_explicit                                       __c11_atomic_load
+#define atomic_store_explicit                                      __c11_atomic_store
+#define atomic_exchange_explicit                                   __c11_atomic_exchange
+#define atomic_compare_exchange_strong_explicit                    __c11_atomic_compare_exchange_strong
+#define atomic_compare_exchange_weak_explicit                      __c11_atomic_compare_exchange_weak
 
 #define INSTANTIATE_STUB_LF(N, T)                                       \
 T __atomic_fetch_add_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
