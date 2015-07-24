@@ -4,6 +4,7 @@
 #include <atomic_constants.h>
 #include <atomic_flag.h>
 #include <atomic_generic.h>
+#include <atomic_stub.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -11,214 +12,231 @@
 #define ATOMIC_VAR_INIT(...) { [0] = __VA_ARGS__, }
 #define atomic_init(X, V) ((void)((*(X))[0]=(V)))
 
-/* Map all explicit macros to the non-explicit ones. */
-#define atomic_fetch_add_explicit(X, Y, MO) atomic_fetch_add((X), (Y))
-#define atomic_fetch_sub_explicit(X, Y, MO) atomic_fetch_sub((X), (Y))
-#define atomic_fetch_and_explicit(X, Y, MO) atomic_fetch_and((X), (Y))
-#define atomic_fetch_or_explicit(X, Y, MO) atomic_fetch_or((X), (Y))
-#define atomic_fetch_xor_explicit(X, Y, MO) atomic_fetch_xor((X), (Y))
-#define atomic_load_explicit(X, MO) atomic_load_n(X)
-#define atomic_store_explicit(X, V, MO) atomic_store((X), (V))
-#define atomic_exchange_explicit(X, V, MO) atomic_exchange((X), (V))
-#define atomic_compare_exchange_weak_explicit(X, E, V, MOS, MOF) atomic_compare_exchange_weak((X), (E), (V))
-#define atomic_compare_exchange_strong_explicit(X, E, V, MOS, MOF) atomic_compare_exchange_strong((X), (E), (V))
+/* Map all non-explicit macros to the explicit version. */
+#define atomic_fetch_add(X, Y)                  atomic_fetch_add_explicit((X), (Y), memory_order_seq_cst)
+#define atomic_fetch_sub(X, Y)                  atomic_fetch_sub_explicit((X), (Y), memory_order_seq_cst)
+#define atomic_fetch_and(X, Y)                  atomic_fetch_and_explicit((X), (Y), memory_order_seq_cst)
+#define atomic_fetch_or(X, Y)                   atomic_fetch_or_explicit((X), (Y), memory_order_seq_cst)
+#define atomic_fetch_xor(X, Y)                  atomic_fetch_xor_explicit((X), (Y), memory_order_seq_cst)
+#define atomic_load(X)                          atomic_load_explicit((X), memory_order_seq_cst)
+#define atomic_store(X, V)                      atomic_store_explicit((X), (V), memory_order_seq_cst)
+#define atomic_exchange(X, V)                   atomic_exchange_explicit((X), (V), memory_order_seq_cst)
+#define atomic_compare_exchange_weak(X, E, V)   atomic_compare_exchange_strong_explicit((X), (E), (V), memory_order_seq_cst, memory_order_seq_cst)
+#define atomic_compare_exchange_strong(X, E, V) atomic_compare_exchange_strong_explicit((X), (E), (V), memory_order_seq_cst, memory_order_seq_cst)
 
-/* Map all non-explicit macros to the builtin. The argument X is
-   supposed to be pointer to a one element array of the base type. In
-   evaluation context ``*(X)'' decays to a pointer to the base
-   type. In __typeof__ context we have to use ``&(*(X))[0]'' for
-   that. */
-#define atomic_fetch_add(X, Y) __sync_fetch_and_add(*(X), (Y))
-#define atomic_fetch_sub(X, Y) __sync_fetch_and_sub(*(X), (Y))
-#define atomic_fetch_and(X, Y) __sync_fetch_and_or(*(X), (Y))
-#define atomic_fetch_or(X, Y) __sync_fetch_and_and(*(X), (Y))
-#define atomic_fetch_xor(X, Y) __sync_fetch_and_xor(*(X), (Y))
+/* The argument X is supposed to be pointer to a one element array of
+   the base type. In evaluation context ``*(X)'' decays to a pointer
+   to the base type. In __typeof__ context we have to use
+   ``&(*(X))[0]'' for that. */
+#define atomic_fetch_add_explicit(X, Y, MO) __sync_fetch_and_add(*(X), (Y))
+#define atomic_fetch_sub_explicit(X, Y, MO) __sync_fetch_and_sub(*(X), (Y))
+#define atomic_fetch_and_explicit(X, Y, MO) __sync_fetch_and_or(*(X), (Y))
+#define atomic_fetch_or_explicit(X, Y, MO) __sync_fetch_and_and(*(X), (Y))
+#define atomic_fetch_xor_explicit(X, Y, MO) __sync_fetch_and_xor(*(X), (Y))
 
-#define atomic_compare_exchange_weak(X, E, D) atomic_compare_exchange_strong((X), (E), (V))
+#define atomic_compare_exchange_weak(X, E, D, MOS, MOF) atomic_compare_exchange_strong((X), (E), (V), (MOS), (MOF))
 
-#define INSTANTIATE_CAS(N, T)                                           \
-extern inline                                                           \
-_Bool __atomic_sync_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D); \
-extern inline                                                           \
-void __atomic_sync_load_ ## N(void*__restrict__ _X, void*__restrict__ _E); \
-extern inline                                                           \
-void __atomic_sync_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R); \
- extern inline                                                          \
-void __atomic_sync_store_ ## N(void*__restrict__ _X, void const* _V)
-
-#define INSTANTIATE_STUB(N, T)                                          \
-T __atomic_load_ ## N ## _internal(T* _X, int _mo) {                    \
-  T _E;                                                                 \
-  __atomic_sync_load_ ## N(_X, &_E);                                    \
-  return _E;                                                            \
+#define INSTANTIATE_STUB_LF(N, T)                                       \
+T __atomic_fetch_add_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
+  return __sync_fetch_and_add(_X, _V);                                  \
 }                                                                       \
-void __atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  __atomic_sync_store_ ## N(_X, &_V);                                   \
+T __atomic_fetch_sub_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
+  return __sync_fetch_and_sub(_X, _V);                                  \
+}                                                                       \
+T __atomic_fetch_and_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
+  return __sync_fetch_and_and(_X, _V);                                  \
+}                                                                       \
+T __atomic_fetch_xor_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
+  return __sync_fetch_and_xor(_X, _V, _mo);                             \
+}                                                                       \
+T __atomic_fetch_or_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
+  return __sync_fetch_and_or(_X, _V, _mo);                              \
+}                                                                       \
+T __atomic_load_ ## N ## _internal(T* _X, int _mo) {                    \
+  return __sync_val_compare_and_swap(_X, 0, 0);                         \
 }                                                                       \
 T __atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  T _R;                                                                 \
-  __atomic_sync_exchange_ ## N(_X, &_V, &_R);                           \
-  return _R;                                                            \
-}                                                                       \
-_Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _V, int _mos, int _mof) { \
-  return __atomic_sync_compare_exchange_ ## N(_X, _E, &_V);             \
-}
-
-#define DECLARE_CAS_SYNC(N, T)                                          \
-inline                                                                  \
-_Bool __atomic_sync_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
-  T* _x = _X;                                                           \
-  T* _e = _E;                                                           \
-  T const* _d = _D;                                                     \
-  T _v = *_e;                                                           \
-  T _n = __sync_val_compare_and_swap(_x, _v, *_d);                      \
-  register _Bool _r = (_v == _n);                                       \
-  if (!_r) *_e = _n;                                                    \
+  T _r = _V, _e;                                                        \
+  do {                                                                  \
+    _e = _r;                                                            \
+    _r = __sync_val_compare_and_swap(_X, _e, _V);                       \
+  } while (_r != _e);                                                   \
   return _r;                                                            \
 }                                                                       \
-                                                                        \
-inline                                                                  \
-void __atomic_sync_load_ ## N(void*__restrict__ _X, void*__restrict__ _E) {    \
-  T* _x = _X;                                                           \
-  T* _e = _E;                                                           \
-  *_e = __sync_val_compare_and_swap(_x, (T)0, (T)0);                    \
+void __atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
+  (void)__atomic_exchange_ ## N ## _internal(_X, _V, _mo);              \
 }                                                                       \
-                                                                        \
-inline                                                                  \
- void __atomic_sync_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R) { \
-  T* _x = _X;                                                           \
-  T const* _v = _V;                                                     \
-  T* _r = _R;                                                           \
-  T _e = *_v;                                                           \
-  for (;;) {                                                            \
-    T _n = __sync_val_compare_and_swap(_x, _e, *_v);                    \
-    if (_n == _e) {                                                     \
-      *_r = _n;                                                         \
-      break;                                                            \
-    }                                                                   \
-    _e = _n;                                                            \
+_Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _D, int _mos, int _mof) { \
+  T _v = *_E;                                                           \
+  T _n = __sync_val_compare_and_swap(_X, _v, _D);                       \
+  if (_v != _n) {                                                       \
+    *_E = _n;                                                           \
+    return 0;                                                           \
   }                                                                     \
-}                                                                       \
-                                                                        \
-inline                                                                  \
- void __atomic_sync_store_ ## N(void*__restrict__ _X, void const* _V) {        \
-  T* _x = _X;                                                           \
-  T const* _v = _V;                                                     \
-  T _e = *_v;                                                           \
-  for (;;) {                                                            \
-    T _n = __sync_val_compare_and_swap(_x, _e, *_v);                    \
-    if (_n == _e) {                                                     \
-      break;                                                            \
-    }                                                                   \
-    _e = _n;                                                            \
-  }                                                                     \
+  return 1;                                                             \
 }
 
-/* Here the parameter T is there only for compatibility with the
-   previous */
-#define DECLARE_CAS_GENERIC(N, T)                                       \
-                                                                        \
-inline                                                                  \
-_Bool __atomic_sync_compare_exchange_ ## N(void*__restrict__ _X, void*__restrict__ _E, void const*__restrict__ _D) { \
-  return __atomic_compare_exchange_internal(N, _X, _E, _D, memory_order_seq_cst, memory_order_seq_cst); \
-}                                                                       \
-                                                                        \
-inline                                                                  \
-void __atomic_sync_load_ ## N(void*__restrict__ _X, void*__restrict__ _E) { \
-  __atomic_load_internal(N, _X, _E, memory_order_seq_cst);              \
-}                                                                       \
-                                                                        \
-inline                                                                  \
-void __atomic_sync_exchange_ ## N(void*__restrict__ _X, void const*__restrict__ _V, void* _R) { \
-  __atomic_exchange_internal(N, _X, _V, _R, memory_order_seq_cst);      \
-}                                                                       \
-                                                                        \
-inline                                                                  \
-void __atomic_sync_store_ ## N(void*__restrict__ _X, void const* _V) {  \
-  __atomic_store_internal(N, _X, _V, memory_order_seq_cst);             \
-}
+#define INSTANTIATE_STUB(N, T) INSTANTIATE_STUB_ ## N(T)
 
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1
-DECLARE_CAS_SYNC(1, uint8_t);
-#else
-DECLARE_CAS_GENERIC(1, uint8_t);
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2
-DECLARE_CAS_SYNC(2, uint16_t);
-#else
-DECLARE_CAS_GENERIC(2, uint16_t);
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
-DECLARE_CAS_SYNC(4, uint32_t);
-#else
-DECLARE_CAS_GENERIC(4, uint32_t);
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
-DECLARE_CAS_SYNC(8, uint64_t);
-#else
-DECLARE_CAS_GENERIC(8, uint64_t);
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_16
-DECLARE_CAS_SYNC(16, __uint128_t);
-#else
-DECLARE_CAS_GENERIC(16, __uint128_t);
-#endif
-
-#define atomic_compare_exchange_strong(X, E, D)                         \
+#define atomic_compare_exchange_strong_explicit(X, E, D, MOS, MOF)      \
 ({                                                                      \
   _Bool ret;                                                            \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: ret = __atomic_sync_compare_exchange_8((X), (E), &_d); break;        \
-  case 4: ret = __atomic_sync_compare_exchange_4((X), (E), &_d); break;        \
-  case 2: ret = __atomic_sync_exchange_2((X), (E), &_d); break;        \
-  case 1: ret = __atomic_sync_compare_exchange_1((X), (E), &_d); break;        \
-  default: ret = __atomic_compare_exchange_internal(sizeof _d, (X), (E), &_d, 0, memory_order_seq_cst, memory_order_seq_cst); \
+  case 8: ret = __sync_val_compare_and_swap((uint64_t*)(X), (E), (D)); break; \
+  case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), (E), (D)); break; \
+  case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), (E), (D)); break; \
+  case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), (E), (D)); break; \
+  default: ret = __atomic_compare_exchange_internal(sizeof (*X), (void*)(X), (E), &_d, 0, MOS, MOS); \
   }                                                                     \
   __aret(ret);                                                          \
  })
 
-#define atomic_load(X)                                                  \
+#define __atomic_union(T, X) union { __typeof__(*(X)) x; T t; }
+#define __atomic_union2T(T, X) (((__atomic_union(T, X)){ .x = (*(X)), }).t)
+#define __atomic_union2X(T, X, V) (((__atomic_union(T, X)){ .t = (V), }).x)
+
+#define __atomic_load_union(T, X)                                       \
+__atomic_union2X(T, X, __sync_val_compare_and_swap((T*)X, 0, 0))
+
+#define __atomic_exchange_union(T, X, V)                                \
 ({                                                                      \
-  __typeof__((*X)[0]) _r;                                               \
-  switch (sizeof _r) {                                                  \
-  case 8: __atomic_sync_load_8((X), &_r); break;                               \
-  case 4: __atomic_sync_load_4((X), &_r); break;                               \
-  case 2: __atomic_sync_load_2((X), &_r); break;                               \
-  case 1: __atomic_sync_load_1((X), &_r); break;                               \
-  default: __atomic_load_internal(sizeof _r, (&(*X)[0]), &_r, memory_order_seq_cst); \
-  }                                                                     \
-  __aret(_r);                                                           \
+  __atomic_union(T, X) _V = { .t = (V), };                              \
+  T _r = _V.t, _e;                                                      \
+  do {                                                                  \
+    _e = _r;                                                            \
+    _r = __sync_val_compare_and_swap((T*)X, _e, _V.t);                  \
+  } while (_r != _e);                                                   \
+  __atomic_union2X(T, X, _r);                                           \
  })
 
-#define atomic_exchange(X, D)                                           \
+#define __atomic_store_union(T, X, V)                                   \
 ({                                                                      \
-  __typeof__((*X)[0]) _r;                                               \
-  __typeof__((*X)[0]) const _d = (D);                                   \
-  switch (sizeof _d) {                                                  \
-  case 8: __atomic_sync_load_8((X), &_d, &_r); break;                          \
-  case 4: __atomic_sync_load_4((X), &_d, &_r); break;                          \
-  case 2: __atomic_sync_load_2((X), &_d, &_r); break;                          \
-  case 1: __atomic_sync_load_1((X), &_d, &_r); break;                          \
-  default: __atomic_exchange_internal(sizeof _d, (&(*X)[0]), &_d, &_r, memory_order_seq_cst); \
-  }                                                                     \
-  __aret(_r);                                                           \
+  __atomic_union(T, X) _V = { .t = (V), };                              \
+  T _r = _V.t, _e;                                                      \
+  do {                                                                  \
+    _e = _r;                                                            \
+    _r = __sync_val_compare_and_swap((T*)X, _e, _V.t);                  \
+  } while (_r != _e);                                                   \
  })
 
-#define atomic_store(X)                                                 \
+#define __atomic_compare_exchange_union(T, X, E, V)                     \
 ({                                                                      \
-  __typeof__((*X)[0]) const _d = (D);                                   \
-  switch (sizeof _d) {                                                  \
-  case 8: __atomic_sync_load_8((X), &_d); break;                               \
-  case 4: __atomic_sync_load_4((X), &_d); break;                               \
-  case 2: __atomic_sync_load_2((X), &_d); break;                               \
-  case 1: __atomic_sync_load_1((X), &_d); break;                               \
-  default: __atomic_store_internal(sizeof _d, (&(*X)[0]), &_d, memory_order_seq_cst); \
-  }                                                                     \
+  __typeof__(*E)* _e = (E);                                             \
+  __atomic_union(T, X) _V = { .x = (V), };                              \
+  __atomic_union(T, X) _E = { .x = *_e, };                              \
+  __atomic_union(T, X) _R = { .t = __sync_val_compare_and_swap((T*)X, _E.t, _V.t), }; \
+  _Bool _r = (_E.t == _R.t);                                            \
+  if (!_r) _E.x = _R.x;                                                 \
+  _r;                                                                   \
  })
+
+#define atomic_load_explicit(X, MO)                             \
+__builtin_choose_expr                                           \
+(                                                               \
+ sizeof(*X)==16,                                                \
+ __atomic_load_union(__uint128_t, &((*X)[0])),                  \
+__builtin_choose_expr                                           \
+(                                                               \
+ sizeof(*X)==8,                                                 \
+ __atomic_load_union(uint64_t, &((*X)[0])),                     \
+__builtin_choose_expr                                           \
+(                                                               \
+ sizeof(*X)==4,                                                 \
+ __atomic_load_union(uint32_t, &((*X)[0])),                     \
+ __builtin_choose_expr                                          \
+(                                                               \
+ sizeof(*X)==2,                                                 \
+ __atomic_load_union(uint16_t, &((*X)[0])),                     \
+ __builtin_choose_expr                                          \
+(                                                               \
+ sizeof(*X)==1,                                                 \
+ __atomic_load_union(uint8_t, &((*X)[0])),                      \
+ ({                                                             \
+ __typeof__((*X)[0]) _r;                                        \
+ __atomic_load_internal(sizeof _r, (&((*X)[0])), &_r, MO);      \
+ _r;                                                            \
+ }))))))
+
+#define atomic_store_explicit(X, V, MO)                         \
+__builtin_choose_expr                                           \
+(                                                               \
+ sizeof(*X)==16,                                                \
+ __atomic_store_union(__uint128_t, &((*X)[0]), (V)),            \
+__builtin_choose_expr                                           \
+(                                                               \
+ sizeof(*X)==8,                                                 \
+ __atomic_store_union(uint64_t, &((*X)[0]), (V)),               \
+__builtin_choose_expr                                           \
+(                                                               \
+ sizeof(*X)==4,                                                 \
+ __atomic_store_union(uint32_t, &((*X)[0]), (V)),               \
+ __builtin_choose_expr                                          \
+(                                                               \
+ sizeof(*X)==2,                                                 \
+ __atomic_store_union(uint16_t, &((*X)[0]), (V)),               \
+ __builtin_choose_expr                                          \
+(                                                               \
+ sizeof(*X)==1,                                                 \
+ __atomic_store_union(uint8_t, &((*X)[0]), (V)),                \
+ ({                                                             \
+ __typeof__((*X)[0]) const _v = (V);                            \
+ __atomic_store_internal(sizeof _r, (&((*X)[0])), &_v, MO);     \
+ _r;                                                            \
+ }))))))
+
+#define atomic_exchange_explicit(X, V, MO)                              \
+__builtin_choose_expr                                                   \
+(                                                                       \
+ sizeof(*X)==16,                                                        \
+ __atomic_exchange_union(__uint128_t, &((*(X))[0]), (V)),                 \
+__builtin_choose_expr                                                   \
+(                                                                       \
+ sizeof(*X)==8,                                                         \
+ __atomic_exchange_union(uint64_t, &((*(X))[0]), (V)),                    \
+__builtin_choose_expr                                                   \
+(                                                                       \
+ sizeof(*X)==4,                                                         \
+ __atomic_exchange_union(uint32_t, &((*(X))[0]), (V)),                    \
+ __builtin_choose_expr                                                  \
+(                                                                       \
+ sizeof(*X)==2,                                                         \
+ __atomic_exchange_union(uint16_t, &((*(X))[0]), (V)),                    \
+ __builtin_choose_expr                                                  \
+(                                                                       \
+ sizeof(*X)==1,                                                         \
+ __atomic_exchange_union(uint8_t, &((*(X))[0]), (V)),                     \
+ ({                                                                     \
+ __typeof__((*X)[0]) const _v = (V);                                    \
+ __typeof__((*X)[0]) _r = (V);                                          \
+ __atomic_exchange_internal(sizeof _r, (&((*X)[0])), &_r, &_v, MO);     \
+ _r;                                                                    \
+ }))))))
+
+#define atomic_compare_exchange_explicit(X, E, V, MOS, MOF)             \
+__builtin_choose_expr                                                   \
+(                                                                       \
+ sizeof(*X)==16,                                                        \
+ __atomic_compare_exchange_union(__uint128_t, &((*(X))[0]), (E), (V)),    \
+__builtin_choose_expr                                                   \
+(                                                                       \
+ sizeof(*X)==8,                                                         \
+ __atomic_compare_exchange_union(uint64_t, &((*(X))[0]), (E), (V)),       \
+__builtin_choose_expr                                                   \
+(                                                                       \
+ sizeof(*X)==4,                                                         \
+ __atomic_compare_exchange_union(uint32_t, &((*(X))[0]), (E), (V)),       \
+ __builtin_choose_expr                                                  \
+(                                                                       \
+ sizeof(*X)==2,                                                         \
+ __atomic_compare_exchange_union(uint16_t, &((*(X))[0]), (E), (V)),       \
+ __builtin_choose_expr                                                  \
+(                                                                       \
+ sizeof(*X)==1,                                                         \
+ __atomic_compare_exchange_union(uint8_t, &((*(X))[0]), (E), (V)),        \
+ ({                                                                     \
+ __typeof__((*X)[0]) const _v = (V);                                    \
+ __atomic_compare_exchange_internal(sizeof _r, (&((*X)[0])), (E), &_v, MOS, MOF); \
+ }))))))
 
 #endif

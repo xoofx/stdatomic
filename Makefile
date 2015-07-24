@@ -3,7 +3,6 @@ TARGET = libatomic.a
 SOURCES :=					\
 	atomic_flag.c				\
 	atomic_fence.c				\
-	atomic_gcc_sync.c			\
 	atomic_lock.c
 
 GENERICS :=					\
@@ -29,23 +28,48 @@ RFUNCS =					\
 	load_1					\
 	store_1					\
 	exchange_1				\
-	compare_exchange_1                      \
+	compare_exchange_1			\
+	fetch_add_1				\
+	fetch_sub_1				\
+	fetch_and_1				\
+	fetch_xor_1				\
+	fetch_or_1				\
 	load_2					\
 	store_2					\
 	exchange_2				\
-	compare_exchange_2                      \
+	compare_exchange_2			\
+	fetch_add_2				\
+	fetch_sub_2				\
+	fetch_and_2				\
+	fetch_xor_2				\
+	fetch_or_2				\
 	load_4					\
 	store_4					\
 	exchange_4				\
-	compare_exchange_4                      \
+	compare_exchange_4			\
+	fetch_add_4				\
+	fetch_sub_4				\
+	fetch_and_4				\
+	fetch_xor_4				\
+	fetch_or_4				\
 	load_8					\
 	store_8					\
 	exchange_8				\
-	compare_exchange_8                      \
+	compare_exchange_8			\
+	fetch_add_8				\
+	fetch_sub_8				\
+	fetch_and_8				\
+	fetch_xor_8				\
+	fetch_or_8				\
 	load_16					\
 	store_16				\
 	exchange_16				\
-	compare_exchange_16
+	compare_exchange_16			\
+	fetch_add_16				\
+	fetch_sub_16				\
+	fetch_and_16				\
+	fetch_xor_16				\
+	fetch_or_16
 
 .INTERMEDIATE :  ${GENERICS:.c=-tmp.o}
 
