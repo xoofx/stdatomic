@@ -194,3 +194,8 @@ void __atomic_print_stat(void) {
 	        LEN, atomic_load(&draws), min, avg1, sqrt(var), max);
 #endif
 }
+
+weak_alias(__atomic_load_internal, __atomic_load);
+weak_alias(__atomic_store_internal, __atomic_store);
+weak_alias(__atomic_exchange_internal, __atomic_exchange);
+weak_alias(__atomic_compare_exchange_internal, __atomic_compare_exchange);

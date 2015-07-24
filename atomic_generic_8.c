@@ -7,3 +7,4 @@ INSTANTIATE_STUB_LF(8, uint64_t)
 INSTANTIATE_STUB_LC(8, uint64_t)
 #endif
 
+INSTANTIATE_SYNC(8, uint64_t)

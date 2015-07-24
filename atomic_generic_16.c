@@ -6,3 +6,5 @@ INSTANTIATE_STUB_LF(16, __uint128_t)
 #else
 INSTANTIATE_STUB_LC(16, __uint128_t)
 #endif
+
+INSTANTIATE_SYNC(16, __uint128_t)

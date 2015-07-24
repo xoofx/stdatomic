@@ -1,6 +1,10 @@
 #ifndef _STDATOMIC_TYPES_H_
 #define _STDATOMIC_TYPES_ 1
 
+#include <wchar.h>
+#include <stddef.h>
+#include <stdint.h>
+
 typedef _Atomic(_Bool)              atomic_bool;
 typedef _Atomic(char)               atomic_char;
 typedef _Atomic(int)                atomic_int;

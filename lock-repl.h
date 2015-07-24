@@ -10,4 +10,6 @@ void __atomic_lock_unlock(_Atomic(int) volatile* f);
 #define LOCK(L) __atomic_lock_lock((_Atomic(int) volatile*)L)
 #define UNLOCK(L) __atomic_lock_unlock((_Atomic(int) volatile*)L)
 
+#define weak_alias(A, B) extern  __typeof__(A) B __attribute__((weak,alias(#A)))
+
 #endif

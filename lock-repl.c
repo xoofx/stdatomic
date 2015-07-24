@@ -7,5 +7,5 @@ void (__atomic_lock_unlock)(_Atomic(int) volatile* f) {
 void (__atomic_lock_lock)(_Atomic(int) volatile* f) {
 	do {
 		/* busy loop */
-	} while (atomic_compare_exchange_strong_explicit(f, 0, 1, memory_order_acq_rel, memory_order_consume));
+	} while (atomic_compare_exchange_strong_explicit(f, (int[]){ 0 }, 1, memory_order_acq_rel, memory_order_consume));
 }

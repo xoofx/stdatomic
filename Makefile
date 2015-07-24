@@ -71,6 +71,42 @@ RFUNCS = load_1					\
 	fetch_xor_16				\
 	fetch_or_16
 
+SFUNCS = bool_compare_and_swap_1		\
+	val_compare_and_swap_1			\
+	fetch_and_add_1				\
+	fetch_and_sub_1				\
+	fetch_and_and_1				\
+	fetch_and_xor_1				\
+	fetch_and_or_1				\
+	bool_compare_and_swap_2			\
+	val_compare_and_swap_2			\
+	fetch_and_add_2				\
+	fetch_and_sub_2				\
+	fetch_and_and_2				\
+	fetch_and_xor_2				\
+	fetch_and_or_2				\
+	bool_compare_and_swap_4			\
+	val_compare_and_swap_4			\
+	fetch_and_add_4				\
+	fetch_and_sub_4				\
+	fetch_and_and_4				\
+	fetch_and_xor_4				\
+	fetch_and_or_4				\
+	bool_compare_and_swap_8			\
+	val_compare_and_swap_8			\
+	fetch_and_add_8				\
+	fetch_and_sub_8				\
+	fetch_and_and_8				\
+	fetch_and_xor_8				\
+	fetch_and_or_8				\
+	bool_compare_and_swap_16		\
+	val_compare_and_swap_16			\
+	fetch_and_add_16			\
+	fetch_and_sub_16			\
+	fetch_and_and_16			\
+	fetch_and_xor_16			\
+	fetch_and_or_16
+
 .INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt defsyms.txt
 
 LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=__atomic_\1_internal /g'}
@@ -97,6 +133,7 @@ endif
 
 redefine_syms.txt : Makefile
 	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_internal __atomic_\1\n/g' > $@
+	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__sync_\1_internal __sync_\1\n/g'     >>$@
 
 defsyms.txt : Makefile
 	echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1=__atomic_\1_internal\n/g' > $@

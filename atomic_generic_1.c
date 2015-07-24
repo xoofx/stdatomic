@@ -6,3 +6,5 @@ INSTANTIATE_STUB_LF(1, uint8_t)
 #else
 INSTANTIATE_STUB_LC(1, uint8_t)
 #endif
+
+INSTANTIATE_SYNC(1, uint8_t)

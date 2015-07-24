@@ -64,4 +64,33 @@ _Bool __atomic_compare_exchange_ ## N ## _internal(void* _X, T* _E, T const _V, 
   return __atomic_compare_exchange_internal(N, _X, _E, &_V, _mos, _mof); \
 }
 
+#define INSTANTIATE_SYNC(N, T)                                          \
+T __sync_fetch_and_add_ ## N ## _internal(T* _X, T const _V) {          \
+  return __atomic_fetch_add_ ## N ## _internal(_X, _V, memory_order_seq_cst); \
+}                                                                       \
+T __sync_fetch_and_sub_ ## N ## _internal(T* _X, T const _V) {          \
+  return __atomic_fetch_sub_ ## N ## _internal(_X, _V, memory_order_seq_cst); \
+}                                                                       \
+T __sync_fetch_and_and_ ## N ## _internal(T* _X, T const _V) {          \
+  return __atomic_fetch_and_ ## N ## _internal(_X, _V, memory_order_seq_cst); \
+}                                                                       \
+T __sync_fetch_and_or_ ## N ## _internal(T* _X, T const _V) {           \
+  return __atomic_fetch_or_ ## N ## _internal(_X, _V, memory_order_seq_cst); \
+}                                                                       \
+T __sync_fetch_and_xor_ ## N ## _internal(T* _X, T const _V) {          \
+  return __atomic_fetch_xor_ ## N ## _internal(_X, _V, memory_order_seq_cst); \
+}                                                                       \
+_Bool __sync_bool_compare_and_swap_ ## N ## _internal(T* _X, T _E, T const _V) { \
+  T _R = _E;                                                            \
+  return __atomic_compare_exchange_ ## N ## _internal(_X, &_R, _V,      \
+                                                      memory_order_seq_cst, memory_order_seq_cst); \
+}                                                                       \
+T __sync_val_compare_and_swap_ ## N ## _internal(T* _X, T _E, T const _V) { \
+   T _R = _E;                                                           \
+  __atomic_compare_exchange_ ## N ## _internal(_X, &_R, _V,             \
+                                               memory_order_seq_cst, memory_order_seq_cst); \
+  return _R;                                                            \
+}
+
+
 #endif
