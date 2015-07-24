@@ -24,8 +24,7 @@ EFUNCS =					\
 	exchange				\
 	compare_exchange
 
-RFUNCS =					\
-	load_1					\
+RFUNCS = load_1					\
 	store_1					\
 	exchange_1				\
 	compare_exchange_1			\
@@ -71,11 +70,11 @@ RFUNCS =					\
 	fetch_xor_16				\
 	fetch_or_16
 
-.INTERMEDIATE :  ${GENERICS:.c=-tmp.o}
+.INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt
 
 LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=__atomic_\1_internal /g'}
 
-OBJOPTS := ${shell echo ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --redefine-sym=__atomic_\1_internal=__atomic_\1 /g'}
+OBJOPTS :=  --redefine-syms=redefine_syms.txt
 
 COPTS ?= -O3 -march=native
 
@@ -95,6 +94,9 @@ else
 libatomic.a : ${MEMBERS}
 endif
 
+redefine_syms.txt : Makefile
+	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_internal __atomic_\1\n/g' > $@
+
 atomic_generic-tmp.o : atomic_generic.c
 	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
 
@@ -104,31 +106,31 @@ atomic_generic.o : atomic_generic-tmp.o
 atomic_generic_1-tmp.o : atomic_generic_1.c
 	${CC} -c ${CFLAGS} -o atomic_generic_1-tmp.o atomic_generic_1.c
 
-atomic_generic_1.o : atomic_generic_1-tmp.o
+atomic_generic_1.o : atomic_generic_1-tmp.o redefine_syms.txt
 	 objcopy -v ${OBJOPTS} atomic_generic_1-tmp.o atomic_generic_1.o
 
 atomic_generic_2-tmp.o : atomic_generic_2.c
 	${CC} -c ${CFLAGS} -o atomic_generic_2-tmp.o atomic_generic_2.c
 
-atomic_generic_2.o : atomic_generic_2-tmp.o
+atomic_generic_2.o : atomic_generic_2-tmp.o redefine_syms.txt
 	 objcopy -v ${OBJOPTS} atomic_generic_2-tmp.o atomic_generic_2.o
 
 atomic_generic_4-tmp.o : atomic_generic_4.c
 	${CC} -c ${CFLAGS} -o atomic_generic_4-tmp.o atomic_generic_4.c
 
-atomic_generic_4.o : atomic_generic_4-tmp.o
+atomic_generic_4.o : atomic_generic_4-tmp.o redefine_syms.txt
 	 objcopy -v ${OBJOPTS} atomic_generic_4-tmp.o atomic_generic_4.o
 
 atomic_generic_8-tmp.o : atomic_generic_8.c
 	${CC} -c ${CFLAGS} -o atomic_generic_8-tmp.o atomic_generic_8.c
 
-atomic_generic_8.o : atomic_generic_8-tmp.o
+atomic_generic_8.o : atomic_generic_8-tmp.o redefine_syms.txt
 	 objcopy -v ${OBJOPTS} atomic_generic_8-tmp.o atomic_generic_8.o
 
 atomic_generic_16-tmp.o : atomic_generic_16.c
 	${CC} -c ${CFLAGS} -o atomic_generic_16-tmp.o atomic_generic_16.c
 
-atomic_generic_16.o : atomic_generic_16-tmp.o
+atomic_generic_16.o : atomic_generic_16-tmp.o redefine_syms.txt
 	 objcopy -v ${OBJOPTS} atomic_generic_16-tmp.o atomic_generic_16.o
 
 
