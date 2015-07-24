@@ -1,9 +1,10 @@
 TARGET = libatomic.a
 
+MUSL = ${HOME}/build/musl
+
 SOURCES :=					\
 	atomic_flag.c				\
-	atomic_fence.c				\
-	atomic_lock.c
+	atomic_fence.c
 
 GENERICS :=					\
 	atomic_generic.c			\
@@ -13,7 +14,7 @@ GENERICS :=					\
 	atomic_generic_8.c			\
 	atomic_generic_16.c
 
-OBJECTS := ${SOURCES:.c=.o} ${GENERICS:.c=.o}
+OBJECTS := ${SOURCES:.c=.o} ${GENERICS:.c=.o} lock-repl.o
 ASSEMBS := ${SOURCES:.c=.s} ${GENERICS:.c=.s}
 DEPENDS := ${OBJECTS:.o=.dep}
 MEMBERS := ${patsubst %.o, ${TARGET}(%.o),${OBJECTS}}
@@ -70,7 +71,7 @@ RFUNCS = load_1					\
 	fetch_xor_16				\
 	fetch_or_16
 
-.INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt
+.INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt defsyms.txt
 
 LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=__atomic_\1_internal /g'}
 
@@ -96,6 +97,10 @@ endif
 
 redefine_syms.txt : Makefile
 	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_internal __atomic_\1\n/g' > $@
+
+defsyms.txt : Makefile
+	echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1=__atomic_\1_internal\n/g' > $@
+
 
 atomic_generic-tmp.o : atomic_generic.c
 	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
@@ -146,5 +151,10 @@ clean :
 
 beautify :
 	astyle --options=.astylerc *.c *.h
+
+musl : ${SOURCES} ${GENERICS} redefine_syms.txt defsyms.txt
+	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
+	cp ${SOURCES} ${GENERICS} defsyms.txt redefine_syms.txt ${MUSL}/src/stdatomic/
+	cp atomic*.h  ${MUSL}/src/internal/
 
 -include ${DEPENDS}

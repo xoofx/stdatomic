@@ -1,6 +1,5 @@
 #include <limits.h>
 #include "stdatomic-impl.h"
-#include "atomic_lock.h"
 #include "atomic_generic.h"
 #include "libc.h"
 
