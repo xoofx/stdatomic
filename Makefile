@@ -144,4 +144,7 @@ atomic_generic_16.o : atomic_generic_16-tmp.o redefine_syms.txt
 clean :
 	rm -fr ${OBJECTS} ${DEPENDS} ${ASSEMBS} libatomic.a
 
+beautify :
+	astyle --options=.astylerc *.c *.h
+
 -include ${DEPENDS}
