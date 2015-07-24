@@ -38,20 +38,20 @@
  })
 
 #define atomic_store_explicit(X, V, MO)         \
-  __atomic_store((X), __atmp(*X, V), (MO))
+  __atomic_store((X), &__atmp(*X, V), (MO))
 
 #define atomic_exchange_explicit(X, V, MO)              \
 ({                                                      \
   __atyp(*X) _r;                                        \
-  __atomic_exchange((X), __atmp(*X, V), _r, (MO));      \
+  __atomic_exchange((X), &__atmp(*X, V), _r, (MO));     \
   __aret(_r[0]);                                        \
  })
 
 #define atomic_compare_exchange_weak_explicit(X, E, V, MOS, MOF)        \
-  __atomic_compare_exchange((X), (E), __atmp(*(X), (V)), 1, (MOS), (MOF))
+  __atomic_compare_exchange((X), (E), &__atmp(*(X), (V)), 1, (MOS), (MOF))
 
 #define atomic_compare_exchange_strong_explicit(X, E, V, MOS, MOF)       \
-  __atomic_compare_exchange((X), (E), __atmp(*(X), (V)), 0, (MOS), (MOF))
+  __atomic_compare_exchange((X), (E), &__atmp(*(X), (V)), 0, (MOS), (MOF))
 
 
 #define INSTANTIATE_STUB_LF(N, T)                                       \
