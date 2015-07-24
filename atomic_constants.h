@@ -1,11 +1,14 @@
 #ifndef _STDATOMIC_ATOMIC_CONSTANTS_H_
 #define _STDATOMIC_ATOMIC_CONSTANTS_H_ 1
 
-#ifndef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1
+#if !defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1) || __GNUC__ < 4
 # error "this implementation of stdatomic need support that is compatible with the gcc ABI"
 #endif
 
-#if !defined(__ATOMIC_RELAXED) || (__GNUC__ < 5 && __GNUC_MINOR__ < 8)
+/* gcc 4.7 and 4.8 implement atomic operations but not atomic
+   types. This test is meant to stay simple, we don't know of any
+   other compiler that fakes to be gcc 4.[78] or 4.[78].x */
+#if !defined(__ATOMIC_RELAXED) && __GNUC__ == 4 && __GNUC_MINOR__ < 7
 #undef __ATOMIC_FORCE_SYNC
 #define __ATOMIC_FORCE_SYNC 1
 #endif
@@ -18,12 +21,7 @@
           : ((sizeof(T) == 16) ? 16             \
              : __alignof__(T))))))
 
-/* gcc 4.8 implements atomic operations but not atomic types. This
-   test is meant to stay simple, we don't know of any other compiler
-   that fakes to be gcc 4.8 or 4.8.x */
-#if __GNUC__ == 4 && __GNUC_MINOR__ == 8
-#define _Atomic(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T) volatile
-#elif __ATOMIC_FORCE_SYNC
+#if __ATOMIC_FORCE_SYNC
 /* There is no compiler support for _Atomic type qualification, so we
    use the type specifier variant. The idea is to use a one element
    array to ensure that such an _Atomic(something) can never be used
