@@ -61,39 +61,6 @@ _Bool __atomic_compare_exchange_ ## N ## _internal(_Atomic(T)* _X, T* _E, T cons
   return __c11_atomic_compare_exchange_strong(_X, _E, _V, _mos, _mof);  \
 }
 
-
-
 #define INSTANTIATE_STUB(N, T) INSTANTIATE_STUB_ ## N(T)
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1
-# define INSTANTIATE_STUB_1(T) INSTANTIATE_STUB_LF(1, T)
-#else
-# define INSTANTIATE_STUB_1(T) INSTANTIATE_STUB_LC(1, T)
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2
-# define INSTANTIATE_STUB_2(T) INSTANTIATE_STUB_LF(2, T)
-#else
-# define INSTANTIATE_STUB_2(T) INSTANTIATE_STUB_LC(2, T)
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
-# define INSTANTIATE_STUB_4(T) INSTANTIATE_STUB_LF(4, T)
-#else
-# define INSTANTIATE_STUB_4(T) INSTANTIATE_STUB_LC(4, T)
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
-# define INSTANTIATE_STUB_8(T) INSTANTIATE_STUB_LF(8, T)
-#else
-# define INSTANTIATE_STUB_8(T) INSTANTIATE_STUB_LC(8, T)
-#endif
-
-#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_16
-# define INSTANTIATE_STUB_16(T) INSTANTIATE_STUB_LF(16, T)
-#else
-# define INSTANTIATE_STUB_16(T) INSTANTIATE_STUB_LC(16, T)
-#endif
-
 
 #endif

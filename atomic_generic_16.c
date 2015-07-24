@@ -1,4 +1,8 @@
 
-#include "stdatomic.h"
+#include <stdatomic.h>
 
-INSTANTIATE_STUB(16, __uint128_t);
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_16
+INSTANTIATE_STUB_LF(16, __uint128_t)
+#else
+INSTANTIATE_STUB_LC(16, __uint128_t)
+#endif
