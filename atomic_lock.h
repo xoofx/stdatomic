@@ -7,8 +7,8 @@
 /* The lock itself must be lock-free, so in general the can only be an
    atomic_flag if we know nothing else about the platform. */
 union __atomic_lock {
-  atomic_flag l;
-  int volatile d[2];
+	atomic_flag l;
+	int volatile d[2];
 };
 typedef union __atomic_lock __atomic_lock;
 

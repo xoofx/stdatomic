@@ -9,7 +9,7 @@
 
 typedef struct atomic_flag atomic_flag;
 struct atomic_flag {
-  _Bool f;
+	_Bool f;
 };
 
 _Bool atomic_flag_test_and_set(volatile atomic_flag*);
