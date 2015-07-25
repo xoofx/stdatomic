@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <string.h>
 #include "stdatomic-impl.h"
 #include "atomic_generic.h"
 #include "libc.h"
@@ -8,7 +9,7 @@
 # include <stdio.h>
 #endif
 
-/* This is size compatible with musl's internal locks*/
+/* This is compatible with musl's internal locks. */
 /* The lock itself must be lock-free, so in general the can only be an
    atomic_flag if we know nothing else about the platform. */
 
@@ -31,14 +32,14 @@ static __impl_lock table[LEN];
 
 #ifdef HASH_STAT
 static _Atomic(size_t) draw[LEN];
-static _Atomic(size_t) draws;
 #endif
 
 /* Chose a medium sized prime number as a factor. The multiplication
    by it is a bijection modulo any LEN. */
 #define MAGIC 14530039U
 
-
+__attribute__((__unused__))
+static
 unsigned __impl_hash(void volatile const* X) {
 	uintptr_t const len = LEN;
 	uintptr_t x = (uintptr_t)X;
@@ -51,11 +52,12 @@ unsigned __impl_hash(void volatile const* X) {
 	x %= len;
 #ifdef HASH_STAT
 	atomic_fetch_add_explicit(&draw[x], 1, memory_order_relaxed);
-	atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
 #endif
 	return x;
 }
 
+__attribute__((__unused__))
+static
 unsigned __impl_jenkins_one_at_a_time_hash(void volatile const* k) {
 	union {
 		unsigned char b[sizeof k];
@@ -74,11 +76,12 @@ unsigned __impl_jenkins_one_at_a_time_hash(void volatile const* k) {
 	x %= LEN;
 #ifdef HASH_STAT
 	atomic_fetch_add_explicit(&draw[x], 1, memory_order_relaxed);
-	atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
 #endif
 	return x;
 }
 
+__attribute__((__unused__))
+static
 uintptr_t __impl_mix(void volatile const* x) {
 	uintptr_t h = (uintptr_t)x;
 	h ^= h >> 16;
@@ -89,24 +92,26 @@ uintptr_t __impl_mix(void volatile const* x) {
 	h %= LEN;
 #ifdef HASH_STAT
 	atomic_fetch_add_explicit(&draw[h], 1, memory_order_relaxed);
-	atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
 #endif
 	return h;
 }
 
+__attribute__((__unused__))
+static
 uintptr_t __impl_8(void volatile const* x) {
 	uintptr_t h = (uintptr_t)x;
 	h ^= (h >> 8);
 	h %= LEN;
 #ifdef HASH_STAT
 	atomic_fetch_add_explicit(&draw[h], 1, memory_order_relaxed);
-	atomic_fetch_add_explicit(&draws, 1, memory_order_relaxed);
 #endif
 	return h;
 }
 
-
-#define hash __impl_hash
+#ifndef __ATOMIC_HASH
+# define __ATOMIC_HASH __impl_hash
+#endif
+#define hash __ATOMIC_HASH
 
 
 void __impl_load (size_t size, void volatile* ptr, void volatile* ret, int mo) {
@@ -114,14 +119,14 @@ void __impl_load (size_t size, void volatile* ptr, void volatile* ret, int mo) {
 	LOCK(table+pos);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
-	__builtin_memcpy((void*)ret, (void*)ptr, size);
+	memcpy((void*)ret, (void*)ptr, size);
 	UNLOCK(table+pos);
 }
 
 void __impl_store (size_t size, void volatile* ptr, void const volatile* val, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
-	__builtin_memcpy((void*)ptr, (void*)val, size);
+	memcpy((void*)ptr, (void*)val, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
 	UNLOCK(table+pos);
@@ -131,10 +136,10 @@ static
 void atomic_exchange_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
-	__builtin_memcpy((void*)ret, (void*)ptr, size);
+	memcpy((void*)ret, (void*)ptr, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
-	__builtin_memcpy((void*)ptr, (void*)val, size);
+	memcpy((void*)ptr, (void*)val, size);
 	UNLOCK(table+pos);
 }
 
@@ -142,7 +147,7 @@ void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const vo
 	if (val == ret) {
 		unsigned char buffer[size];
 		atomic_exchange_restrict(size, ptr, val, buffer, mo);
-		__builtin_memcpy((void*)ret, buffer, size);
+		memcpy((void*)ret, buffer, size);
 	} else {
 		atomic_exchange_restrict(size, ptr, val, ret, mo);
 	}
@@ -151,15 +156,15 @@ void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const vo
 _Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
-	_Bool ret = !__builtin_memcmp((void*)ptr, (void*)expected, size);
+	_Bool ret = !memcmp((void*)ptr, (void*)expected, size);
 	if (ret) {
-		__builtin_memcpy((void*)ptr, (void*)desired, size);
+		memcpy((void*)ptr, (void*)desired, size);
 		if (mos == memory_order_seq_cst)
 			atomic_thread_fence(memory_order_seq_cst);
 	} else {
 		if (mof == memory_order_seq_cst)
 			atomic_thread_fence(memory_order_seq_cst);
-		__builtin_memcpy((void*)expected, (void*)ptr, size);
+		memcpy((void*)expected, (void*)ptr, size);
 	}
 	UNLOCK(table+pos);
 	/* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
@@ -191,12 +196,26 @@ void __impl_print_stat(void) {
 	double avg2 = (x2+0.0)/LEN;
 	double var = avg2 - avg1*avg1;
 	fprintf(stderr, "hash utilisation, %d positions, %zu draws: %zu < %e (+%e) < %zu\n",
-	        LEN, atomic_load(&draws), min, avg1, sqrt(var), max);
+	        LEN, x1, min, avg1, sqrt(var), max);
 #endif
 }
 
-/* we want these to be strong aliases, so they can't accidentally be
-   replaced.*/
+/* For the four functions defined here, we need two entries in the
+   symbol table. One will be the final link name of the replacement
+   stub, something like __atomic_load, e.g. The other one is the
+   __impl prefixed name. It may eventually be used by the fixed-sized
+   stub functions, since these can't use the name that corresponds to
+   the builtin.
+
+   The replacement to the final name is not done within compiling,
+   since the name clashes can only create conflicts for a C
+   compiler. Instead, we use an external tool (objcopy) that does the
+   renaming.
+
+   We want these to be strong aliases, so they can't accidentally be
+   replaced. Therefore we can't use musl's weak_alias macro but create
+   one of our own. */
+
 #define alias(X, Y) __attribute__((__alias__(#X))) __typeof__(X) Y
 
 alias(__impl_load, __impl_load_replace);

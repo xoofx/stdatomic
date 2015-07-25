@@ -1,7 +1,6 @@
 #ifndef _STDATOMIC_CLANG_C11_H_
 #define _STDATOMIC_CLANG_C11_H_ 1
 
-#include <atomic_generic.h>
 #include <atomic_stub.h>
 
 #define ATOMIC_VAR_INIT(...) __VA_ARGS__

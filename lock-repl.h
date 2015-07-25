@@ -10,6 +10,4 @@ void __impl_mut_unlock(_Atomic(int) volatile* f);
 #define LOCK(L) __impl_mut_lock((_Atomic(int) volatile*)L)
 #define UNLOCK(L) __impl_mut_unlock((_Atomic(int) volatile*)L)
 
-#define weak_alias(A, B) extern  __typeof__(A) B __attribute__((weak,alias(#A)))
-
 #endif

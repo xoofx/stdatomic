@@ -1,14 +1,6 @@
 #ifndef _STDATOMIC_GCC_SYNC_H_
 #define _STDATOMIC_GCC_SYNC_H_ 1
 
-#include <atomic_constants.h>
-#include <atomic_flag.h>
-#include <atomic_generic.h>
-#include <atomic_stub.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-
 #define ATOMIC_VAR_INIT(...) { [0] = __VA_ARGS__, }
 #define atomic_init(X, V) ((void)((*(X))[0]=(V)))
 
