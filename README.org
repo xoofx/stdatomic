@@ -1,0 +1,140 @@
+#+TITLE:  An implementation of the C11 =<stdatomic.h>= interface
+#+AUTHOR: Jens Gustedt
+#+DATE: July, 2015
+
+* Short description
+
+  The implementation of the C11 atomic interface typically sits
+  between the implementation of the core language by the C compiler
+  and the implementation of the C library. It needs compiler support
+  for the individual atomic operations and library supports for the
+  cases where no low-level atomic instruction is available and a lock
+  must be taken.
+
+  - This implementation builds entirely on the two gcc ABIs for
+    atomics. It doesn't even attempt to go down to assembly level by
+    itself.
+
+  - We provide all function interfaces that the two gcc ABIs and the
+    C standard need.
+
+  - For compilers that don't offer the direct language support for
+    atomics this provides a reduced but fully functional approach to
+    atomic operations.
+
+* Features
+
+   We distinguish between the implementation of library functions and
+   the =<stdatomic.h>= header file.
+
+   The latter already contains a lot of intelligence, because it has
+   to do type generic stuff. This is more involved than usual C
+   library header files.
+
+   The header file is optional, the created function interface should
+   be compatible with the header files that gcc and clang may provide.
+
+** Type and function interfaces
+
+   These are the types and proper functions that are foreseen by the
+   standard:
+
+   - =atomic_flag= and its four functions
+   - the =memory_order= enumeration type
+   - fences
+
+   All of these are provided in forms that are compatible with gcc and
+   clang.
+
+** Type generic functions
+
+   These are all implemented as macros, and should in many cases
+   result in optimized inlined assembler instructions, and not in
+   library calls. Library calls are only needed as fall back, when
+   there is no reasonable instruction set available.
+
+   This implementation uses predefined macros of the form
+
+   =__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X=
+
+   where =X= can be one of 1, 2, 4, 8 or 16. If that macro exists, we
+   suppose that the compiler is able to synthesize all corresponding
+   memory functions for types of size =X= and all necessary arithmetic
+   function for integer types of that size, as lock-free (= stateless)
+   instructions.
+
+   This doesn't mean that there are direct assembler instruction for
+   all these operations. They can well be implemented as an unbounded
+   loop that uses a =compare_and_swap= (CAS) primitive for atomic
+   exchange. Gcc typically does this for the less common atomic
+   arithmetic instructions such as =atomic_fetch_and=, for
+   example. Lock-free doesn't mean a bounded number of instructions.
+
+   For the operations that cannot be mapped to assembler instructions
+   the compiler inserts calls to external functions. The names for
+   these functions are typically composed of the operation and
+   prefixed either by =__sync_= (the older gcc ABI) or =__atomic_=
+   (the newer gcc ABI). The names of these calls can be suffixed by
+   =_X= for =X= as above if this concerns an operation on a type of
+   the corresponding width.
+
+   All external functions that the gcc ABI's require are provided.
+
+*** The =__atomic_= ABI
+
+   is already close to the C11 call interface. Relevant for C11 are 9
+   operations
+     - =fetch_add= for integer addition
+     - =fetch_sub= for integer substraction
+     - =fetch_or=  for bitwise or
+     - =fetch_and= for bitwise and
+     - =fetch_xor= for bitwise xor
+     - =load= for an atomic load operation
+     - =store= for an atomic store operation
+     - =exchange= for an atomic exchange operation, equivalent to a
+       =store= that returns the previous value
+     - =compare_exchange= for an atomic compare and exchange
+       operation, equivalent to a conditional =store= that also saves
+       the previous value, and returns =false= or =true= according to
+       the success of the condition.
+
+   In addition to the more or less obvious operands, the builtin
+   functions take one or two additional parameters that reflect an
+   eventual requirement for the =memory_order= of the operation. So
+   the functions represent the C11 "explicit" features such as
+   =atomic_fetch_add_explicit=.
+
+   Observe that the builtin functions only foresee one interface
+   =compare_exchange=.
+
+     - The distinction between "weak" and "strong" versions of these
+       builtin functions are ruled through an additional parameter,
+       not through a different function interface.
+
+     - The function symbol fall-back =__atomic_compare_exchange=
+       confusingly has a different semantic and prototype than the
+       builtin function. It misses the parameter to chose between the
+       "weak" and the "strong" version, and solely corresponds to the
+       C11 operation
+
+       =atomic_compare_exchange_strong_explicit=
+
+   Function call interfaces for the arithmetic operations are only
+   generated if we can suppose that an integer type for the
+   corresponding size exists. We can reasonably assume that there are
+   always types =uint8_t=, =uint16_t=, =uint32_t= and =uint64_t=, so
+   the variants for 1, 2, 4 and 8 can always be generated.
+
+   For a 128 bit type these are only generated if =__SIZEOF_INT128__=
+   or =__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X= exist. If so we assume that
+   =__uint128_t= is such an integer type.
+
+*** The =__sync= ABI
+
+    It dates back long before the C11 atomic interface had been
+    designed and thus cannot be directly conforming to it. It has
+    basically the same features for arithmetic as above, only that
+
+    - The functions are named a bit differently.
+    - There are no =load=, =store= or =exchange= features.
+    - A =nand= operation is added.
