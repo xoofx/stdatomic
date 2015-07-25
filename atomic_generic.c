@@ -39,7 +39,7 @@ static _Atomic(size_t) draws;
 #define MAGIC 14530039U
 
 
-unsigned __shift_hash(void* X) {
+unsigned __shift_hash(void volatile const* X) {
 	uintptr_t const len = LEN;
 	uintptr_t x = (uintptr_t)X;
 	x *= MAGIC;
@@ -56,11 +56,11 @@ unsigned __shift_hash(void* X) {
 	return x;
 }
 
-unsigned __jenkins_one_at_a_time_hash(void *k) {
+unsigned __jenkins_one_at_a_time_hash(void volatile const* k) {
 	union {
 		unsigned char b[sizeof k];
 		uintptr_t v;
-		void* k;
+		void volatile const* k;
 	} key = { .k = k, };
 	uintptr_t i, x = 0;
 	for(i = 0; i < sizeof(uintptr_t); ++i) {
@@ -79,7 +79,7 @@ unsigned __jenkins_one_at_a_time_hash(void *k) {
 	return x;
 }
 
-uintptr_t __fmix(void* x) {
+uintptr_t __fmix(void volatile const* x) {
 	uintptr_t h = (uintptr_t)x;
 	h ^= h >> 16;
 	h *= 0x85ebca6b;
@@ -94,7 +94,7 @@ uintptr_t __fmix(void* x) {
 	return h;
 }
 
-uintptr_t __f8(void* x) {
+uintptr_t __f8(void volatile const* x) {
 	uintptr_t h = (uintptr_t)x;
 	h >>= 8;
 	h %= LEN;
@@ -109,57 +109,57 @@ uintptr_t __f8(void* x) {
 #define hash __shift_hash
 
 
-void __atomic_load_internal (size_t size, void* ptr, void* ret, int mo) {
+void __atomic_load_internal (size_t size, void volatile* ptr, void volatile* ret, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
-	__builtin_memcpy(ret, ptr, size);
+	__builtin_memcpy((void*)ret, (void*)ptr, size);
 	UNLOCK(table+pos);
 }
 
-void __atomic_store_internal (size_t size, void* ptr, void const* val, int mo) {
+void __atomic_store_internal (size_t size, void volatile* ptr, void const volatile* val, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
-	__builtin_memcpy(ptr, val, size);
+	__builtin_memcpy((void*)ptr, (void*)val, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
 	UNLOCK(table+pos);
 }
 
 static
-void atomic_exchange_internal_restrict (size_t size, void*__restrict__ ptr, void const*__restrict__ val, void*__restrict__ ret, int mo) {
+void atomic_exchange_internal_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
-	__builtin_memcpy(ret, ptr, size);
+	__builtin_memcpy((void*)ret, (void*)ptr, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
-	__builtin_memcpy(ptr, val, size);
+	__builtin_memcpy((void*)ptr, (void*)val, size);
 	UNLOCK(table+pos);
 }
 
-void __atomic_exchange_internal (size_t size, void*__restrict__ ptr, void const* val, void* ret, int mo) {
+void __atomic_exchange_internal (size_t size, void volatile*__restrict__ ptr, void const volatile* val, void volatile* ret, int mo) {
 	if (val == ret) {
 		unsigned char buffer[size];
 		atomic_exchange_internal_restrict(size, ptr, val, buffer, mo);
-		__builtin_memcpy(ret, buffer, size);
+		__builtin_memcpy((void*)ret, buffer, size);
 	} else {
 		atomic_exchange_internal_restrict(size, ptr, val, ret, mo);
 	}
 }
 
-_Bool __atomic_compare_exchange_internal (size_t size, void* ptr, void* expected, void const* desired, int mos, int mof) {
+_Bool __atomic_compare_exchange_internal (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
-	_Bool ret = !__builtin_memcmp(ptr, expected, size);
+	_Bool ret = !__builtin_memcmp((void*)ptr, (void*)expected, size);
 	if (ret) {
-		__builtin_memcpy(ptr, desired, size);
+		__builtin_memcpy((void*)ptr, (void*)desired, size);
 		if (mos == memory_order_seq_cst)
 			atomic_thread_fence(memory_order_seq_cst);
 	} else {
 		if (mof == memory_order_seq_cst)
 			atomic_thread_fence(memory_order_seq_cst);
-		__builtin_memcpy(expected, ptr, size);
+		__builtin_memcpy((void*)expected, (void*)ptr, size);
 	}
 	UNLOCK(table+pos);
 	/* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
@@ -195,7 +195,11 @@ void __atomic_print_stat(void) {
 #endif
 }
 
-weak_alias(__atomic_load_internal, __atomic_load);
-weak_alias(__atomic_store_internal, __atomic_store);
-weak_alias(__atomic_exchange_internal, __atomic_exchange);
-weak_alias(__atomic_compare_exchange_internal, __atomic_compare_exchange);
+/* we want these to be strong aliases, so they can't accidentally be
+   replaced.*/
+#define alias(X, Y) __attribute__((__alias__(#X))) __typeof__(X) Y
+
+alias(__atomic_load_internal, __atomic_load_replace);
+alias(__atomic_store_internal, __atomic_store_replace);
+alias(__atomic_exchange_internal, __atomic_exchange_replace);
+alias(__atomic_compare_exchange_internal, __atomic_compare_exchange_replace);

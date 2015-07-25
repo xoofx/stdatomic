@@ -107,9 +107,7 @@ SFUNCS = bool_compare_and_swap_1		\
 	fetch_and_xor_16			\
 	fetch_and_or_16
 
-.INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt defsyms.txt
-
-LDOPTS := ${shell echo ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\)/ --defsym=__atomic_\1=__atomic_\1_internal /g'}
+.INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt
 
 OBJOPTS :=  --redefine-syms=redefine_syms.txt
 
@@ -134,16 +132,14 @@ endif
 redefine_syms.txt : Makefile
 	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_internal __atomic_\1\n/g' > $@
 	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__sync_\1_internal __sync_\1\n/g'     >>$@
-
-defsyms.txt : Makefile
-	echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1=__atomic_\1_internal\n/g' > $@
+	@echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_replace __atomic_\1\n/g'  >>$@
 
 
 atomic_generic-tmp.o : atomic_generic.c
 	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
 
-atomic_generic.o : atomic_generic-tmp.o
-	${LD} -r ${LDOPTS} atomic_generic-tmp.o -o atomic_generic.o
+atomic_generic.o : atomic_generic-tmp.o redefine_syms.txt
+	objcopy -v ${OBJOPTS} atomic_generic-tmp.o atomic_generic.o
 
 atomic_generic_1-tmp.o : atomic_generic_1.c
 	${CC} -c ${CFLAGS} -o atomic_generic_1-tmp.o atomic_generic_1.c
@@ -189,7 +185,7 @@ clean :
 beautify :
 	astyle --options=.astylerc *.c *.h
 
-musl : ${SOURCES} ${GENERICS} redefine_syms.txt defsyms.txt
+musl : ${SOURCES} ${GENERICS} redefine_syms.txt
 	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
 	cp ${SOURCES} ${GENERICS} defsyms.txt redefine_syms.txt ${MUSL}/src/stdatomic/
 	cp atomic*.h  ${MUSL}/src/internal/

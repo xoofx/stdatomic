@@ -13,12 +13,12 @@
 #define __ATOMIC_FORCE_SYNC 1
 #endif
 
-#define __atomic_align(T)                       \
-(sizeof(T) == 1 ? 1                             \
- : (sizeof(T) == 2 ? 2                          \
-    : (sizeof(T) == 4 ? 4                       \
-       : ((sizeof(T) == 8) ? 8                  \
-          : ((sizeof(T) == 16) ? 16             \
+#define __atomic_align(T)                                       \
+(sizeof(T) == 1 ?  __alignof__(uint8_t)                         \
+ : (sizeof(T) == 2 ?  __alignof__(uint16_t)                     \
+    : (sizeof(T) == 4 ?  __alignof__(uint32_t)                  \
+       : ((sizeof(T) == 8) ?  __alignof__(uint64_t)             \
+          : ((sizeof(T) == 16) ?  __alignof__(__uint128_t)      \
              : __alignof__(T))))))
 
 #if __ATOMIC_FORCE_SYNC
@@ -31,7 +31,8 @@
    no bad things can happen, then, we ensure that the alignment for
    these special cases is as wide as possible, namely sizeof the
    type. */
-#define _Atomic(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T[1])
+#define _Atomic(T) __typeof__(T volatile[1])
+#define _Atomic_aligned(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T[1])
 #endif
 
 #ifndef __ATOMIC_RELAXED

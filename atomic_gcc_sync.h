@@ -37,38 +37,38 @@
 #define atomic_compare_exchange_weak(X, E, D, MOS, MOF) atomic_compare_exchange_strong((X), (E), (V), (MOS), (MOF))
 
 #define INSTANTIATE_STUB_LF(N, T)                                       \
-T __atomic_fetch_add_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  return __sync_fetch_and_add(_X, _V);                                  \
+T __atomic_fetch_add_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_fetch_and_add(&((*X)[0]), _V);                          \
 }                                                                       \
-T __atomic_fetch_sub_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  return __sync_fetch_and_sub(_X, _V);                                  \
+T __atomic_fetch_sub_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_fetch_and_sub(&((*X)[0]), _V);                          \
 }                                                                       \
-T __atomic_fetch_and_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  return __sync_fetch_and_and(_X, _V);                                  \
+T __atomic_fetch_and_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_fetch_and_and(&((*X)[0]), _V);                          \
 }                                                                       \
-T __atomic_fetch_xor_ ## N ## _internal(T* _X, T const _V, int _mo) {   \
-  return __sync_fetch_and_xor(_X, _V, _mo);                             \
+T __atomic_fetch_xor_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_fetch_and_xor(&((*X)[0]), _V, _mo);                     \
 }                                                                       \
-T __atomic_fetch_or_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  return __sync_fetch_and_or(_X, _V, _mo);                              \
+T __atomic_fetch_or_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_fetch_and_or(&((*X)[0]), _V, _mo);                      \
 }                                                                       \
-T __atomic_load_ ## N ## _internal(T* _X, int _mo) {                    \
-  return __sync_val_compare_and_swap(_X, 0, 0);                         \
+T __atomic_load_ ## N ## _internal(__typeof__(T volatile[1])* X, int _mo) {            \
+  return __sync_val_compare_and_swap(&((*X)[0]), 0, 0);                 \
 }                                                                       \
-T __atomic_exchange_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
+T __atomic_exchange_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   T _r = _V, _e;                                                        \
   do {                                                                  \
     _e = _r;                                                            \
-    _r = __sync_val_compare_and_swap(_X, _e, _V);                       \
+    _r = __sync_val_compare_and_swap(&((*X)[0]), _e, _V);               \
   } while (_r != _e);                                                   \
   return _r;                                                            \
 }                                                                       \
-void __atomic_store_ ## N ## _internal(T* _X, T const _V, int _mo) {    \
-  (void)__atomic_exchange_ ## N ## _internal(_X, _V, _mo);              \
+void __atomic_store_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  (void)__atomic_exchange_ ## N ## _internal(X, _V, _mo);      \
 }                                                                       \
-_Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _D, int _mos, int _mof) { \
+_Bool __atomic_compare_exchange_ ## N ## _internal(__typeof__(T volatile[1])* X, T* _E, T const _D, int _mos, int _mof) { \
   T _v = *_E;                                                           \
-  T _n = __sync_val_compare_and_swap(_X, _v, _D);                       \
+  T _n = __sync_val_compare_and_swap(&((*X)[0]), _v, _D);               \
   if (_v != _n) {                                                       \
     *_E = _n;                                                           \
     return 0;                                                           \
@@ -87,7 +87,7 @@ _Bool __atomic_compare_exchange_ ## N ## _internal(T* _X, T* _E, T const _D, int
   case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), (E), (D)); break; \
   case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), (E), (D)); break; \
   case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), (E), (D)); break; \
-  default: ret = __atomic_compare_exchange_internal(sizeof (*X), (void*)(X), (E), &_d, 0, MOS, MOS); \
+  default: ret = __atomic_compare_exchange_internal(sizeof (*X), (void*)(X), (E), &_d, MOS, MOS); \
   }                                                                     \
   __aret(ret);                                                          \
  })
@@ -154,7 +154,7 @@ __builtin_choose_expr                                           \
  __atomic_load_union(uint8_t, &((*X)[0])),                      \
  ({                                                             \
  __typeof__((*X)[0]) _r;                                        \
- __atomic_load_internal(sizeof _r, (&((*X)[0])), &_r, MO);      \
+ __atomic_load_internal(sizeof _r, (void*)(&((*X)[0])), &_r, MO);    \
  _r;                                                            \
  }))))))
 
@@ -181,8 +181,7 @@ __builtin_choose_expr                                           \
  __atomic_store_union(uint8_t, &((*X)[0]), (V)),                \
  ({                                                             \
  __typeof__((*X)[0]) const _v = (V);                            \
- __atomic_store_internal(sizeof _r, (&((*X)[0])), &_v, MO);     \
- _r;                                                            \
+ __atomic_store_internal(sizeof _v, &((*X)[0]), &_v, MO);       \
  }))))))
 
 #define atomic_exchange_explicit(X, V, MO)                              \
