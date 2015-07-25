@@ -34,31 +34,31 @@
 #define atomic_compare_exchange_weak_explicit                      __c11_atomic_compare_exchange_weak
 
 #define INSTANTIATE_STUB_LF(N, T)                                       \
-T __atomic_fetch_add_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+T __impl_fetch_add_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
   return __c11_atomic_fetch_add(_X, _V, _mo);                           \
 }                                                                       \
-T __atomic_fetch_sub_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+T __impl_fetch_sub_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
   return __c11_atomic_fetch_sub(_X, _V, _mo);                           \
 }                                                                       \
-T __atomic_fetch_and_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+T __impl_fetch_and_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
   return __c11_atomic_fetch_and(_X, _V, _mo);                           \
 }                                                                       \
-T __atomic_fetch_xor_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+T __impl_fetch_xor_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
   return __c11_atomic_fetch_xor(_X, _V, _mo);                           \
 }                                                                       \
-T __atomic_fetch_or_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+T __impl_fetch_or_ ## N(_Atomic(T)* _X, T const _V, int _mo) {          \
   return __c11_atomic_fetch_or(_X, _V, _mo);                            \
 }                                                                       \
-T __atomic_load_ ## N ## _internal(_Atomic(T)* _X, int _mo) {           \
+T __impl_load_ ## N(_Atomic(T)* _X, int _mo) {                          \
   return __c11_atomic_load(_X, _mo);                                    \
 }                                                                       \
-void __atomic_store_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+void __impl_store_ ## N(_Atomic(T)* _X, T const _V, int _mo) {          \
   __c11_atomic_store(_X, _V, _mo);                                      \
 }                                                                       \
-T __atomic_exchange_ ## N ## _internal(_Atomic(T)* _X, T const _V, int _mo) { \
+T __impl_exchange_ ## N(_Atomic(T)* _X, T const _V, int _mo) {          \
   return __c11_atomic_exchange(_X, _V, _mo);                            \
 }                                                                       \
-_Bool __atomic_compare_exchange_ ## N ## _internal(_Atomic(T)* _X, T* _E, T const _V, int _mos, int _mof) { \
+_Bool __impl_compare_exchange_ ## N(_Atomic(T)* _X, T* _E, T const _V, int _mos, int _mof) { \
   return __c11_atomic_compare_exchange_strong(_X, _E, _V, _mos, _mof);  \
 }
 

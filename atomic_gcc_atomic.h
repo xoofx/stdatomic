@@ -55,31 +55,31 @@
 
 
 #define INSTANTIATE_STUB_LF(N, T)                                       \
-T __atomic_fetch_add_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+T __impl_fetch_add_ ## N(_Atomic(T)* X, T const V, int M) {             \
   return __atomic_fetch_add(X, V, M);                                   \
 }                                                                       \
-T __atomic_fetch_sub_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+T __impl_fetch_sub_ ## N(_Atomic(T)* X, T const V, int M) {             \
   return __atomic_fetch_sub(X, V, M);                                   \
 }                                                                       \
-T __atomic_fetch_and_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+T __impl_fetch_and_ ## N(_Atomic(T)* X, T const V, int M) {             \
   return __atomic_fetch_and(X, V, M);                                   \
 }                                                                       \
-T __atomic_fetch_xor_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+T __impl_fetch_xor_ ## N(_Atomic(T)* X, T const V, int M) {             \
   return __atomic_fetch_xor(X, V, M);                                   \
 }                                                                       \
-T __atomic_fetch_or_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+T __impl_fetch_or_ ## N(_Atomic(T)* X, T const V, int M) {              \
   return __atomic_fetch_or(X, V, M);                                    \
 }                                                                       \
-T __atomic_load_ ## N ## _internal(_Atomic(T)* X, int M) {              \
+T __impl_load_ ## N(_Atomic(T)* X, int M) {                             \
   return __atomic_load_n(X, M);                                         \
 }                                                                       \
-void __atomic_store_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+void __impl_store_ ## N(_Atomic(T)* X, T const V, int M) {              \
   __atomic_store_n(X, V, M);                                            \
 }                                                                       \
-T __atomic_exchange_ ## N ## _internal(_Atomic(T)* X, T const V, int M) { \
+T __impl_exchange_ ## N(_Atomic(T)* X, T const V, int M) {              \
   return __atomic_exchange_n(X, V, M);                                  \
 }                                                                       \
-_Bool __atomic_compare_exchange_ ## N ## _internal(_Atomic(T)* X, T* E, T const V, int MS, int MF) { \
+_Bool __impl_compare_exchange_ ## N(_Atomic(T)* X, T* E, T const V, int MS, int MF) { \
   return __atomic_compare_exchange_n(X, E, V, 0, MS, MF);               \
 }
 

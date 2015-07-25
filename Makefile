@@ -130,9 +130,9 @@ libatomic.a : ${MEMBERS}
 endif
 
 redefine_syms.txt : Makefile
-	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_internal __atomic_\1\n/g' > $@
-	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__sync_\1_internal __sync_\1\n/g'     >>$@
-	@echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__atomic_\1_replace __atomic_\1\n/g'  >>$@
+	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __atomic_\1\n/g'          > $@
+	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __sync_\1\n/g'            >>$@
+	@echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1_replace __atomic_\1\n/g'  >>$@
 
 
 atomic_generic-tmp.o : atomic_generic.c
@@ -187,7 +187,7 @@ beautify :
 
 musl : ${SOURCES} ${GENERICS} redefine_syms.txt
 	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
-	cp ${SOURCES} ${GENERICS} defsyms.txt redefine_syms.txt ${MUSL}/src/stdatomic/
+	cp ${SOURCES} ${GENERICS} redefine_syms.txt ${MUSL}/src/stdatomic/
 	cp atomic*.h  ${MUSL}/src/internal/
 
 -include ${DEPENDS}

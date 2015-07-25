@@ -12,7 +12,7 @@
 /* The lock itself must be lock-free, so in general the can only be an
    atomic_flag if we know nothing else about the platform. */
 
-typedef int volatile __atomic_lock[2];
+typedef int volatile __impl_lock[2];
 
 
 
@@ -27,7 +27,7 @@ typedef int volatile __atomic_lock[2];
 enum { LEN = 1<<HBIT, };
 enum { ptrbit = sizeof(uintptr_t)*CHAR_BIT, };
 
-static __atomic_lock table[LEN];
+static __impl_lock table[LEN];
 
 #ifdef HASH_STAT
 static _Atomic(size_t) draw[LEN];
@@ -39,7 +39,7 @@ static _Atomic(size_t) draws;
 #define MAGIC 14530039U
 
 
-unsigned __shift_hash(void volatile const* X) {
+unsigned __impl_hash(void volatile const* X) {
 	uintptr_t const len = LEN;
 	uintptr_t x = (uintptr_t)X;
 	x *= MAGIC;
@@ -56,7 +56,7 @@ unsigned __shift_hash(void volatile const* X) {
 	return x;
 }
 
-unsigned __jenkins_one_at_a_time_hash(void volatile const* k) {
+unsigned __impl_jenkins_one_at_a_time_hash(void volatile const* k) {
 	union {
 		unsigned char b[sizeof k];
 		uintptr_t v;
@@ -79,7 +79,7 @@ unsigned __jenkins_one_at_a_time_hash(void volatile const* k) {
 	return x;
 }
 
-uintptr_t __fmix(void volatile const* x) {
+uintptr_t __impl_mix(void volatile const* x) {
 	uintptr_t h = (uintptr_t)x;
 	h ^= h >> 16;
 	h *= 0x85ebca6b;
@@ -94,9 +94,9 @@ uintptr_t __fmix(void volatile const* x) {
 	return h;
 }
 
-uintptr_t __f8(void volatile const* x) {
+uintptr_t __impl_8(void volatile const* x) {
 	uintptr_t h = (uintptr_t)x;
-	h >>= 8;
+	h ^= (h >> 8);
 	h %= LEN;
 #ifdef HASH_STAT
 	atomic_fetch_add_explicit(&draw[h], 1, memory_order_relaxed);
@@ -106,10 +106,10 @@ uintptr_t __f8(void volatile const* x) {
 }
 
 
-#define hash __shift_hash
+#define hash __impl_hash
 
 
-void __atomic_load_internal (size_t size, void volatile* ptr, void volatile* ret, int mo) {
+void __impl_load (size_t size, void volatile* ptr, void volatile* ret, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
 	if (mo == memory_order_seq_cst)
@@ -118,7 +118,7 @@ void __atomic_load_internal (size_t size, void volatile* ptr, void volatile* ret
 	UNLOCK(table+pos);
 }
 
-void __atomic_store_internal (size_t size, void volatile* ptr, void const volatile* val, int mo) {
+void __impl_store (size_t size, void volatile* ptr, void const volatile* val, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
 	__builtin_memcpy((void*)ptr, (void*)val, size);
@@ -128,7 +128,7 @@ void __atomic_store_internal (size_t size, void volatile* ptr, void const volati
 }
 
 static
-void atomic_exchange_internal_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
+void atomic_exchange_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
 	__builtin_memcpy((void*)ret, (void*)ptr, size);
@@ -138,17 +138,17 @@ void atomic_exchange_internal_restrict (size_t size, void volatile*__restrict__ 
 	UNLOCK(table+pos);
 }
 
-void __atomic_exchange_internal (size_t size, void volatile*__restrict__ ptr, void const volatile* val, void volatile* ret, int mo) {
+void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const volatile* val, void volatile* ret, int mo) {
 	if (val == ret) {
 		unsigned char buffer[size];
-		atomic_exchange_internal_restrict(size, ptr, val, buffer, mo);
+		atomic_exchange_restrict(size, ptr, val, buffer, mo);
 		__builtin_memcpy((void*)ret, buffer, size);
 	} else {
-		atomic_exchange_internal_restrict(size, ptr, val, ret, mo);
+		atomic_exchange_restrict(size, ptr, val, ret, mo);
 	}
 }
 
-_Bool __atomic_compare_exchange_internal (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
+_Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
 	unsigned pos = hash(ptr);
 	LOCK(table+pos);
 	_Bool ret = !__builtin_memcmp((void*)ptr, (void*)expected, size);
@@ -170,7 +170,7 @@ _Bool __atomic_compare_exchange_internal (size_t size, void volatile* ptr, void 
 
 /* To collect hash statistics about atomics, compile with
    ``HASH_STAT'' */
-void __atomic_print_stat(void) {
+void __impl_print_stat(void) {
 #ifdef HASH_STAT
 	size_t x1 = 0;
 	size_t x2 = 0;
@@ -199,7 +199,7 @@ void __atomic_print_stat(void) {
    replaced.*/
 #define alias(X, Y) __attribute__((__alias__(#X))) __typeof__(X) Y
 
-alias(__atomic_load_internal, __atomic_load_replace);
-alias(__atomic_store_internal, __atomic_store_replace);
-alias(__atomic_exchange_internal, __atomic_exchange_replace);
-alias(__atomic_compare_exchange_internal, __atomic_compare_exchange_replace);
+alias(__impl_load, __impl_load_replace);
+alias(__impl_store, __impl_store_replace);
+alias(__impl_exchange, __impl_exchange_replace);
+alias(__impl_compare_exchange, __impl_compare_exchange_replace);

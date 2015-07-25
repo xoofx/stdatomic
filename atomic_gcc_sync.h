@@ -37,25 +37,25 @@
 #define atomic_compare_exchange_weak(X, E, D, MOS, MOF) atomic_compare_exchange_strong((X), (E), (V), (MOS), (MOF))
 
 #define INSTANTIATE_STUB_LF(N, T)                                       \
-T __atomic_fetch_add_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+T __impl_fetch_add_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   return __sync_fetch_and_add(&((*X)[0]), _V);                          \
 }                                                                       \
-T __atomic_fetch_sub_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+T __impl_fetch_sub_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   return __sync_fetch_and_sub(&((*X)[0]), _V);                          \
 }                                                                       \
-T __atomic_fetch_and_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+T __impl_fetch_and_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   return __sync_fetch_and_and(&((*X)[0]), _V);                          \
 }                                                                       \
-T __atomic_fetch_xor_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+T __impl_fetch_xor_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   return __sync_fetch_and_xor(&((*X)[0]), _V, _mo);                     \
 }                                                                       \
-T __atomic_fetch_or_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+T __impl_fetch_or_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   return __sync_fetch_and_or(&((*X)[0]), _V, _mo);                      \
 }                                                                       \
-T __atomic_load_ ## N ## _internal(__typeof__(T volatile[1])* X, int _mo) {            \
+T __impl_load_ ## N(__typeof__(T volatile[1])* X, int _mo) {            \
   return __sync_val_compare_and_swap(&((*X)[0]), 0, 0);                 \
 }                                                                       \
-T __atomic_exchange_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+T __impl_exchange_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   T _r = _V, _e;                                                        \
   do {                                                                  \
     _e = _r;                                                            \
@@ -63,10 +63,10 @@ T __atomic_exchange_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V,
   } while (_r != _e);                                                   \
   return _r;                                                            \
 }                                                                       \
-void __atomic_store_ ## N ## _internal(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
-  (void)__atomic_exchange_ ## N ## _internal(X, _V, _mo);      \
+void __impl_store_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  (void)__impl_exchange_ ## N(X, _V, _mo);                              \
 }                                                                       \
-_Bool __atomic_compare_exchange_ ## N ## _internal(__typeof__(T volatile[1])* X, T* _E, T const _D, int _mos, int _mof) { \
+_Bool __impl_compare_exchange_ ## N(__typeof__(T volatile[1])* X, T* _E, T const _D, int _mos, int _mof) { \
   T _v = *_E;                                                           \
   T _n = __sync_val_compare_and_swap(&((*X)[0]), _v, _D);               \
   if (_v != _n) {                                                       \
@@ -83,159 +83,159 @@ _Bool __atomic_compare_exchange_ ## N ## _internal(__typeof__(T volatile[1])* X,
   _Bool ret;                                                            \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: ret = __sync_val_compare_and_swap((uint64_t*)(X), (E), (D)); break; \
-  case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), (E), (D)); break; \
-  case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), (E), (D)); break; \
-  case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), (E), (D)); break; \
-  default: ret = __atomic_compare_exchange_internal(sizeof (*X), (void*)(X), (E), &_d, MOS, MOS); \
+  case 8: ret = __sync_val_compare_and_swap((uint64_t*)(X), *(E), (D)); break; \
+  case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), *(E), (D)); break; \
+  case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), *(E), (D)); break; \
+  case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), *(E), (D)); break; \
+  default: ret = __impl_compare_exchange(sizeof (*X), (void*)(X), (E), &_d, MOS, MOS); \
   }                                                                     \
   __aret(ret);                                                          \
  })
 
-#define __atomic_union(T, X) union { __typeof__(*(X)) x; T t; }
-#define __atomic_union2T(T, X) (((__atomic_union(T, X)){ .x = (*(X)), }).t)
-#define __atomic_union2X(T, X, V) (((__atomic_union(T, X)){ .t = (V), }).x)
+#define __impl_union(T, X) union { __typeof__(*(X)) x; T t; }
+#define __impl_union2T(T, X) (((__impl_union(T, X)){ .x = (*(X)), }).t)
+#define __impl_union2X(T, X, V) (((__impl_union(T, X)){ .t = (V), }).x)
 
-#define __atomic_load_union(T, X)                                       \
-__atomic_union2X(T, X, __sync_val_compare_and_swap((T*)X, 0, 0))
+#define __impl_load_union(T, X)                                       \
+__impl_union2X(T, X, __sync_val_compare_and_swap((T*)X, 0, 0))
 
-#define __atomic_exchange_union(T, X, V)                                \
-({                                                                      \
-  __atomic_union(T, X) _V = { .t = (V), };                              \
-  T _r = _V.t, _e;                                                      \
-  do {                                                                  \
-    _e = _r;                                                            \
-    _r = __sync_val_compare_and_swap((T*)X, _e, _V.t);                  \
-  } while (_r != _e);                                                   \
-  __atomic_union2X(T, X, _r);                                           \
+#define __impl_exchange_union(T, X, V)                  \
+({                                                      \
+  __impl_union(T, X) _V = { .t = (V), };                \
+  T _r = _V.t, _e;                                      \
+  do {                                                  \
+    _e = _r;                                            \
+    _r = __sync_val_compare_and_swap((T*)X, _e, _V.t);  \
+  } while (_r != _e);                                   \
+  __impl_union2X(T, X, _r);                             \
  })
 
-#define __atomic_store_union(T, X, V)                                   \
-({                                                                      \
-  __atomic_union(T, X) _V = { .t = (V), };                              \
-  T _r = _V.t, _e;                                                      \
-  do {                                                                  \
-    _e = _r;                                                            \
-    _r = __sync_val_compare_and_swap((T*)X, _e, _V.t);                  \
-  } while (_r != _e);                                                   \
+#define __impl_store_union(T, X, V)                     \
+({                                                      \
+  __impl_union(T, X) _V = { .t = (V), };                \
+  T _r = _V.t, _e;                                      \
+  do {                                                  \
+    _e = _r;                                            \
+    _r = __sync_val_compare_and_swap((T*)X, _e, _V.t);  \
+  } while (_r != _e);                                   \
  })
 
-#define __atomic_compare_exchange_union(T, X, E, V)                     \
+#define __impl_compare_exchange_union(T, X, E, V)                       \
 ({                                                                      \
   __typeof__(*E)* _e = (E);                                             \
-  __atomic_union(T, X) _V = { .x = (V), };                              \
-  __atomic_union(T, X) _E = { .x = *_e, };                              \
-  __atomic_union(T, X) _R = { .t = __sync_val_compare_and_swap((T*)X, _E.t, _V.t), }; \
+  __impl_union(T, X) _V = { .x = (V), };                                \
+  __impl_union(T, X) _E = { .x = *_e, };                                \
+  __impl_union(T, X) _R = { .t = __sync_val_compare_and_swap((T*)X, _E.t, _V.t), }; \
   _Bool _r = (_E.t == _R.t);                                            \
   if (!_r) _E.x = _R.x;                                                 \
   _r;                                                                   \
  })
 
-#define atomic_load_explicit(X, MO)                             \
-__builtin_choose_expr                                           \
-(                                                               \
- sizeof(*X)==16,                                                \
- __atomic_load_union(__uint128_t, &((*X)[0])),                  \
-__builtin_choose_expr                                           \
-(                                                               \
- sizeof(*X)==8,                                                 \
- __atomic_load_union(uint64_t, &((*X)[0])),                     \
-__builtin_choose_expr                                           \
-(                                                               \
- sizeof(*X)==4,                                                 \
- __atomic_load_union(uint32_t, &((*X)[0])),                     \
- __builtin_choose_expr                                          \
-(                                                               \
- sizeof(*X)==2,                                                 \
- __atomic_load_union(uint16_t, &((*X)[0])),                     \
- __builtin_choose_expr                                          \
-(                                                               \
- sizeof(*X)==1,                                                 \
- __atomic_load_union(uint8_t, &((*X)[0])),                      \
- ({                                                             \
- __typeof__((*X)[0]) _r;                                        \
- __atomic_load_internal(sizeof _r, (void*)(&((*X)[0])), &_r, MO);    \
- _r;                                                            \
+#define atomic_load_explicit(X, MO)                     \
+__builtin_choose_expr                                   \
+(                                                       \
+ sizeof(*X)==16,                                        \
+ __impl_load_union(__uint128_t, &((*X)[0])),            \
+__builtin_choose_expr                                   \
+(                                                       \
+ sizeof(*X)==8,                                         \
+ __impl_load_union(uint64_t, &((*X)[0])),               \
+__builtin_choose_expr                                   \
+(                                                       \
+ sizeof(*X)==4,                                         \
+ __impl_load_union(uint32_t, &((*X)[0])),               \
+ __builtin_choose_expr                                  \
+(                                                       \
+ sizeof(*X)==2,                                         \
+ __impl_load_union(uint16_t, &((*X)[0])),               \
+ __builtin_choose_expr                                  \
+(                                                       \
+ sizeof(*X)==1,                                         \
+ __impl_load_union(uint8_t, &((*X)[0])),                \
+ ({                                                     \
+ __typeof__((*X)[0]) _r;                                \
+ __impl_load(sizeof _r, (void*)(&((*X)[0])), &_r, MO);  \
+ _r;                                                    \
  }))))))
 
-#define atomic_store_explicit(X, V, MO)                         \
+#define atomic_store_explicit(X, V, MO)                 \
+__builtin_choose_expr                                   \
+(                                                       \
+ sizeof(*X)==16,                                        \
+ __impl_store_union(__uint128_t, &((*X)[0]), (V)),      \
+__builtin_choose_expr                                   \
+(                                                       \
+ sizeof(*X)==8,                                         \
+ __impl_store_union(uint64_t, &((*X)[0]), (V)),         \
+__builtin_choose_expr                                   \
+(                                                       \
+ sizeof(*X)==4,                                         \
+ __impl_store_union(uint32_t, &((*X)[0]), (V)),         \
+ __builtin_choose_expr                                  \
+(                                                       \
+ sizeof(*X)==2,                                         \
+ __impl_store_union(uint16_t, &((*X)[0]), (V)),         \
+ __builtin_choose_expr                                  \
+(                                                       \
+ sizeof(*X)==1,                                         \
+ __impl_store_union(uint8_t, &((*X)[0]), (V)),          \
+ ({                                                     \
+ __typeof__((*X)[0]) const _v = (V);                    \
+ __impl_store(sizeof _v, &((*X)[0]), &_v, MO);          \
+ }))))))
+
+#define atomic_exchange_explicit(X, V, MO)                      \
 __builtin_choose_expr                                           \
 (                                                               \
  sizeof(*X)==16,                                                \
- __atomic_store_union(__uint128_t, &((*X)[0]), (V)),            \
+ __impl_exchange_union(__uint128_t, &((*(X))[0]), (V)),         \
 __builtin_choose_expr                                           \
 (                                                               \
  sizeof(*X)==8,                                                 \
- __atomic_store_union(uint64_t, &((*X)[0]), (V)),               \
+ __impl_exchange_union(uint64_t, &((*(X))[0]), (V)),            \
 __builtin_choose_expr                                           \
 (                                                               \
  sizeof(*X)==4,                                                 \
- __atomic_store_union(uint32_t, &((*X)[0]), (V)),               \
+ __impl_exchange_union(uint32_t, &((*(X))[0]), (V)),            \
  __builtin_choose_expr                                          \
 (                                                               \
  sizeof(*X)==2,                                                 \
- __atomic_store_union(uint16_t, &((*X)[0]), (V)),               \
+ __impl_exchange_union(uint16_t, &((*(X))[0]), (V)),            \
  __builtin_choose_expr                                          \
 (                                                               \
  sizeof(*X)==1,                                                 \
- __atomic_store_union(uint8_t, &((*X)[0]), (V)),                \
+ __impl_exchange_union(uint8_t, &((*(X))[0]), (V)),             \
  ({                                                             \
  __typeof__((*X)[0]) const _v = (V);                            \
- __atomic_store_internal(sizeof _v, &((*X)[0]), &_v, MO);       \
- }))))))
-
-#define atomic_exchange_explicit(X, V, MO)                              \
-__builtin_choose_expr                                                   \
-(                                                                       \
- sizeof(*X)==16,                                                        \
- __atomic_exchange_union(__uint128_t, &((*(X))[0]), (V)),                 \
-__builtin_choose_expr                                                   \
-(                                                                       \
- sizeof(*X)==8,                                                         \
- __atomic_exchange_union(uint64_t, &((*(X))[0]), (V)),                    \
-__builtin_choose_expr                                                   \
-(                                                                       \
- sizeof(*X)==4,                                                         \
- __atomic_exchange_union(uint32_t, &((*(X))[0]), (V)),                    \
- __builtin_choose_expr                                                  \
-(                                                                       \
- sizeof(*X)==2,                                                         \
- __atomic_exchange_union(uint16_t, &((*(X))[0]), (V)),                    \
- __builtin_choose_expr                                                  \
-(                                                                       \
- sizeof(*X)==1,                                                         \
- __atomic_exchange_union(uint8_t, &((*(X))[0]), (V)),                     \
- ({                                                                     \
- __typeof__((*X)[0]) const _v = (V);                                    \
- __typeof__((*X)[0]) _r = (V);                                          \
- __atomic_exchange_internal(sizeof _r, (&((*X)[0])), &_r, &_v, MO);     \
- _r;                                                                    \
+ __typeof__((*X)[0]) _r = (V);                                  \
+ __impl_exchange(sizeof _r, (&((*X)[0])), &_r, &_v, MO);        \
+ _r;                                                            \
  }))))))
 
 #define atomic_compare_exchange_explicit(X, E, V, MOS, MOF)             \
 __builtin_choose_expr                                                   \
 (                                                                       \
  sizeof(*X)==16,                                                        \
- __atomic_compare_exchange_union(__uint128_t, &((*(X))[0]), (E), (V)),    \
+ __impl_compare_exchange_union(__uint128_t, &((*(X))[0]), (E), (V)),    \
 __builtin_choose_expr                                                   \
 (                                                                       \
  sizeof(*X)==8,                                                         \
- __atomic_compare_exchange_union(uint64_t, &((*(X))[0]), (E), (V)),       \
+ __impl_compare_exchange_union(uint64_t, &((*(X))[0]), (E), (V)),       \
 __builtin_choose_expr                                                   \
 (                                                                       \
  sizeof(*X)==4,                                                         \
- __atomic_compare_exchange_union(uint32_t, &((*(X))[0]), (E), (V)),       \
+ __impl_compare_exchange_union(uint32_t, &((*(X))[0]), (E), (V)),       \
  __builtin_choose_expr                                                  \
 (                                                                       \
  sizeof(*X)==2,                                                         \
- __atomic_compare_exchange_union(uint16_t, &((*(X))[0]), (E), (V)),       \
+ __impl_compare_exchange_union(uint16_t, &((*(X))[0]), (E), (V)),       \
  __builtin_choose_expr                                                  \
 (                                                                       \
  sizeof(*X)==1,                                                         \
- __atomic_compare_exchange_union(uint8_t, &((*(X))[0]), (E), (V)),        \
+ __impl_compare_exchange_union(uint8_t, &((*(X))[0]), (E), (V)),        \
  ({                                                                     \
  __typeof__((*X)[0]) const _v = (V);                                    \
- __atomic_compare_exchange_internal(sizeof _r, (&((*X)[0])), (E), &_v, MOS, MOF); \
+ __impl_compare_exchange(sizeof _r, (&((*X)[0])), (E), &_v, MOS, MOF);  \
  }))))))
 
 #endif
