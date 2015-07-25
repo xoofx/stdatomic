@@ -1,7 +1,7 @@
 #ifndef _STDATOMIC_STUB_H_
 #define _STDATOMIC_STUB_H_ 1
 
-#define INSTANTIATE_STUB_LC(N, T)                                       \
+#define INSTANTIATE_STUB_LCA(N, T)                                      \
 T __impl_fetch_add_ ## N(void volatile* X, T const V, int MO) {         \
   T E = 0;                                                              \
   T R = V;                                                              \
@@ -54,7 +54,9 @@ T __impl_fetch_or_ ## N(void volatile* X, T const V, int MO) {          \
     R = E | V;                                                          \
   }                                                                     \
   return E;                                                             \
-}                                                                       \
+}
+
+#define INSTANTIATE_STUB_LCM(N, T)                                      \
 T __impl_load_ ## N(void volatile* X, int MO) {                         \
   T ret;                                                                \
   __impl_load(N, X, &ret, MO);                                          \
@@ -72,7 +74,10 @@ _Bool __impl_compare_exchange_ ## N(void volatile* X, T* E, T const V, int MOS, 
   return __impl_compare_exchange(N, X, E, &V, MOS, MOf);                \
 }
 
-#define INSTANTIATE_SYNC(N, T)                                          \
+#define INSTANTIATE_STUB_LC(N, T) INSTANTIATE_STUB_LCA(N, T) INSTANTIATE_STUB_LCM(N, T)
+
+
+#define INSTANTIATE_SYNCA(N, T)                                         \
 T __impl_fetch_and_add_ ## N(void volatile* X, T const V) {             \
   return __impl_fetch_add_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
 }                                                                       \
@@ -87,7 +92,9 @@ T __impl_fetch_and_or_ ## N(void volatile* X, T const V) {              \
 }                                                                       \
 T __impl_fetch_and_xor_ ## N(void volatile* X, T const V) {             \
   return __impl_fetch_xor_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
-}                                                                       \
+}
+
+#define INSTANTIATE_SYNCM(N, T)                                         \
 _Bool __impl_bool_compare_and_swap_ ## N(void volatile* X, T E, T const V) { \
   T R = E;                                                              \
   return __impl_compare_exchange_ ## N((_Atomic(T)*)X, &R, V,           \
@@ -100,5 +107,6 @@ T __impl_val_compare_and_swap_ ## N(void volatile* X, T E, T const V) { \
   return R;                                                             \
 }
 
+#define INSTANTIATE_SYNC(N, T) INSTANTIATE_SYNCA(N, T) INSTANTIATE_SYNCM(N, T)
 
 #endif

@@ -134,8 +134,8 @@ __impl_union2X(T, X, __sync_val_compare_and_swap((T*)X, 0, 0))
 #define atomic_load_explicit(X, MO)                     \
 __builtin_choose_expr                                   \
 (                                                       \
- sizeof(*X)==16,                                        \
- __impl_load_union(__uint128_t, &((*X)[0])),            \
+ __UINT128__ && sizeof(*X)==16,                         \
+ __impl_load_union(__impl_uint128_t, &((*X)[0])),       \
 __builtin_choose_expr                                   \
 (                                                       \
  sizeof(*X)==8,                                         \
@@ -161,8 +161,8 @@ __builtin_choose_expr                                   \
 #define atomic_store_explicit(X, V, MO)                 \
 __builtin_choose_expr                                   \
 (                                                       \
- sizeof(*X)==16,                                        \
- __impl_store_union(__uint128_t, &((*X)[0]), (V)),      \
+ __UINT128__ && sizeof(*X)==16,                         \
+ __impl_store_union(__impl_uint128_t, &((*X)[0]), (V)), \
 __builtin_choose_expr                                   \
 (                                                       \
  sizeof(*X)==8,                                         \
@@ -187,8 +187,8 @@ __builtin_choose_expr                                   \
 #define atomic_exchange_explicit(X, V, MO)                      \
 __builtin_choose_expr                                           \
 (                                                               \
- sizeof(*X)==16,                                                \
- __impl_exchange_union(__uint128_t, &((*(X))[0]), (V)),         \
+ __UINT128__ && sizeof(*X)==16,                                 \
+ __impl_exchange_union(__impl_uint128_t, &((*(X))[0]), (V)),    \
 __builtin_choose_expr                                           \
 (                                                               \
  sizeof(*X)==8,                                                 \
@@ -215,8 +215,8 @@ __builtin_choose_expr                                           \
 #define atomic_compare_exchange_explicit(X, E, V, MOS, MOF)             \
 __builtin_choose_expr                                                   \
 (                                                                       \
- sizeof(*X)==16,                                                        \
- __impl_compare_exchange_union(__uint128_t, &((*(X))[0]), (E), (V)),    \
+ __UINT128__ && sizeof(*X)==16,                                         \
+ __impl_compare_exchange_union(__impl_uint128_t, &((*(X))[0]), (E), (V)), \
 __builtin_choose_expr                                                   \
 (                                                                       \
  sizeof(*X)==8,                                                         \

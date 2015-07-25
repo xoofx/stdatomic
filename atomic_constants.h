@@ -1,6 +1,8 @@
 #ifndef _STDATOMIC_ATOMIC_CONSTANTS_H_
 #define _STDATOMIC_ATOMIC_CONSTANTS_H_ 1
 
+#include <stdint.h>
+
 #if !defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1) || __GNUC__ < 4
 # error "this implementation of stdatomic need support that is compatible with the gcc ABI"
 #endif
@@ -13,12 +15,20 @@
 #define __ATOMIC_FORCE_SYNC 1
 #endif
 
+#ifdef __SIZEOF_INT128__
+# define __UINT128__ 1
+typedef __uint128_t __impl_uint128_t;
+#else
+# define __UINT128__ 0
+typedef struct { uint64_t a[2]; } __impl_uint128_t;
+#endif
+
 #define __atomic_align(T)                                       \
 (sizeof(T) == 1 ?  __alignof__(uint8_t)                         \
  : (sizeof(T) == 2 ?  __alignof__(uint16_t)                     \
     : (sizeof(T) == 4 ?  __alignof__(uint32_t)                  \
        : ((sizeof(T) == 8) ?  __alignof__(uint64_t)             \
-          : ((sizeof(T) == 16) ?  __alignof__(__uint128_t)      \
+          : ((sizeof(T) == 16) ?  __alignof__(__impl_uint128_t) \
              : __alignof__(T))))))
 
 #if __ATOMIC_FORCE_SYNC
