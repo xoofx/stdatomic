@@ -15,7 +15,7 @@ T __impl_fetch_add_ ## N(void volatile* X, T const V, int MO) {         \
 }                                                                       \
 T __impl_fetch_sub_ ## N(void volatile* X, T const V, int MO) {         \
   T E = 0;                                                              \
-  T R = V;                                                              \
+  T R = -V;                                                             \
   int mof = (MO == memory_order_relaxed                                 \
              ? memory_order_relaxed                                     \
              : memory_order_consume);                                   \
@@ -26,7 +26,7 @@ T __impl_fetch_sub_ ## N(void volatile* X, T const V, int MO) {         \
 }                                                                       \
 T __impl_fetch_and_ ## N(void volatile* X, T const V, int MO) {         \
   T E = 0;                                                              \
-  T R = V;                                                              \
+  T R = 0;                                                              \
   int mof = (MO == memory_order_relaxed                                 \
              ? memory_order_relaxed                                     \
              : memory_order_consume);                                   \
@@ -68,7 +68,7 @@ T __impl_add_fetch_ ## N(void volatile* X, T const V, int MO) {         \
 }                                                                       \
 T __impl_sub_fetch_ ## N(void volatile* X, T const V, int MO) {         \
   T E = 0;                                                              \
-  T R = V;                                                              \
+  T R = -V;                                                             \
   int mof = (MO == memory_order_relaxed                                 \
              ? memory_order_relaxed                                     \
              : memory_order_consume);                                   \
@@ -79,7 +79,7 @@ T __impl_sub_fetch_ ## N(void volatile* X, T const V, int MO) {         \
 }                                                                       \
 T __impl_and_fetch_ ## N(void volatile* X, T const V, int MO) {         \
   T E = 0;                                                              \
-  T R = V;                                                              \
+  T R = 0;                                                              \
   int mof = (MO == memory_order_relaxed                                 \
              ? memory_order_relaxed                                     \
              : memory_order_consume);                                   \

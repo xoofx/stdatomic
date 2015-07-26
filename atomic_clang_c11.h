@@ -52,16 +52,16 @@ T __impl_add_fetch_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
   return __c11_atomic_fetch_add(_X, _V, _mo) + _V;                      \
 }                                                                       \
 T __impl_sub_fetch_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
-  return __c11_atomic_fetch_sub(_X, _V, _mo) + _V;                      \
+  return __c11_atomic_fetch_sub(_X, _V, _mo) - _V;                      \
 }                                                                       \
 T __impl_and_fetch_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
-  return __c11_atomic_fetch_and(_X, _V, _mo) + _V;                      \
+  return __c11_atomic_fetch_and(_X, _V, _mo) & _V;                      \
 }                                                                       \
 T __impl_xor_fetch_ ## N(_Atomic(T)* _X, T const _V, int _mo) {         \
-  return __c11_atomic_fetch_xor(_X, _V, _mo) + _V;                      \
+  return __c11_atomic_fetch_xor(_X, _V, _mo) ^ _V;                      \
 }                                                                       \
 T __impl_or_fetch_ ## N(_Atomic(T)* _X, T const _V, int _mo) {          \
-  return __c11_atomic_fetch_or(_X, _V, _mo) + _V;                       \
+  return __c11_atomic_fetch_or(_X, _V, _mo) | _V;                       \
 }                                                                       \
 T __impl_load_ ## N(_Atomic(T)* _X, int _mo) {                          \
   return __c11_atomic_load(_X, _mo);                                    \
