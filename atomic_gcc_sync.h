@@ -81,9 +81,9 @@ _Bool __impl_compare_exchange_ ## N(__typeof__(T volatile[1])* X, T* _E, T const
     return 0;                                                           \
   }                                                                     \
   return 1;                                                             \
-}
+}                                                                       \
+ INSTANTIATE_STUB_NAND(N, T)
 
-#define INSTANTIATE_STUB(N, T) INSTANTIATE_STUB_ ## N(T)
 
 #define atomic_compare_exchange_strong_explicit(X, E, D, MOS, MOF)      \
 ({                                                                      \

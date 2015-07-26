@@ -84,11 +84,11 @@
 
    is already close to the C11 call interface. Relevant for C11 are 9
    operations
-     - =fetch_add= for integer addition
-     - =fetch_sub= for integer substraction
-     - =fetch_or=  for bitwise or
-     - =fetch_and= for bitwise and
-     - =fetch_xor= for bitwise xor
+     - =fetch_add= for integer addition, returning the previous value
+     - =fetch_sub= for integer substraction, returning the previous value
+     - =fetch_or=  for bitwise or, returning the previous value
+     - =fetch_and= for bitwise and, returning the previous value
+     - =fetch_xor= for bitwise xor, returning the previous value
      - =load= for an atomic load operation
      - =store= for an atomic store operation
      - =exchange= for an atomic exchange operation, equivalent to a
@@ -126,8 +126,25 @@
    the variants for 1, 2, 4 and 8 can always be generated.
 
    For a 128 bit type these are only generated if =__SIZEOF_INT128__=
-   or =__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X= exist. If so we assume that
-   =__uint128_t= is such an integer type.
+   or =__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X= exist. If so, we assume
+   that =__uint128_t= is such an integer type and known to the
+   compiler.
+
+   Additionally to the operations that have generic function
+   interfaces in the C11 standard, gcc additionally implements six
+   other builtins, namely
+
+     - =__atomic_add_fetch= for integer addition, returning the updated value
+     - =__atomic_sub_fetch= for integer substraction, returning the updated value
+     - =__atomic_or_fetch=  for bitwise or, returning the updated value
+     - =__atomic_and_fetch= for bitwise and, returning the updated value
+     - =__atomic_xor_fetch= for bitwise xor, returning the updated value
+     - =__atomic_fetch_nand= for bitwise nand (=x = ~(x & v)=), returning the previous value
+     - =__atomic_nand_fetch= for bitwise nand (=x = ~(x & v)=), returning the
+       updated value
+
+   For the completeness of the library interface we supply analogous
+   functions with the =_X= suffix for these.
 
 *** The =__sync= ABI
 

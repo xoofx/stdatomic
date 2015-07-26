@@ -74,7 +74,8 @@ T __impl_exchange_ ## N(_Atomic(T)* _X, T const _V, int _mo) {          \
 }                                                                       \
 _Bool __impl_compare_exchange_ ## N(_Atomic(T)* _X, T* _E, T const _V, int _mos, int _mof) { \
   return __c11_atomic_compare_exchange_strong(_X, _E, _V, _mos, _mof);  \
-}
+}                                                                       \
+ INSTANTIATE_STUB_NAND(N, T)
 
 #define INSTANTIATE_STUB(N, T) INSTANTIATE_STUB_ ## N(T)
 

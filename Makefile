@@ -33,11 +33,13 @@ RFUNCS = load_1					\
 	fetch_sub_1				\
 	fetch_and_1				\
 	fetch_xor_1				\
+	fetch_nand_1				\
 	fetch_or_1				\
 	add_fetch_1				\
 	sub_fetch_1				\
 	and_fetch_1				\
 	xor_fetch_1				\
+	nand_fetch_1				\
 	or_fetch_1				\
 	load_2					\
 	store_2					\
@@ -47,11 +49,13 @@ RFUNCS = load_1					\
 	fetch_sub_2				\
 	fetch_and_2				\
 	fetch_xor_2				\
+	fetch_nand_2				\
 	fetch_or_2				\
 	add_fetch_2				\
 	sub_fetch_2				\
 	and_fetch_2				\
 	xor_fetch_2				\
+	nand_fetch_2				\
 	or_fetch_2				\
 	load_4					\
 	store_4					\
@@ -61,11 +65,13 @@ RFUNCS = load_1					\
 	fetch_sub_4				\
 	fetch_and_4				\
 	fetch_xor_4				\
+	fetch_nand_4				\
 	fetch_or_4				\
 	add_fetch_4				\
 	sub_fetch_4				\
 	and_fetch_4				\
 	xor_fetch_4				\
+	nand_fetch_4				\
 	or_fetch_4				\
 	load_8					\
 	store_8					\
@@ -75,11 +81,13 @@ RFUNCS = load_1					\
 	fetch_sub_8				\
 	fetch_and_8				\
 	fetch_xor_8				\
+	fetch_nand_8				\
 	fetch_or_8				\
 	add_fetch_8				\
 	sub_fetch_8				\
 	and_fetch_8				\
 	xor_fetch_8				\
+	nand_fetch_8				\
 	or_fetch_8				\
 	load_16					\
 	store_16				\
@@ -89,11 +97,13 @@ RFUNCS = load_1					\
 	fetch_sub_16				\
 	fetch_and_16				\
 	fetch_xor_16				\
+	fetch_nand_16				\
 	fetch_or_16                             \
 	add_fetch_16				\
 	sub_fetch_16				\
 	and_fetch_16				\
 	xor_fetch_16				\
+	nand_fetch_16				\
 	or_fetch_16
 
 SFUNCS = bool_compare_and_swap_1		\

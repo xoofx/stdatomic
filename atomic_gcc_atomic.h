@@ -66,6 +66,9 @@ T __impl_fetch_and_ ## N(_Atomic(T)* X, T const V, int M) {             \
 T __impl_fetch_xor_ ## N(_Atomic(T)* X, T const V, int M) {             \
   return __atomic_fetch_xor(X, V, M);                                   \
 }                                                                       \
+T __impl_fetch_nand_ ## N(_Atomic(T)* X, T const V, int M) {            \
+  return __atomic_fetch_nand(X, V, M);                                  \
+}                                                                       \
 T __impl_fetch_or_ ## N(_Atomic(T)* X, T const V, int M) {              \
   return __atomic_fetch_or(X, V, M);                                    \
 }                                                                       \
@@ -80,6 +83,9 @@ T __impl_and_fetch_ ## N(_Atomic(T)* X, T const V, int M) {             \
 }                                                                       \
 T __impl_xor_fetch_ ## N(_Atomic(T)* X, T const V, int M) {             \
   return __atomic_xor_fetch(X, V, M);                                   \
+}                                                                       \
+T __impl_nand_fetch_ ## N(_Atomic(T)* X, T const V, int M) {            \
+  return __atomic_nand_fetch(X, V, M);                                  \
 }                                                                       \
 T __impl_or_fetch_ ## N(_Atomic(T)* X, T const V, int M) {              \
   return __atomic_or_fetch(X, V, M);                                    \
@@ -96,8 +102,6 @@ T __impl_exchange_ ## N(_Atomic(T)* X, T const V, int M) {              \
 _Bool __impl_compare_exchange_ ## N(_Atomic(T)* X, T* E, T const V, int MS, int MF) { \
   return __atomic_compare_exchange_n(X, E, V, 0, MS, MF);               \
 }
-
-#define INSTANTIATE_STUB(N, T) INSTANTIATE_STUB_ ## N(T)
 
 
 #endif
