@@ -1,6 +1,17 @@
 #+TITLE:  An implementation of the C11 =<stdatomic.h>= interface
 #+AUTHOR: Jens Gustedt
 #+DATE: July, 2015
+#+LATEX_HEADER: \usepackage{color}
+#+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: \lstset{
+#+LATEX_HEADER:         keywordstyle=\color{blue},
+#+LATEX_HEADER:         commentstyle=\color{red},
+#+LATEX_HEADER:         stringstyle=\color{green},
+#+LATEX_HEADER:         basicstyle=\ttfamily\small,
+#+LATEX_HEADER:         columns=fullflexible,
+#+LATEX_HEADER:         frame=single,
+#+LATEX_HEADER:         basewidth={0.4em,0.4em},
+#+LATEX_HEADER:         }
 
 * Short description
 
@@ -22,7 +33,7 @@
     atomics this provides a reduced but fully functional approach to
     atomic operations.
 
-* Features
+* Implemented library features
 
    We distinguish between the implementation of library functions and
    the =<stdatomic.h>= header file.
@@ -34,7 +45,7 @@
    The header file is optional, the created function interface should
    be compatible with the header files that gcc and clang may provide.
 
-** Type and function interfaces
+** Type, constants and function interfaces
 
    These are the types and proper functions that are foreseen by the
    standard:
@@ -42,6 +53,8 @@
    - =atomic_flag= and its four functions
    - the =memory_order= enumeration type
    - fences
+   - object-like macros to test for lock-freeness and similar things
+   - =typedef= for atomic integer and pointer types.
 
    All of these are provided in forms that are compatible with gcc and
    clang.
@@ -57,11 +70,14 @@
 
    =__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X=
 
-   where =X= can be one of 1, 2, 4, 8 or 16. If that macro exists, we
-   suppose that the compiler is able to synthesize all corresponding
-   memory functions for types of size =X= and all necessary arithmetic
-   function for integer types of that size, as lock-free (= stateless)
-   instructions.
+   where =X= can be one of 1, 2, 4, 8 or 16. All versions of gcc and
+   clang since at least ten years implement these macros and the
+   underlying operations consistently.
+
+   If that macro exists, we suppose that the compiler is able to
+   synthesize all corresponding memory functions for types of size =X=
+   and all necessary arithmetic function for integer types of that
+   size, as lock-free (= stateless) instructions.
 
    This doesn't mean that there are direct assembler instruction for
    all these operations. They can well be implemented as an unbounded
@@ -119,6 +135,30 @@
 
        =atomic_compare_exchange_strong_explicit=
 
+   Load, store and compare operations have /memory/ semantics, that is
+   they are equivalent to the use of =memcpy= and =memcmp= library
+   functions. The implementation may use = or == operators in some
+   places for optimization, but it then does so with objects of
+   =uintXX_t=, so every bit is accounted for. For data types where
+   memory and value comparison are different, the result of an
+   =atomic_compare_exchange= operation can be different than you'd
+   expect:
+
+     - =_Bool= objects where other bits than the lowest-order bit have
+       been polluted, will not compare equal to =false= or =true=.
+
+     - Floating point types may compare different representations of
+       =0= not to be equal.
+
+     - Two floating point =NaN= may compare equal, though as value
+       comparison =NaN= never compares equal to anything.
+
+     - Objects of =struct= or =union= type may be considered unequal
+       because they differ on some padding bytes.
+
+   This behavior is in alignment with the intended interpretation by
+   the C and C++ standard's committees.
+
    Function call interfaces for the arithmetic operations are only
    generated if we can suppose that an integer type for the
    corresponding size exists. We can reasonably assume that there are
@@ -129,6 +169,11 @@
    or =__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X= exist. If so, we assume
    that =__uint128_t= is such an integer type and known to the
    compiler.
+
+   Arithmetic operations can safely use these =uintXX_t= types
+   internally, since the standard imposes two's complement
+   representation for signed atomic types and also enforces that
+   atomic operations may not produce traps on overflow.
 
    Additionally to the operations that have generic function
    interfaces in the C11 standard, gcc additionally implements six
@@ -144,14 +189,262 @@
        updated value
 
    For the completeness of the library interface we supply analogous
-   functions with the =_X= suffix for these.
+   functions with the =_X= suffix for these. They might be called by
+   the compiler if the user code uses assign and add or similar
+   operators on atomic integers.  The =__atomic_add_fetch= and
+   =__atomic_sub_fetch= functions may also eventually be used by the
+   compiler to implement an atomic prefix increment or decrement
+   operation (=++x= and =--x=). This would e.g happen if =x= is an
+   object of type =__int128_t= and the platform doesn't implement
+   lock-free atomics for types of size 16.
+
+*** Clang's =__c11_atomic= builtins
+
+    Clang has gone a different path for the builtins that implement
+    C11 atomics, prefixed with =__c11_atomic=. These are a directly
+    feature equivalent to the C11 generic functions that have
+    =memory_order= arguments (=_explicit= suffix).
+
+    For the cases that no atomic instructions can be synthesized,
+    clang falls back to the same external calls as described for gcc's
+    =__atomic= ABI.
+
 
 *** The =__sync= ABI
 
     It dates back long before the C11 atomic interface had been
     designed and thus cannot be directly conforming to it. It has
-    basically the same features for arithmetic as above, only that
+    basically the same builtins for arithmetic types as above, only
+    that
 
     - The functions are named a bit differently.
+    - They only implement sequential consistency.
     - There are no =load=, =store= or =exchange= features.
-    - A =nand= operation is added.
+    - The =nand= operations changed their meaning from version 4.4
+      onward. Therefore this operation cannot be used portably in an
+      environment that might use different versions of compilers. So
+      we don't implement these function interfaces and we deprecate
+      the use of this builtin.
+
+   Additionally this interface also implements a =test_and_set=
+   functionality that is used to implement the =atomic_flag=
+   functions. This builtin is documented to have acquire-release
+   consistency. If used with sequential consistency, an additional
+   fence is inserted to ensure that.
+
+   These features are sufficient to provide a decent implementation of
+   C11 atomics.
+
+*** The lockfull fallback functions
+
+    In absence of proper architecture support, the all fallbacks (for
+    the three builtin families) with =_X= suffix use the ones without
+    suffix underneath. These external interfaces receive the size of
+    the data type as an additional, leading parameter:
+
+     - =__atomic_load=
+     - =__atomic_store=
+     - =__atomic_exchange=
+     - =__atomic_compare_exchange=
+
+   They have pure memory semantics and their basic operations are
+   =memcopy= and =memcmp= for load, store and comparison.
+
+   These functions *cannot be called directly* from within your code,
+   because the compiler cannot distinguish them from the gcc builtins,
+   /and/ they have different prototypes than these.
+
+   We implement these functions as critical sections that are
+   protected with a lock, similar to a mutex. This implementations
+   uses a table of locks and a hash function to choose one of the
+   entries that only depends on the address of the atomic object.
+
+   At the moment, this implementation has several address-hash
+   functions that can be chosen a library-compile time. Any function
+   that mixes the bits of the address should perform reasonably well.
+
+   More important for performance is the choice of the lock. Such a
+   lock can be relatively simple, since C11 atomics that are not
+   lock-free don't have to be asynchronous signal safe.
+
+   There are several possibilities, in order of preference:
+
+     - An OS specific light-weighted lock with non-active waits. The
+       integration into =musl= uses the internal =LOCK/UNLOCK= calls,
+       which in turn use linux' =futex= underneath to do an efficient
+       wait. If by coincidence these are called in an un-threaded
+       process, they are close to non-ops.
+
+     - C11's =mtx_t= type has an shallow interface that should allow
+       it to be implemented a bit simpler and efficient than OS
+       specific mutexes that implement a lot of functionality. This
+       solution should be portable to all platforms that implement
+       this part of C11. In a relatively near future these could be
+       all POSIX and Windows platforms. This approach has the
+       disadvantage that a table of =mtx_t= must be initialized at
+       process startup because =mtx_t= doesn't guarantee static
+       initialization.
+
+     - POSIX' =pthread_mutex_t= is a little less portable, but allows
+       for static initialization.
+
+     - A spinlock such as =atomic_flag=. It is portable to all
+       platforms that implement atomics and allows for static
+       initialization. This is the only choice when compiled without
+       OS or library support.
+
+       The wait functionality is an active wait, that burns CPU cycles
+       and memory bandwidth. In many circumstances this should do
+       well, the critical sections that are protected by this are nice
+       and small. But performance can be noticeably degraded if a lot of
+       threads repeatedly hammer on the same atomic object.
+
+* The =<stdatomic.h>= header file
+
+** Full C11 support
+
+  Versions of gcc and clang that fully implement the C11 atomics
+  interface will not need a special header file but can use their own
+  that is shipped with the compiler:
+
+  - gcc starting with version 4.9
+
+  - clang starting with version 3.6
+
+  This full support of atomics allows to use atomic objects just as
+  other objects it whatever operations the base type supports.
+
+  These default operations on atomics use sequential consistency. That
+  is, each such an operation will enforce a full memory transfer and
+  the perceived effect is as if all these operations, even if issued
+  in different threads, have been done one after another. Thus, thread
+  parallelism can only play between such operations:
+
+#+BEGIN_CENTER
+  *atomics operations are expensive*
+#+END_CENTER
+
+  The functional interfaces with different =memory_order= arguments
+  (=_explicit= suffix to the name) that we described above may be used
+  to milder the memory effect that atomic operations have. The
+  possible gain of such different memory consistency models are very
+  architecture dependent. E.g on the x86 platforms they offer almost
+  no advantage, whereas on ARM platforms acquire/release semantics may
+  bring some noticeable gain.
+
+  But beware that this gain is bought with a sensible complexification
+  of the code. Only use this if the atomic operations are a measurable
+  performance bottleneck /and/ you already have reduced the number of
+  these operations to a minimum.
+
+** Partial C11 atomics support
+
+  A series of compiler versions offers partial atomics support that
+  already implements most of the C11 semantic:
+
+  - gcc versions 4.7 and 4.8
+
+  - clang versions 3.2 to 3.5
+
+  The versions provide the builtin functions as described above but
+  lack full compiler support for atomic types and operations.
+
+  With the =<stdatomic.h>= header that we supply for these compilers,
+  application code can use the functional interfaces. A macro
+  =_Atomic(T)= is provided that can be used to issue emulated
+  declarations of atomic types that should be forward compatible to
+  platforms with complete C11 atomics support.  Example:
+
+#+begin_src C
+// global variables
+_Atomic(size_t) thread_inside_count = ATOMIC_VAR_INIT(0);
+_Atomic(size_t) thread_total_count = ATOMIC_VAR_INIT(1);
+
+int my_thread_function(void* arg) {
+   atomic_fetch_add(&thread_inside_count, 1);
+   atomic_fetch_add(&thread_total_count, 1);
+
+   // do something complicated here
+
+   // at the end
+   atomic_fetch_sub(&thread_inside_count, 1);
+}
+#+end_src
+
+  Underneath such objects are implemented as arrays of =volatile= base
+  type of size 1. This has the following sought effects:
+
+  - They can't be assigned to.
+  - They evaluate to a pointer in almost any context.
+  - Operations with them cannot be reordered by the compiler.
+
+  So you should be relatively safe from programming errors that would
+  access such objects without passing through the type generic atomic
+  functions. The compiler will error out on improper usage of such
+  atomic objects, but the diagnostics may be a bit crude.
+
+*** Issues
+
+    Since this approach may reinterpret data through pointer casts, it
+    could potentially be dangerous. So let us discuss the possible
+    issues.
+
+    - The generic fallbacks for memory access only use =memcpy= and
+      =memcmp= to access the data itself. So the access of the data is
+      within the constraints of the standard.
+
+    - The generic fallbacks for memory access ensure that their
+      arguments have compatible base types (if a pointer is passed in)
+      or are assignment compatible with the base type of the atomic
+      (if a value is passed in). So data that is copied across can
+      never be misinterpreted as being of a wrong type because the two
+      target types are compatible.
+
+    - The specialized functions with =_X= suffix may reinterpret their
+      data as the corresponding =uintXX_t= for the size. Copying or
+      comparing such data is always guaranteed to use all bits, so in
+      that sense it is equivalent to =memcpy= and =memcmp=.
+
+    - The arithmetic operations that are executed then are operations
+      on an unsigned integer type that has no padding bits. This
+      arithmetic is compatible for all integer types that have no
+      padding bits and, for the signed types, are represented with
+      two's complement.
+
+    - An emulated atomic with this approach is implemented as an array
+      to the base type, and so in the user code the base type of the
+      object remains visible to the compiler. As a consequence this
+      approach has no effect on the aliasing rules, the compiler
+      always has complete information about the type of each object.
+
+    The only potential problem for our approach that remains is
+    alignment. Since the stub functions that are provided may use
+    casts to =uintXX_t= of "atomic" objects you have to ensure that
+    these objects are at least aligned as these types would be. This
+    should not be a problem, if the base type is an integer type,
+    too. Integer types with same size should have the same alignment.
+
+    If you encounter problems with a user defined type that has a size
+    that is a small power of two you could force alignment
+
+#+begin_src C
+_Alignas(sizeof(toto)) _Atomic(toto) toto1;
+__attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
+#+end_src
+
+    with whatever of the two constructs works for you.
+
+    I am currently struggling to provide a version of the =_Atomic(T)=
+    macro that ensures that automatically. It seems to be possible but
+    produces a lot of noise for function parameters that are pointers
+    to atomics.
+
+** Basic atomics support
+
+   Even older versions of gcc and clang implement the =__sync= builtin
+   functions and can thereby made to accept the same <stdatomic.h>
+   header as discussed above. Since, as their names indicate, these
+   builtins only have fully synchronizing versions, they will not be
+   able to take advantage of the different consistency models. But
+   implementing atomics with stronger consistency than required, here
+   sequential consistency, only, is conforming to the C standard.
