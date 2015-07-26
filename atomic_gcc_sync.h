@@ -88,13 +88,14 @@ _Bool __impl_compare_exchange_ ## N(__typeof__(T volatile[1])* X, T* _E, T const
 #define atomic_compare_exchange_strong_explicit(X, E, D, MOS, MOF)      \
 ({                                                                      \
   _Bool ret;                                                            \
+  __typeof__((*X)[0])* _e = (E);                                        \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: ret = __sync_val_compare_and_swap((uint64_t*)(X), *(E), (D)); break; \
-  case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), *(E), (D)); break; \
-  case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), *(E), (D)); break; \
-  case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), *(E), (D)); break; \
-  default: ret = __impl_compare_exchange(sizeof (*X), (void*)(X), (E), &_d, MOS, MOS); \
+  case 8: ret = __sync_val_compare_and_swap((uint64_t*)(X), *_e, (D)); break; \
+  case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), *_e, (D)); break; \
+  case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), *_e, (D)); break; \
+  case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), *_e, (D)); break; \
+  default: ret = __impl_compare_exchange(sizeof (*X), (void*)(X), _e, &_d, MOS, MOS); \
   }                                                                     \
   __aret(ret);                                                          \
  })
@@ -241,8 +242,9 @@ __builtin_choose_expr                                                   \
  sizeof(*X)==1,                                                         \
  __impl_compare_exchange_union(uint8_t, &((*(X))[0]), (E), (V)),        \
  ({                                                                     \
+ __typeof__((*X)[0])* _e = (E);                                         \
  __typeof__((*X)[0]) const _v = (V);                                    \
- __impl_compare_exchange(sizeof _r, (&((*X)[0])), (E), &_v, MOS, MOF);  \
+ __impl_compare_exchange(sizeof _r, (&((*X)[0])), _e, &_v, MOS, MOF);   \
  }))))))
 
 #endif
