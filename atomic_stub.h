@@ -54,6 +54,59 @@ T __impl_fetch_or_ ## N(void volatile* X, T const V, int MO) {          \
     R = E | V;                                                          \
   }                                                                     \
   return E;                                                             \
+}                                                                       \
+T __impl_add_fetch_ ## N(void volatile* X, T const V, int MO) {         \
+  T E = 0;                                                              \
+  T R = V;                                                              \
+  int mof = (MO == memory_order_relaxed                                 \
+             ? memory_order_relaxed                                     \
+             : memory_order_consume);                                   \
+  while (!__impl_compare_exchange(N, X, &E, &R, MO, mof)){              \
+    R = E + V;                                                          \
+  }                                                                     \
+  return R;                                                             \
+}                                                                       \
+T __impl_sub_fetch_ ## N(void volatile* X, T const V, int MO) {         \
+  T E = 0;                                                              \
+  T R = V;                                                              \
+  int mof = (MO == memory_order_relaxed                                 \
+             ? memory_order_relaxed                                     \
+             : memory_order_consume);                                   \
+  while (!__impl_compare_exchange(N, X, &E, &R, MO, mof)){              \
+    R = E - V;                                                          \
+  }                                                                     \
+  return R;                                                             \
+}                                                                       \
+T __impl_and_fetch_ ## N(void volatile* X, T const V, int MO) {         \
+  T E = 0;                                                              \
+  T R = V;                                                              \
+  int mof = (MO == memory_order_relaxed                                 \
+             ? memory_order_relaxed                                     \
+             : memory_order_consume);                                   \
+  while (!__impl_compare_exchange(N, X, &E, &R, MO, mof)){              \
+    R = E & V;                                                          \
+  }                                                                     \
+  return R;                                                             \
+}                                                                       \
+T __impl_xor_fetch_ ## N(void volatile* X, T const V, int MO) {         \
+  T E = 0;                                                              \
+  T R = V;                                                              \
+  int mof = (MO == memory_order_relaxed                                 \
+             ? memory_order_relaxed                                     \
+             : memory_order_consume);                                   \
+  while (!__impl_compare_exchange(N, X, &E, &R, MO, mof)){              \
+    R = E ^ V;                                                          \
+  }                                                                     \
+  return R;                                                             \
+}                                                                       \
+T __impl_or_fetch_ ## N(void volatile* X, T const V, int MO) {          \
+  T E = 0;                                                              \
+  T R = V;                                                              \
+  int mof = MO == memory_order_relaxed ? memory_order_relaxed : memory_order_consume; \
+  while (!__impl_compare_exchange(N, X, &E, &R, MO, mof)){              \
+    R = E | V;                                                          \
+  }                                                                     \
+  return R;                                                             \
 }
 
 #define INSTANTIATE_STUB_LCM(N, T)                                      \
@@ -92,6 +145,21 @@ T __impl_fetch_and_or_ ## N(void volatile* X, T const V) {              \
 }                                                                       \
 T __impl_fetch_and_xor_ ## N(void volatile* X, T const V) {             \
   return __impl_fetch_xor_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
+}                                                                       \
+T __impl_add_and_fetch_ ## N(void volatile* X, T const V) {             \
+  return __impl_add_fetch_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
+}                                                                       \
+T __impl_sub_and_fetch_ ## N(void volatile* X, T const V) {             \
+  return __impl_sub_fetch_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
+}                                                                       \
+T __impl_and_and_fetch_ ## N(void volatile* X, T const V) {             \
+  return __impl_and_fetch_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
+}                                                                       \
+T __impl_or_and_fetch_ ## N(void volatile* X, T const V) {              \
+  return __impl_or_fetch_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
+}                                                                       \
+T __impl_xor_and_fetch_ ## N(void volatile* X, T const V) {             \
+  return __impl_xor_fetch_ ## N((_Atomic(T)*)X, V, memory_order_seq_cst); \
 }
 
 #define INSTANTIATE_SYNCM(N, T)                                         \

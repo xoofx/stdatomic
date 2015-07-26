@@ -44,6 +44,21 @@ T __impl_fetch_xor_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
 T __impl_fetch_or_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
   return __sync_fetch_and_or(&((*X)[0]), _V, _mo);                      \
 }                                                                       \
+T __impl_add_fetch_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_add_and_fetch(&((*X)[0]), _V);                          \
+}                                                                       \
+T __impl_sub_fetch_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_sub_and_fetch(&((*X)[0]), _V);                          \
+}                                                                       \
+T __impl_and_fetch_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_and_and_fetch(&((*X)[0]), _V);                          \
+}                                                                       \
+T __impl_xor_fetch_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_xor_and_fetch(&((*X)[0]), _V, _mo);                     \
+}                                                                       \
+T __impl_or_fetch_ ## N(__typeof__(T volatile[1])* X, T const _V, int _mo) { \
+  return __sync_or_and_fetch(&((*X)[0]), _V, _mo);                      \
+}                                                                       \
 T __impl_load_ ## N(__typeof__(T volatile[1])* X, int _mo) {            \
   return __sync_val_compare_and_swap(&((*X)[0]), 0, 0);                 \
 }                                                                       \

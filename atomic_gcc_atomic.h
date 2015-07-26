@@ -69,6 +69,21 @@ T __impl_fetch_xor_ ## N(_Atomic(T)* X, T const V, int M) {             \
 T __impl_fetch_or_ ## N(_Atomic(T)* X, T const V, int M) {              \
   return __atomic_fetch_or(X, V, M);                                    \
 }                                                                       \
+T __impl_add_fetch_ ## N(_Atomic(T)* X, T const V, int M) {             \
+  return __atomic_add_fetch(X, V, M);                                   \
+}                                                                       \
+T __impl_sub_fetch_ ## N(_Atomic(T)* X, T const V, int M) {             \
+  return __atomic_sub_fetch(X, V, M);                                   \
+}                                                                       \
+T __impl_and_fetch_ ## N(_Atomic(T)* X, T const V, int M) {             \
+  return __atomic_and_fetch(X, V, M);                                   \
+}                                                                       \
+T __impl_xor_fetch_ ## N(_Atomic(T)* X, T const V, int M) {             \
+  return __atomic_xor_fetch(X, V, M);                                   \
+}                                                                       \
+T __impl_or_fetch_ ## N(_Atomic(T)* X, T const V, int M) {              \
+  return __atomic_or_fetch(X, V, M);                                    \
+}                                                                       \
 T __impl_load_ ## N(_Atomic(T)* X, int M) {                             \
   return __atomic_load_n(X, M);                                         \
 }                                                                       \

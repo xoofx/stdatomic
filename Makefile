@@ -34,6 +34,11 @@ RFUNCS = load_1					\
 	fetch_and_1				\
 	fetch_xor_1				\
 	fetch_or_1				\
+	add_fetch_1				\
+	sub_fetch_1				\
+	and_fetch_1				\
+	xor_fetch_1				\
+	or_fetch_1				\
 	load_2					\
 	store_2					\
 	exchange_2				\
@@ -43,6 +48,11 @@ RFUNCS = load_1					\
 	fetch_and_2				\
 	fetch_xor_2				\
 	fetch_or_2				\
+	add_fetch_2				\
+	sub_fetch_2				\
+	and_fetch_2				\
+	xor_fetch_2				\
+	or_fetch_2				\
 	load_4					\
 	store_4					\
 	exchange_4				\
@@ -52,6 +62,11 @@ RFUNCS = load_1					\
 	fetch_and_4				\
 	fetch_xor_4				\
 	fetch_or_4				\
+	add_fetch_4				\
+	sub_fetch_4				\
+	and_fetch_4				\
+	xor_fetch_4				\
+	or_fetch_4				\
 	load_8					\
 	store_8					\
 	exchange_8				\
@@ -61,6 +76,11 @@ RFUNCS = load_1					\
 	fetch_and_8				\
 	fetch_xor_8				\
 	fetch_or_8				\
+	add_fetch_8				\
+	sub_fetch_8				\
+	and_fetch_8				\
+	xor_fetch_8				\
+	or_fetch_8				\
 	load_16					\
 	store_16				\
 	exchange_16				\
@@ -69,7 +89,12 @@ RFUNCS = load_1					\
 	fetch_sub_16				\
 	fetch_and_16				\
 	fetch_xor_16				\
-	fetch_or_16
+	fetch_or_16                             \
+	add_fetch_16				\
+	sub_fetch_16				\
+	and_fetch_16				\
+	xor_fetch_16				\
+	or_fetch_16
 
 SFUNCS = bool_compare_and_swap_1		\
 	val_compare_and_swap_1			\
@@ -78,6 +103,11 @@ SFUNCS = bool_compare_and_swap_1		\
 	fetch_and_and_1				\
 	fetch_and_xor_1				\
 	fetch_and_or_1				\
+	add_and_fetch_1				\
+	sub_and_fetch_1				\
+	and_and_fetch_1				\
+	xor_and_fetch_1				\
+	or_and_fetch_1				\
 	bool_compare_and_swap_2			\
 	val_compare_and_swap_2			\
 	fetch_and_add_2				\
@@ -85,6 +115,11 @@ SFUNCS = bool_compare_and_swap_1		\
 	fetch_and_and_2				\
 	fetch_and_xor_2				\
 	fetch_and_or_2				\
+	add_and_fetch_2				\
+	sub_and_fetch_2				\
+	and_and_fetch_2				\
+	xor_and_fetch_2				\
+	or_and_fetch_2				\
 	bool_compare_and_swap_4			\
 	val_compare_and_swap_4			\
 	fetch_and_add_4				\
@@ -92,6 +127,11 @@ SFUNCS = bool_compare_and_swap_1		\
 	fetch_and_and_4				\
 	fetch_and_xor_4				\
 	fetch_and_or_4				\
+	add_and_fetch_4				\
+	sub_and_fetch_4				\
+	and_and_fetch_4				\
+	xor_and_fetch_4				\
+	or_and_fetch_4				\
 	bool_compare_and_swap_8			\
 	val_compare_and_swap_8			\
 	fetch_and_add_8				\
@@ -99,13 +139,23 @@ SFUNCS = bool_compare_and_swap_1		\
 	fetch_and_and_8				\
 	fetch_and_xor_8				\
 	fetch_and_or_8				\
+	add_and_fetch_8				\
+	sub_and_fetch_8				\
+	and_and_fetch_8				\
+	xor_and_fetch_8				\
+	or_and_fetch_8				\
 	bool_compare_and_swap_16		\
 	val_compare_and_swap_16			\
 	fetch_and_add_16			\
 	fetch_and_sub_16			\
 	fetch_and_and_16			\
 	fetch_and_xor_16			\
-	fetch_and_or_16
+	fetch_and_or_16                         \
+	add_and_fetch_16			\
+	sub_and_fetch_16			\
+	and_and_fetch_16			\
+	xor_and_fetch_16			\
+	or_and_fetch_16
 
 .INTERMEDIATE :  ${GENERICS:.c=-tmp.o} redefine_syms.txt
 
