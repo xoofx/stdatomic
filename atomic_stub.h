@@ -1,6 +1,8 @@
 #ifndef _STDATOMIC_STUB_H_
 #define _STDATOMIC_STUB_H_ 1
 
+#include <atomic_generic.h>
+
 #define INSTANTIATE_STUB_LCA(N, T)                                      \
 T __impl_fetch_add_ ## N(void volatile* X, T const V, int MO) {         \
   T E = 0;                                                              \

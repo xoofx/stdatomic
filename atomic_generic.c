@@ -116,31 +116,31 @@ uintptr_t __impl_8(void volatile const* x) {
 
 void __impl_load (size_t size, void volatile* ptr, void volatile* ret, int mo) {
 	unsigned pos = hash(ptr);
-	LOCK(table+pos);
+	LOCK(table[pos]);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
 	memcpy((void*)ret, (void*)ptr, size);
-	UNLOCK(table+pos);
+	UNLOCK(table[pos]);
 }
 
 void __impl_store (size_t size, void volatile* ptr, void const volatile* val, int mo) {
 	unsigned pos = hash(ptr);
-	LOCK(table+pos);
+	LOCK(table[pos]);
 	memcpy((void*)ptr, (void*)val, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
-	UNLOCK(table+pos);
+	UNLOCK(table[pos]);
 }
 
 static
 void atomic_exchange_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
 	unsigned pos = hash(ptr);
-	LOCK(table+pos);
+	LOCK(table[pos]);
 	memcpy((void*)ret, (void*)ptr, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
 	memcpy((void*)ptr, (void*)val, size);
-	UNLOCK(table+pos);
+	UNLOCK(table[pos]);
 }
 
 void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const volatile* val, void volatile* ret, int mo) {
@@ -155,7 +155,7 @@ void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const vo
 
 _Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
 	unsigned pos = hash(ptr);
-	LOCK(table+pos);
+	LOCK(table[pos]);
 	_Bool ret = !memcmp((void*)ptr, (void*)expected, size);
 	if (ret) {
 		memcpy((void*)ptr, (void*)desired, size);
@@ -166,7 +166,7 @@ _Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* e
 			atomic_thread_fence(memory_order_seq_cst);
 		memcpy((void*)expected, (void*)ptr, size);
 	}
-	UNLOCK(table+pos);
+	UNLOCK(table[pos]);
 	/* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
 	/*         ptr, size, pos, ret ? "suceeded" : "failed", */
 	/*         expected, desired); */
