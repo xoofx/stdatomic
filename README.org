@@ -101,7 +101,7 @@
    is already close to the C11 call interface. Relevant for C11 are 9
    operations
      - =fetch_add= for integer addition, returning the previous value
-     - =fetch_sub= for integer substraction, returning the previous value
+     - =fetch_sub= for integer subtraction, returning the previous value
      - =fetch_or=  for bitwise or, returning the previous value
      - =fetch_and= for bitwise and, returning the previous value
      - =fetch_xor= for bitwise xor, returning the previous value
@@ -114,22 +114,22 @@
        the previous value, and returns =false= or =true= according to
        the success of the condition.
 
-   In addition to the more or less obvious operands, the builtin
+   In addition to the more or less obvious operands, the built-in
    functions take one or two additional parameters that reflect an
    eventual requirement for the =memory_order= of the operation. So
    the functions represent the C11 "explicit" features such as
    =atomic_fetch_add_explicit=.
 
-   Observe that the builtin functions only foresee one interface
+   Observe that the built-in functions only foresee one interface
    =compare_exchange=.
 
      - The distinction between "weak" and "strong" versions of these
-       builtin functions are ruled through an additional parameter,
+       built-in functions are ruled through an additional parameter,
        not through a different function interface.
 
      - The function symbol fall-back =__atomic_compare_exchange=
        confusingly has a different semantic and prototype than the
-       builtin function. It misses the parameter to chose between the
+       built-in function. It misses the parameter to chose between the
        "weak" and the "strong" version, and solely corresponds to the
        C11 operation
 
@@ -177,10 +177,10 @@
 
    Additionally to the operations that have generic function
    interfaces in the C11 standard, gcc additionally implements six
-   other builtins, namely
+   other built-ins, namely
 
      - =__atomic_add_fetch= for integer addition, returning the updated value
-     - =__atomic_sub_fetch= for integer substraction, returning the updated value
+     - =__atomic_sub_fetch= for integer subtraction, returning the updated value
      - =__atomic_or_fetch=  for bitwise or, returning the updated value
      - =__atomic_and_fetch= for bitwise and, returning the updated value
      - =__atomic_xor_fetch= for bitwise xor, returning the updated value
@@ -198,9 +198,9 @@
    object of type =__int128_t= and the platform doesn't implement
    lock-free atomics for types of size 16.
 
-*** Clang's =__c11_atomic= builtins
+*** Clang's =__c11_atomic= built-ins
 
-    Clang has gone a different path for the builtins that implement
+    Clang has gone a different path for the built-ins that implement
     C11 atomics, prefixed with =__c11_atomic=. These are a directly
     feature equivalent to the C11 generic functions that have
     =memory_order= arguments (=_explicit= suffix).
@@ -214,7 +214,7 @@
 
     It dates back long before the C11 atomic interface had been
     designed and thus cannot be directly conforming to it. It has
-    basically the same builtins for arithmetic types as above, only
+    basically the same built-ins for arithmetic types as above, only
     that
 
     - The functions are named a bit differently.
@@ -224,21 +224,21 @@
       onward. Therefore this operation cannot be used portably in an
       environment that might use different versions of compilers. So
       we don't implement these function interfaces and we deprecate
-      the use of this builtin.
+      the use of this built-in.
 
    Additionally this interface also implements a =test_and_set=
    functionality that is used to implement the =atomic_flag=
-   functions. This builtin is documented to have acquire-release
+   functions. This built-in is documented to have acquire-release
    consistency. If used with sequential consistency, an additional
    fence is inserted to ensure that.
 
    These features are sufficient to provide a decent implementation of
    C11 atomics.
 
-*** The lockfull fallback functions
+*** The lock-full fallback functions
 
-    In absence of proper architecture support, the all fallbacks (for
-    the three builtin families) with =_X= suffix use the ones without
+    In absence of proper architecture support, all fallbacks (for
+    the three built-in families) with =_X= suffix use the ones without
     suffix underneath. These external interfaces receive the size of
     the data type as an additional, leading parameter:
 
@@ -248,10 +248,10 @@
      - =__atomic_compare_exchange=
 
    They have pure memory semantics and their basic operations are
-   =memcopy= and =memcmp= for load, store and comparison.
+   =memcpy= and =memcmp= for load, store and comparison.
 
    These functions *cannot be called directly* from within your code,
-   because the compiler cannot distinguish them from the gcc builtins,
+   because the compiler cannot distinguish them from the gcc built-ins,
    /and/ they have different prototypes than these.
 
    We implement these functions as critical sections that are
@@ -271,7 +271,7 @@
 
      - An OS specific light-weighted lock with non-active waits. The
        integration into =musl= uses the internal =LOCK/UNLOCK= calls,
-       which in turn use linux' =futex= underneath to do an efficient
+       which in turn use Linux' =futex= underneath to do an efficient
        wait. If by coincidence these are called in an un-threaded
        process, they are close to non-ops.
 
@@ -346,7 +346,7 @@
 
   - clang versions 3.2 to 3.5
 
-  The versions provide the builtin functions as described above but
+  The versions provide the built-in functions as described above but
   lack full compiler support for atomic types and operations.
 
   With the =<stdatomic.h>= header that we supply for these compilers,
@@ -441,10 +441,10 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
 
 ** Basic atomics support
 
-   Even older versions of gcc and clang implement the =__sync= builtin
+   Even older versions of gcc and clang implement the =__sync= built-in
    functions and can thereby made to accept the same <stdatomic.h>
    header as discussed above. Since, as their names indicate, these
-   builtins only have fully synchronizing versions, they will not be
+   built-ins only have fully synchronizing versions, they will not be
    able to take advantage of the different consistency models. But
    implementing atomics with stronger consistency than required, here
    sequential consistency, only, is conforming to the C standard.
