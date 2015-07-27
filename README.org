@@ -352,7 +352,7 @@
   With the =<stdatomic.h>= header that we supply for these compilers,
   application code can use the functional interfaces. A macro
   =_Atomic(T)= is provided that can be used to issue emulated
-  declarations of atomic types that should be forward compatible to
+  declarations of atomic types that should be *forward compatible* to
   platforms with complete C11 atomics support.  Example:
 
 #+begin_src C
@@ -371,8 +371,9 @@ int my_thread_function(void* arg) {
 }
 #+end_src
 
-  Underneath such objects are implemented as arrays of =volatile= base
-  type of size 1. This has the following sought effects:
+  Underneath such emulated atomic objects are implemented as arrays of
+  =volatile= base type of size 1. This has the following sought
+  effects:
 
   - They can't be assigned to.
   - They evaluate to a pointer in almost any context.
@@ -448,3 +449,91 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
    able to take advantage of the different consistency models. But
    implementing atomics with stronger consistency than required, here
    sequential consistency, only, is conforming to the C standard.
+
+* The implementation
+
+
+** Requirements
+
+*** Compilers
+
+  You should be able to compile this implementation with any version
+  of modern gcc and clang. (Versions are hard to tell, gcc should work
+  for 4.1) The quality of the resulting binary will depend on the
+  implementation of atomic support by the compiler.
+
+  There are three different implementations, for modern clang and gcc,
+  and one for those compilers that only support the =__sync_=
+  built-ins. They are only tested with clang and gcc, but might work
+  with other compilers that implement one of the sets of built-ins and
+  is otherwise compatible to some gcc extensions:
+
+  - compound expressions with =({ })=
+  - =__attribute__= with =__alias__= and =__unused__=
+  - =__builtin_choose_expr= for the =__sync= version as a precursor of
+    C11's =_Generic=
+
+  There are some heuristics in place to decide at compile time which
+  case applies, namely =__clang__= to detect clang, =__ATOMIC_...=
+  macros to detect the C11 versions of the built-ins.
+
+*** OS or C library support
+
+    The library may work with different lock constructs. The musl
+    integration uses =LOCK= and =UNLOCK= internal macros.
+
+** Caveats
+
+*** Symbol renaming
+
+  There is one important difficulty when compiling this. The original
+  =__atomic= library interface was developed with C++ in mind and not
+  C. Therefore it freely uses function overloading for the built-ins
+  versus the library interface. Since we also use the library
+  functions as fallbacks in the implementation of some of the =_X=
+  variants this naming scheme is not supportable with a C compiler.
+
+  We get away with it by using internal names, prefixed with =__impl_=
+  for all functions. Then we rename symbols to the intended ones using
+  =objcopy=.
+
+  - The current integration into musl does this with a *script* that
+    you have to run *manually* after compilation.
+  - You then have to launch make a *second time* to do the final link.
+
+ This technique is certainly not ideal and subject to improvement.
+
+*** Support of 16 byte atomic instructions
+
+    The main difference for modern processors that is relevant here is
+    if it supports 16 byte atomic instructions or not. There is no
+    difficulty to detect this at compile time, but if the library is
+    used with code that is compiled with a different compiler or just
+    different compiler options, incompatible binary code may be
+    produced.
+
+    My plan is to freeze that feature at compile time of the library
+    and reflect the capacity in the =<stdatomic.h>= that is
+    provided. This then may result in code that is a bit less
+    optimized than it could, but that is compatible.
+
+    - If the library is *not* compiled with direct 16 byte support the
+      application may not use it, and thus use a memory implementation
+      for such operations.
+
+    - If the library *is* compiled with direct 16 byte support but the
+      application compiler doesn't support it, the user code should
+      fallback to library calls, but which in turn use the atomic
+      instructions. So such a variant would have a call overhead and
+      would not be able to inline the atomics in the user binary.
+
+    All of this is not yet, done, though. Be careful when using this
+    preliminary version.
+
+
+** Leftovers
+
+   There are some leftovers that will hopefully disappear. In
+   particular there are several hash functions and a instrumentation
+   infrastructure for the hashes. I didn't have enough test cases yet
+   to see what would be best, here.
