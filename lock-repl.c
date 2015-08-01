@@ -1,11 +1,23 @@
+#include <limits.h>
 #include "stdatomic-impl.h"
 
-void (__impl_mut_unlock)(_Atomic(int) volatile* f) {
-	atomic_store_explicit(f, 0, memory_order_release);
+
+#define contrib ((UINT_MAX/2u)+2u)
+
+C¯size __impl_total = 0;
+C¯size __impl_fast = 0;
+C¯size __impl_slow = 0;
+C¯size __impl_futex = 0;
+C¯size __impl_again = 0;
+C¯size __impl_spin = 0;
+
+
+void __impl_mut_unlock_slow(_Atomic(unsigned)* f) {
+  // empty
 }
 
-void (__impl_mut_lock)(_Atomic(int) volatile* f) {
+void __impl_mut_lock_slow(_Atomic(unsigned)* f) {
 	do {
 		/* busy loop */
-	} while (atomic_compare_exchange_strong_explicit(f, (int[1]){ 0 }, 1, memory_order_acq_rel, memory_order_consume));
+	} while (!atomic_compare_exchange_strong_explicit(f, (unsigned[1]){ 0 }, contrib, memory_order_acq_rel, memory_order_consume));
 }

@@ -13,9 +13,27 @@
 /* The lock itself must be lock-free, so in general the can only be an
    atomic_flag if we know nothing else about the platform. */
 
-typedef int volatile __impl_lock[2];
+typedef _Atomic(unsigned) __impl_lock;
+void __impl_mut_lock_slow(_Atomic(unsigned)* loc);
+void __impl_mut_unlock_slow(_Atomic(unsigned)* loc);
 
+static unsigned const contrib = ((UINT_MAX/2u)+2u);
 
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(_Atomic(unsigned)* loc)
+{
+  if (!atomic_compare_exchange_strong_explicit(loc, (unsigned[1]){ 0 }, contrib, memory_order_acq_rel, memory_order_consume))
+    __impl_mut_lock_slow(loc);
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(_Atomic(unsigned)* loc)
+{
+  if (contrib != atomic_fetch_sub_explicit(loc, contrib, memory_order_relaxed))
+    __impl_mut_unlock_slow(loc);
+}
 
 /* the size of this table has a trade off between the probability of
    collisions (the bigger the table, the better) and the waste of
@@ -116,31 +134,31 @@ uintptr_t __impl_8(void volatile const* x) {
 
 void __impl_load (size_t size, void volatile* ptr, void volatile* ret, int mo) {
 	unsigned pos = hash(ptr);
-	LOCK(table[pos]);
+	__impl_mut_lock(&table[pos]);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
 	memcpy((void*)ret, (void*)ptr, size);
-	UNLOCK(table[pos]);
+	__impl_mut_unlock(&table[pos]);
 }
 
 void __impl_store (size_t size, void volatile* ptr, void const volatile* val, int mo) {
 	unsigned pos = hash(ptr);
-	LOCK(table[pos]);
+	__impl_mut_lock(&table[pos]);
 	memcpy((void*)ptr, (void*)val, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
-	UNLOCK(table[pos]);
+	__impl_mut_unlock(&table[pos]);
 }
 
 static
 void atomic_exchange_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
 	unsigned pos = hash(ptr);
-	LOCK(table[pos]);
+	__impl_mut_lock(&table[pos]);
 	memcpy((void*)ret, (void*)ptr, size);
 	if (mo == memory_order_seq_cst)
 		atomic_thread_fence(memory_order_seq_cst);
 	memcpy((void*)ptr, (void*)val, size);
-	UNLOCK(table[pos]);
+	__impl_mut_unlock(&table[pos]);
 }
 
 void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const volatile* val, void volatile* ret, int mo) {
@@ -155,7 +173,7 @@ void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const vo
 
 _Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
 	unsigned pos = hash(ptr);
-	LOCK(table[pos]);
+	__impl_mut_lock(&table[pos]);
 	_Bool ret = !memcmp((void*)ptr, (void*)expected, size);
 	if (ret) {
 		memcpy((void*)ptr, (void*)desired, size);
@@ -166,7 +184,7 @@ _Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* e
 			atomic_thread_fence(memory_order_seq_cst);
 		memcpy((void*)expected, (void*)ptr, size);
 	}
-	UNLOCK(table[pos]);
+	__impl_mut_unlock(&table[pos]);
 	/* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
 	/*         ptr, size, pos, ret ? "suceeded" : "failed", */
 	/*         expected, desired); */
