@@ -245,9 +245,9 @@ clean :
 beautify :
 	astyle --options=.astylerc *.c *.h
 
-musl : ${SOURCES} ${GENERICS} redefine_syms.txt
+musl : ${SOURCES} ${GENERICS} atomic_futex_lock.c redefine_syms.txt
 	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
-	cp ${SOURCES} ${GENERICS} redefine_syms.txt ${MUSL}/src/stdatomic/
+	cp ${SOURCES} ${GENERICS} atomic_futex_lock.c redefine_syms.txt ${MUSL}/src/stdatomic/
 	cp atomic*.h  ${MUSL}/src/internal/
 
 -include ${DEPENDS}
