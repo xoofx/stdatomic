@@ -270,10 +270,9 @@
    There are several possibilities, in order of preference:
 
      - An OS specific light-weighted lock with non-active waits. The
-       integration into =musl= uses the internal =LOCK/UNLOCK= calls,
-       which in turn use Linux' =futex= underneath to do an efficient
-       wait. If by coincidence these are called in an un-threaded
-       process, they are close to non-ops.
+       integration into =musl= uses Linux' =futex= underneath to do an
+       efficient wait. If by coincidence these are called in an
+       un-threaded process, they are close to non-ops.
 
      - C11's =mtx_t= type has an shallow interface that should allow
        it to be implemented a bit simpler and efficient than OS
@@ -288,16 +287,15 @@
      - POSIX' =pthread_mutex_t= is a little less portable, but allows
        for static initialization.
 
-     - A spinlock such as =atomic_flag=. It is portable to all
-       platforms that implement atomics and allows for static
-       initialization. This is the only choice when compiled without
-       OS or library support.
+     - A spinlock similar to =atomic_flag=. Such an approach is
+       portable to all platforms that implement atomics and allows for
+       static initialization. This is the only choice when compiled
+       without OS or library support.
 
        The wait functionality is an active wait, that burns CPU cycles
        and memory bandwidth. In many circumstances this should do
        well, the critical sections that are protected by this are nice
-       and small. But performance can be noticeably degraded if a lot of
-       threads repeatedly hammer on the same atomic object.
+       and small.
 
 * The =<stdatomic.h>= header file
 
@@ -479,8 +477,74 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
 
 *** OS or C library support
 
-    The library may work with different lock constructs. The musl
-    integration uses =LOCK= and =UNLOCK= internal macros.
+    The library may work with different lock constructs, currently we
+    implement one simple generic approach that only uses spinning, and
+    a mixed approach that uses Linux' =futex= as an inactive sleep
+    strategy as a last resort. The latter has been tested with the
+    =musl= C library.
+
+    This locking strategy can be a performance bottleneck for
+    applications with a strong congestion on one particular atomic
+    data, e.g code that would insert list elements through a
+    centralized list head. If this list head can not be realized with
+    a lock-free atomic, the critical section of modifying it is
+    protected by our lock. Such code has very particular properties.
+
+    - Since the critical section usually is really short compared to a
+      scheduling interval of the OS, the probability that the lock can
+      be taken immediately is high. So the fast path for taking the
+      lock must be *really fast*. Our implementation essentially has
+      an =atomic_compare_exchange_strong_explicit=, here. One memory
+      instruction on the fast path must be enough.
+
+    - If locking fails a the first try, still the probability is very
+      high that it will succeed soon after. This is because only
+      scheduled threads compete, here, so there are never more threads
+      in play than we have processors. Therefore as a second strategy
+      we spin for a while until we get the lock. In our experiments on
+      average one single round of spinning was enough.
+
+    - A third exceptional case may occur, when the thread that is
+      holding the lock is descheduled in the middle of the critical
+      section. The probability for that event is quite rare (0.1 % in
+      our experiments) but still this case occurs. If it does, the
+      world changes drastically, a herd of threads all have to wait
+      for a long time (until the locker is rescheduled) to have any
+      chance to obtain the lock. Active wait here is
+      counterproductive. In the contrary, by going into an inactive OS
+      sleep, the possibility for the locker to regain an execution
+      slot increases.
+
+   We implement this strategy a bit differently than classical locks
+   with wait-counters would do. We just have a single =unsigned= value
+   that at the same time holds the lock bit (HO bit) and a
+   counter. That counter is not viewed as a counter of the threads
+   that are in a kernel wait, but just counts the number of threads
+   inside the critical section. This has the following advantages:
+
+   - An update to the counter part is relatively rare. So we save
+     memory bandwidth, and we also avoid too much interaction between
+     the different threads that compete for the lock.
+
+   - The fast path occurs when the value is =0=, initially. It sets
+     the HO bit (the lock bit) and the LO bit (for a counter of value
+     =1=) in one go. The resulting value is =UINT_MAX/2u+2u=.
+
+   - If the fast path fails, the counter is atomically incremented by
+     one, and we enter a spin lock to set the HO bit as well.
+
+   - After having spun for sometime, we suppose that we are in the bad
+     situation and go into a =futex_wait=. Going into the =futex_wait=
+     may fail if the value changes. Since additional threads only
+     change the counter when they arrive, this can't happen too often
+     and the thread goes to sleep, eventually.
+
+   - Unlocking is a very simple operation. The locker has contributed
+     =UINT_MAX/2u+2u= to the value, and so just has to decrement the
+     value atomically by that amount. By doing so, the thread also
+     notices if other threads still are in the critical section and
+     wakens one of them.
+
 
 ** Caveats
 
@@ -499,7 +563,7 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
 
   - The current integration into musl does this with a *script* that
     you have to run *manually* after compilation.
-  - You then have to launch make a *second time* to do the final link.
+  - You then have to launch =make= a *second time* to do the final link.
 
  This technique is certainly not ideal and subject to improvement.
 
@@ -533,7 +597,14 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
 
 ** Leftovers
 
-   There are some leftovers that will hopefully disappear. In
-   particular there are several hash functions and a instrumentation
-   infrastructure for the hashes. I didn't have enough test cases yet
-   to see what would be best, here.
+   There are some leftovers that will hopefully disappear.
+
+   - There are several hash functions and a instrumentation
+     infrastructure for the hashes. I didn't have enough test cases
+     yet to see what would be best, here.
+
+   - There is optional instrumentation for the lock
+     functions. Switching it on changes overall performance
+     substantially, and thus I'd expect a noticeable Heisenberg
+     effect. So these counter can give qualitative information about
+     what happens, you shouldn't take the figures verbally.
