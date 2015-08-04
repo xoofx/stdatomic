@@ -467,9 +467,18 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
   is otherwise compatible to some gcc extensions:
 
   - compound expressions with =({ })=
-  - =__attribute__= with =__alias__= and =__unused__=
+  - =__typeof__=
+  - =__attribute__((__unused__))=
   - =__builtin_choose_expr= for the =__sync= version as a precursor of
     C11's =_Generic=
+  - =#pragma redefine_extname= to rename the external symbols that are produced
+
+  If aligment happens to be an issue you might also need
+
+  - =__attribute__((__aligned__(something)))=
+  - =__alignof__=
+
+  or the equivalent C11 features =_Alignas= and =_Alignof=.
 
   There are some heuristics in place to decide at compile time which
   case applies, namely =__clang__= to detect clang, =__ATOMIC_...=
@@ -558,14 +567,14 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
   variants this naming scheme is not supportable with a C compiler.
 
   We get away with it by using internal names, prefixed with =__impl_=
-  for all functions. Then we rename symbols to the intended ones using
-  =objcopy=.
+  for all functions. Then a gcc extension is used to map that internal
+  name to an external name, e.g
+#+begin_src C
+#pragma redefine_extname __impl_load __atomic_load
+#+end_src
 
-  - The current integration into musl does this with a *script* that
-    you have to run *manually* after compilation.
-  - You then have to launch =make= a *second time* to do the final link.
-
- This technique is certainly not ideal and subject to improvement.
+  If your compiler doesn't support this feature, you'd have to use an
+  external tool such as =objcopy= to achieve the same.
 
 *** Support of 16 byte atomic instructions
 

@@ -26,7 +26,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
   size_t again = 0;
   size_t spin = 0;
 #endif
-  register unsigned spins = 0;
+  unsigned spins = 0;
   unsigned val = 1+atomic_fetch_add_explicit(loc, 1, memory_order_relaxed);
   if (!(val & lockbit)) goto BIT_UNSET;
   /* The lock acquisition loop. This has been designed such that the
@@ -42,7 +42,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
     for (spins = 0; spins < 10; ++spins) {
       a_spin();
       /* be optimistic and hope that the lock has been released */
-      register unsigned des = val-1;
+      unsigned des = val-1;
       val -= contrib;
       if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume))
         goto FINISH;
@@ -55,7 +55,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
       if (__syscall(SYS_futex, loc, FUTEX_WAIT|FUTEX_PRIVATE, val, 0) == -EAGAIN)
         ACCOUNT(again, 1);
       /* be optimistic and hope that the lock has been released */
-      register unsigned des = val-1;
+      unsigned des = val-1;
       val -= contrib;
       if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume))
         goto FINISH;

@@ -217,26 +217,3 @@ void __impl_print_stat(void) {
 	        LEN, x1, min, avg1, sqrt(var), max);
 #endif
 }
-
-/* For the four functions defined here, we need two entries in the
-   symbol table. One will be the final link name of the replacement
-   stub, something like __atomic_load, e.g. The other one is the
-   __impl prefixed name. It may eventually be used by the fixed-sized
-   stub functions, since these can't use the name that corresponds to
-   the builtin.
-
-   The replacement to the final name is not done within compiling,
-   since the name clashes can only create conflicts for a C
-   compiler. Instead, we use an external tool (objcopy) that does the
-   renaming.
-
-   We want these to be strong aliases, so they can't accidentally be
-   replaced. Therefore we can't use musl's weak_alias macro but create
-   one of our own. */
-
-#define alias(X, Y) __attribute__((__alias__(#X))) __typeof__(X) Y
-
-alias(__impl_load, __impl_load_replace);
-alias(__impl_store, __impl_store_replace);
-alias(__impl_exchange, __impl_exchange_replace);
-alias(__impl_compare_exchange, __impl_compare_exchange_replace);

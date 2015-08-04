@@ -190,47 +190,12 @@ libatomic.a : ${MEMBERS}
 endif
 
 redefine_syms.txt : Makefile
-	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __atomic_\1\n/g'          > $@
-	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __sync_\1\n/g'            >>$@
-	@echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1_replace __atomic_\1\n/g'  >>$@
+	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __atomic_\1\n/g'  > $@
+	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __sync_\1\n/g'    >>$@
+	@echo -n ${EFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __atomic_\1\n/g'  >>$@
 
-
-atomic_generic-tmp.o : atomic_generic.c
-	${CC} -c ${CFLAGS} -o atomic_generic-tmp.o atomic_generic.c
-
-atomic_generic.o : atomic_generic-tmp.o redefine_syms.txt
-	objcopy -v ${OBJOPTS} atomic_generic-tmp.o atomic_generic.o
-
-atomic_generic_1-tmp.o : atomic_generic_1.c
-	${CC} -c ${CFLAGS} -o atomic_generic_1-tmp.o atomic_generic_1.c
-
-atomic_generic_1.o : atomic_generic_1-tmp.o redefine_syms.txt
-	 objcopy -v ${OBJOPTS} atomic_generic_1-tmp.o atomic_generic_1.o
-
-atomic_generic_2-tmp.o : atomic_generic_2.c
-	${CC} -c ${CFLAGS} -o atomic_generic_2-tmp.o atomic_generic_2.c
-
-atomic_generic_2.o : atomic_generic_2-tmp.o redefine_syms.txt
-	 objcopy -v ${OBJOPTS} atomic_generic_2-tmp.o atomic_generic_2.o
-
-atomic_generic_4-tmp.o : atomic_generic_4.c
-	${CC} -c ${CFLAGS} -o atomic_generic_4-tmp.o atomic_generic_4.c
-
-atomic_generic_4.o : atomic_generic_4-tmp.o redefine_syms.txt
-	 objcopy -v ${OBJOPTS} atomic_generic_4-tmp.o atomic_generic_4.o
-
-atomic_generic_8-tmp.o : atomic_generic_8.c
-	${CC} -c ${CFLAGS} -o atomic_generic_8-tmp.o atomic_generic_8.c
-
-atomic_generic_8.o : atomic_generic_8-tmp.o redefine_syms.txt
-	 objcopy -v ${OBJOPTS} atomic_generic_8-tmp.o atomic_generic_8.o
-
-atomic_generic_16-tmp.o : atomic_generic_16.c
-	${CC} -c ${CFLAGS} -o atomic_generic_16-tmp.o atomic_generic_16.c
-
-atomic_generic_16.o : atomic_generic_16-tmp.o redefine_syms.txt
-	 objcopy -v ${OBJOPTS} atomic_generic_16-tmp.o atomic_generic_16.o
-
+atomic_pragma.h : redefine_syms.txt Makefile
+	sed 's/\(.*\)/#pragma redefine_extname \1/1' $< > $@
 
 %.s : %.c
 	${CC} -S ${CFLAGS} $*.c
@@ -245,9 +210,9 @@ clean :
 beautify :
 	astyle --options=.astylerc *.c *.h
 
-musl : ${SOURCES} ${GENERICS} atomic_futex_lock.c redefine_syms.txt
+musl : ${SOURCES} ${GENERICS} atomic_futex_lock.c atomic_pragma.h
 	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
-	cp ${SOURCES} ${GENERICS} atomic_futex_lock.c redefine_syms.txt ${MUSL}/src/stdatomic/
-	cp atomic*.h  ${MUSL}/src/internal/
+	cp ${SOURCES} ${GENERICS} atomic_futex_lock.c ${MUSL}/src/stdatomic/
+	cp atomic*.h  stdatomic-impl.h ${MUSL}/src/internal/
 
 -include ${DEPENDS}

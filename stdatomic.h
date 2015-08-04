@@ -25,18 +25,30 @@
  ** atomic objects and only uses the atomic_... macros as of the C11
  ** standard to act upon these objects should work.
  **
- ** The sync code also depends a lot of other gcc extensions to C:
+ ** This code also builds upon other gcc extensions to C:
  **
  ** - compound expressions
- ** - __typeof__
- ** - __alignof__
- ** - __attribute__((aligned(something)))
+ ** - <code>__typeof__</code>
+ ** - <code>#pragma redefine_extname</code>
+ **
+ ** and may eventually use
+ ** - <code>__alignof__</code>
+ ** - <code>__attribute__((aligned(something)))</code>
  **/
 
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
+/* This uses a special feature of gcc and friends to redefine a
+   symbol's external name with a pragma. If your compiler doesn't
+   support this you find yourself with a whole bunch of functions with
+   names starting with __impl_. You'd then have to find an equivalent
+   feature for your compiler (please let me know) or use an external
+   tool such as objcopy to redefine the symbols.*/
+#ifdef __PRAGMA_REDEFINE_EXTNAME
+# include <atomic_pragma.h>
+#endif
 #include <atomic_constants.h>
 #include <atomic_flag.h>
 #include <atomic_fence.h>
