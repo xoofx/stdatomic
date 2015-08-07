@@ -524,6 +524,8 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
       sleep, the possibility for the locker to regain an execution
       slot increases.
 
+*** The algorithm
+
    We implement this strategy a bit differently than classical locks
    with wait-counters would do. We just have a single =unsigned= value
    that at the same time holds the lock bit (HO bit) and a
@@ -553,6 +555,177 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
      value atomically by that amount. By doing so, the thread also
      notices if other threads still are in the critical section and
      wakens one of them.
+
+*** Analysis
+
+    Let us assume a worst case scenario where a thread $T_0$ is
+    unscheduled while inside the critical section, and that there are
+    $N$ threads that are ready to be scheduled, and that once
+    scheduled start to compete for the lock.
+
+    Different quantities are interesting for an analysis of the
+    runtime behavior of the algorithm.
+
+    - $t_{slice}$ is the length of a scheduling time slice.
+
+    - $P$ is the /number of processor cores/, which is viewed to be
+      equal to the maximum number of threads that are scheduled
+      simultaneously.
+
+    - $t_{spin}$ is the time that a scheduled thread spends spinning
+      before trying to switch to =futex_wait=.
+
+    - $1 \leq S \leq P$ is the /slowdown/ of the platform.  We suppose
+      that $P$ threads can spin concurrently and the time for them
+      spinning exactly in parallel is $S \cdot t_{spin}$.
+
+    - $\frac{1}{P} \leq E = \frac{1}{S} \leq 1$ is the /efficiency/ of
+      the platform.  This will in general be less than $1$, e.g
+      because of memory contention or contention on other shared
+      resources (execution pipelines, caches). On a typical
+      hyperthreaded machine of today with $4$ cores in total, this
+      would be between $0.625$ and $0.75$. On an ideal SMP machine
+      without resource sharing this would be $1$.
+
+    - $1 \leq \hat{P}=E\cdot P \leq P$ is the /parallelism/ of the
+      platform. For the example of the hyperthreaded machine with $4$
+      cores in total, $\hat{P}$ could be between $2.5$ and $3$.
+
+    - $t_{fail}$ is the maximum of two system specific times: the time
+      a thread $T_1$ may either spend in a failed attempt to
+      =futex_wait= or that the system needs to put $T_1$ to sleep and
+      start another thread $T_2$.
+
+    As a first observation let us state:
+#+BEGIN_EM
+#+BEGIN_CENTER
+On a platform where $\hat{P}$ is close to one, the spinning phase of
+the algorithm should entirely be skipped.
+#+END_CENTER
+#+END_EM
+
+    This is simply because there no other thread can make progress
+    while a thread is spinning. Thus spinning would just waste
+    resources and the state of the application would not progress.  So
+    from now on we can assume that $\hat{P} \geq 1+\epsilon$ for some
+    reasonable value of $\epsilon > 0$.
+
+
+    Let $T_0$ be the thread that holds the lock and suppose that $T_0$
+    is unscheduled by the OS in the middle of its critical
+    section. Now, the only interaction that other threads can have
+    over the lock, is the time they spend inside the lock function
+    itself. Since they will not reach the applicative part of the
+    critical section before $T_0$ releases the lock, that part is
+    neglected for the rest of the discussion.
+
+    Any individual thread needs at least time $t_{spin}$ to reach the
+    call to =futex_wait=, all $P$ threads together may need $S \cdot
+    t_{spin}$ time.
+
+    Also, in that situation not more than $P$ scheduled threads can enter
+    the critical section. There are $P-1$ atomic events that change
+    the futex value in this case and thus =futex_wait= may have been
+    forced to fail at most $P-1$ times.
+
+#+BEGIN_EM
+#+BEGIN_CENTER
+Provided that no other threads are descheduled, after at most
+$$\max \{ S\cdot t_{spin} + t_{fail}, t_{spin} + (P-1)\cdot t_{fail}\}$$
+seconds a first thread successfully calls =futex_wait=.
+#+END_CENTER
+#+END_EM
+
+    This already shows that, provided no descheduling takes place, our
+    algorithm is deadlock-free.
+
+    Now, once a thread successfully goes into =futex_wait= a new
+    thread $T_P$ is scheduled, competes for the lock and changes the
+    =futex= value. It will perturb all other threads that are trying
+    to go into =futex_wait=, forcing them to restart their attempt.
+
+#+BEGIN_EM
+#+BEGIN_CENTER
+After a thread successfully enters =futex_wait= and the newly
+scheduled thread enters immediately into the critical section, the
+time for next thread to succeed a call to =futex_wait= is $t_{fail}$
+#+END_CENTER
+#+END_EM
+
+    But, under some premises this value is also an upper bound:
+
+
+#+BEGIN_EM
+#+BEGIN_CENTER
+Provided that no threads are descheduled otherwise, that there are
+always $P$ threads inside the CS and that at least one of them has
+finished spinning, after a time of $t_{fail}$ another threads succeeds
+his call to =futex_wait=.
+#+END_CENTER
+#+END_EM
+
+That is, under these circumstances we have a stable regime where each
+$t_{fail}$ seconds a thread enters =futex_wait=.
+
+To be able to ensure that there is always at least one thread that has
+finished spinning, we observe that if
+
+$$S\cdot t_{spin} \leq t_{fail}$$
+
+or equivalently
+
+$$t_{spin} \leq E\cdot t_{fail}$$
+
+a newly scheduled thread $T_P$ has finished spinning when the next
+thread successfully goes into =futex_wait=.
+
+#+BEGIN_EM
+#+BEGIN_CENTER
+Provided that no threads are descheduled otherwise, that there are
+always $P$ threads inside the CS and that $S\cdot t_{spin} \leq
+t_{fail}$, threads succeed calls to =futex_wait= at a rate of
+$1/t_{fail}$ per second.
+#+END_CENTER
+#+END_EM
+
+Or, roughly the time for all threads to calm down and successfully
+call =futex_wait= is $N\cdot t_{fail}$.
+
+#+BEGIN_EM
+#+BEGIN_CENTER
+Provided that no threads are descheduled otherwise, that there are
+always $P$ threads inside the CS and that $S\cdot t_{spin} \leq
+t_{fail}$, after a time of $N\cdot t_{fail}$ the application can start
+to make progress, again.
+#+END_CENTER
+#+END_EM
+
+This progress can either be that there are other threads that do some
+work for the application, or, if there are no such threads, $T_0$ will
+be rescheduled and finish its CS.
+
+The time $t_{spin}$ has not only an influence for this worst case, but
+is also responsible for the response time in the non-congested
+situation. Here the longer we spin, the higher the probability to get
+away without going into =futex_wait=. So the best compromise would be
+to choose
+
+$$t_{spin} = E\cdot t_{fail}.$$
+
+Observe that as soon that $P > 1 + \epsilon$ this formula is otherwise
+independent of $P$ itself.
+
+The exact value for $E$ is not so easy to measure or guess in real
+life. As a good heuristic value is
+\begin{displaymath}
+\frac{t_{spin}}{t_{fail}} =
+\begin{cases}
+0 & \textrm{if $\hat{P} \leq 1+\epsilon$}\\
+0.5 + \frac{\epsilon}{2} & \textrm{if $\hat{P} \leq 2$}\\
+0.9 & \textrm{otherwise.}
+\end{cases}
+\end{displaymath}
+
 
 
 ** Caveats

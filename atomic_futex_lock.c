@@ -1,5 +1,8 @@
 #include "pthread_impl.h"
 #include "stdatomic-impl.h"
+#include <time.h>
+#include <stdio.h>
+#include <math.h>
 
 /* The HO bit. */
 static unsigned const lockbit = (UINT_MAX/2u)+1u;
@@ -17,6 +20,10 @@ size_t __impl_spin = 0;
 #else
 # define ACCOUNT(X, V) do { } while(0)
 #endif
+
+/* This is just a heuristic. We assume that one round of spinning is
+   10 times faster than a failed call to futex_wait. */
+static unsigned spins_max = 30;
 
 void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
 {
@@ -37,9 +44,8 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
      to the count, means that other threads that are inside this
      same loop are less perturbed. */
   for (;;) {
-    /* The lock bit is set by someone else, wait until it is
-       unset. */
-    for (spins = 0; spins < 10; ++spins) {
+    /* The lock bit is set by someone else, spin until it is unset. */
+    for (spins = 0; spins < spins_max; ++spins) {
       a_spin();
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
@@ -85,4 +91,119 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
 void __impl_mut_unlock_slow(_Atomic(unsigned)* loc)
 {
   __syscall(SYS_futex, loc, FUTEX_WAKE|FUTEX_PRIVATE, 1);
+}
+
+static
+double timespecdiff(struct timespec* end, struct timespec* start) {
+  double ret = end->tv_sec - start->tv_sec;
+  if (end->tv_nsec >= start->tv_nsec)
+    ret += (end->tv_nsec - start->tv_nsec)*1E-9;
+  else
+    ret += (start->tv_nsec - end->tv_nsec)*1E-9 - 1.0;
+  /* fprintf(stderr, "bench start %lld %ld\n", start->tv_sec, start->tv_nsec); */
+  /* fprintf(stderr, "bench end %lld %ld\n", end->tv_sec, end->tv_nsec); */
+  /* fprintf(stderr, "difference %g\n", ret); */
+  return ret;
+}
+
+void atomic_calibrate(void) {
+  _Atomic(unsigned) loc = ATOMIC_VAR_INIT(42u);
+  unsigned val = 0;
+  size_t i;
+  enum { iterI = 1000, };
+  size_t j;
+  enum { iterJ = 10, };
+  double futex_time[iterJ] = { 0 };
+  double spin_time[iterJ] = { 0 };
+  struct timespec all_start, all_end, futex_start, futex_end, spin_start, spin_end;
+
+  clock_gettime(CLOCK_MONOTONIC, &all_start);
+
+  for (j = 0; j < iterJ; ++j) {
+    /* Determine the cost of mis-predicted futex_wait */
+    clock_gettime(CLOCK_MONOTONIC, &futex_start);
+    for (i = 0; i < iterI; ++i) {
+    SHORTCUT0:
+      __syscall(SYS_futex, &loc, FUTEX_WAIT|FUTEX_PRIVATE, val, 0);
+      /* Change the value in the same way as in the real loop. */
+      unsigned des = val-1;
+      val -= contrib;
+      /* have the same conditionals as in the original, only that we
+         know that this will never trigger */
+      if (atomic_compare_exchange_strong_explicit(&loc, &val, des, memory_order_acq_rel, memory_order_consume))
+        goto SHORTCUT0;
+      /* Make sure that val never is correct. */
+      val = 0;
+    }
+    clock_gettime(CLOCK_MONOTONIC, &futex_end);
+
+    /* Determine the cost of mis-predicted futex_wait */
+    clock_gettime(CLOCK_MONOTONIC, &spin_start);
+    for (i = 0; i < iterI; ++i) {
+    SHORTCUT1:
+      a_spin();
+      /* Change the value in the same way as in the real loop. */
+      unsigned des = val-1;
+      val -= contrib;
+      /* have the same conditionals as in the original, only that we
+         know that this will never trigger */
+      if (atomic_compare_exchange_strong_explicit(&loc, &val, des, memory_order_acq_rel, memory_order_consume))
+        goto SHORTCUT1;
+      /* Make sure that val never is correct. */
+      val = 0;
+    }
+    clock_gettime(CLOCK_MONOTONIC, &spin_end);
+
+    futex_time[j] = timespecdiff(&futex_end, &futex_start)/iterI;
+    spin_time[j] = timespecdiff(&spin_end, &spin_start)/iterI;
+  }
+
+  double ft1 = 0;
+  double fmin= futex_time[0];
+  double fmax= futex_time[0];
+  double st1 = 0;
+  double smin= spin_time[0];
+  double smax= spin_time[0];
+
+  for (j = 0; j < iterJ; ++j) {
+    ft1 += futex_time[j];
+    if (futex_time[j] < fmin) fmin = futex_time[j];
+    if (fmax < futex_time[j]) fmax = futex_time[j];
+    st1 += spin_time[j];
+    if (spin_time[j] < smin) smin = spin_time[j];
+    if (smax < spin_time[j]) smax = spin_time[j];
+  }
+  /* Throw away the extreme points of our measurements. */
+  double ftm = (ft1-fmin-fmax)/(iterJ-2);
+  double stm = (st1-smin-smax)/(iterJ-2);
+
+  ft1 = 0;
+  st1 = 0;
+
+  double factor = 0.9;
+  double estimate = ftm*factor/stm;
+  if (estimate < 5.0) spins_max = 5u;
+  else {
+    if (100.0 < estimate) spins_max = 100u;
+    else spins_max = estimate;
+  }
+  clock_gettime(CLOCK_MONOTONIC, &all_end);
+
+  double ft2 = 0;
+  double st2 = 0;
+
+  for (j = 0; j < iterJ; ++j) {
+    double fd1 = futex_time[j] - ftm;
+    ft1 += fd1;
+    ft2 += fd1*fd1;
+    double sd1 = spin_time[j] - stm;
+    st1 += sd1;
+    st2 += sd1*sd1;
+  }
+
+  double ftd = sqrt((ft2 - (ft1*ft1)/iterJ)/(iterJ-1));
+  double std = sqrt((st2 - (st1*st1)/iterJ)/(iterJ-1));
+
+  fprintf(stderr, "end of calibration after %g sec:\n\tspin\t= %g (+%g)\n\tfail\t= %g (+%g)\n\tspins_max\t= %u\n\testimate\t= %g\n",
+          timespecdiff(&all_end, &all_start), stm, std, ftm, ftd, spins_max, estimate);
 }
