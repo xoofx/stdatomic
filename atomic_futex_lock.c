@@ -207,3 +207,10 @@ void atomic_calibrate(void) {
   fprintf(stderr, "end of calibration after %g sec:\n\tspin\t= %g (+%g)\n\tfail\t= %g (+%g)\n\tspins_max\t= %u\n\testimate\t= %g\n",
           timespecdiff(&all_end, &all_start), stm, std, ftm, ftd, spins_max, estimate);
 }
+
+#pragma weak atomic_inject
+void atomic_inject(void) {
+  /* empty */
+}
+
+_Thread_local _Bool atomic_faulty = 0;

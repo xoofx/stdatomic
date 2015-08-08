@@ -19,12 +19,20 @@ void __impl_mut_unlock_slow(_Atomic(unsigned)* loc);
 
 static unsigned const contrib = ((UINT_MAX/2u)+2u);
 
+#ifdef ATOMIC_INJECT
+extern void atomic_inject(void);
+extern _Thread_local _Bool atomic_faulty;
+#endif
+
 __attribute__((__always_inline__))
 static inline
 void __impl_mut_lock(_Atomic(unsigned)* loc)
 {
   if (!atomic_compare_exchange_strong_explicit(loc, (unsigned[1]){ 0 }, contrib, memory_order_acq_rel, memory_order_consume))
     __impl_mut_lock_slow(loc);
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
 }
 
 __attribute__((__always_inline__))
