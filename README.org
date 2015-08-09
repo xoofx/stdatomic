@@ -785,8 +785,43 @@ life. As a good heuristic value is
      infrastructure for the hashes. I didn't have enough test cases
      yet to see what would be best, here.
 
-   - There is optional instrumentation for the lock
-     functions. Switching it on changes overall performance
-     substantially, and thus I'd expect a noticeable Heisenberg
-     effect. So these counter can give qualitative information about
-     what happens, you shouldn't take the figures verbally.
+** Instrumentation and testing
+
+*** Instrumentation
+
+    There is optional instrumentation for the lock
+    functions. Switching it on changes overall performance
+    substantially, and thus I'd expect a noticeable Heisenberg
+    effect. So these counter can give qualitative information about
+    what happens, you shouldn't take the figures verbally. Also these
+    counters are only protected if you test the library with only one
+    lock, using atomics for these counters themselves would have a
+    strong performance impact and the resulting statistics would
+    basically be worthless.
+
+    You can switch the instrumentation of the code on by defining the
+    symbol =BENCH= at compile time. A function =atomic_summary= can be
+    used at the end of all operations to print the collected data to
+    =stderr=.
+
+*** Code injection
+
+    To test the behavior of the locking algorithm you may inject a
+    function call just after the acquisition of the lock. Thereby you
+    can e.g force the thread that obtains the lock to be descheduled,
+    and test the worst-case behavior of the locking algorithm.
+
+    This feature is switched on by defining the macro =ATOMIC_INJECT=
+    at compile time. The you have a thread local variable
+    =atomic_faulty= and a function interface =atomic_inject= at your
+    disposal, namely =atomic_inject= is called iff =atomic_faulty= is
+    true for the calling thread.
+
+    There is a "weak" version of =atomic_inject= that does nothing. It
+    can be overwritten by a specific version that you provide
+    yourself. E.g in Modular C the slow path of the algorithm is
+    stressed by simply calling =thrd_yield=.
+
+    The variable =atomic_faulty= can be used to switch the code
+    injection on and off, such that you may experiment with different
+    probabilities of failure.
