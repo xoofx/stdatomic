@@ -26,8 +26,6 @@
 #define atomic_fetch_or_explicit(X, Y, MO) __sync_fetch_and_and(*(X), (Y))
 #define atomic_fetch_xor_explicit(X, Y, MO) __sync_fetch_and_xor(*(X), (Y))
 
-#define atomic_compare_exchange_weak(X, E, D, MOS, MOF) atomic_compare_exchange_strong((X), (E), (V), (MOS), (MOF))
-
 #define INSTANTIATE_STUB_LF(N, T)                                       \
 T __impl_fetch_add_ ## N(__typeof__(T volatile[1])* X, T const V, int M); \
 T __impl_fetch_sub_ ## N(__typeof__(T volatile[1])* X, T const V, int M); \
@@ -98,18 +96,26 @@ _Bool __impl_compare_exchange_ ## N(__typeof__(T volatile[1])* X, T* _E, T const
 }                                                                       \
  INSTANTIATE_STUB_NAND(N, T)
 
+#define __impl_CAS_local(T, X, E, D)                                    \
+({                                                                      \
+  register __typeof__((*X)[0])* _e = (E);                               \
+  register __typeof__((*X)[0]) _v = __sync_val_compare_and_swap((T*)(X), *_e, (D)); \
+  register _Bool const ret = (_v == *_e);                               \
+  if (!ret) *_e = _v;                                                   \
+  __aret(ret);                                                          \
+  })
 
 #define atomic_compare_exchange_strong_explicit(X, E, D, MOS, MOF)      \
 ({                                                                      \
   _Bool ret;                                                            \
-  __typeof__((*X)[0])* _e = (E);                                        \
   __typeof__((*X)[0]) const _d = (D);                                   \
   switch (sizeof _d) {                                                  \
-  case 8: ret = __sync_val_compare_and_swap((uint64_t*)(X), *_e, (D)); break; \
-  case 4: ret = __sync_val_compare_and_swap((uint32_t*)(X), *_e, (D)); break; \
-  case 2: ret = __sync_val_compare_and_swap((uint16_t*)(X), *_e, (D)); break; \
-  case 1: ret = __sync_val_compare_and_swap((uint8_t*)(X), *_e, (D)); break; \
-  default: ret = __impl_compare_exchange(sizeof (*X), (void*)(X), _e, &_d, MOS, MOS); \
+  case 16: ret = __impl_CAS_local(__impl_uint128_t, (X), (E), _d); break; \
+  case 8: ret = __impl_CAS_local(uint64_t, (X), (E), _d); break;         \
+  case 4: ret = __impl_CAS_local(uint32_t, (X), (E), _d); break;         \
+  case 2: ret = __impl_CAS_local(uint16_t, (X), (E), _d); break;         \
+  case 1: ret = __impl_CAS_local(uint8_t, (X), (E), _d); break;          \
+ default: ret = __impl_compare_exchange(sizeof (*X), (void*)(X), (E), &_d, MOS, MOS); \
   }                                                                     \
   __aret(ret);                                                          \
  })
@@ -232,33 +238,6 @@ __builtin_choose_expr                                           \
  __typeof__((*X)[0]) _r = (V);                                  \
  __impl_exchange(sizeof _r, (&((*X)[0])), &_r, &_v, MO);        \
  _r;                                                            \
- }))))))
-
-#define atomic_compare_exchange_explicit(X, E, V, MOS, MOF)             \
-__builtin_choose_expr                                                   \
-(                                                                       \
- __UINT128__ && sizeof(*X)==16,                                         \
- __impl_compare_exchange_union(__impl_uint128_t, &((*(X))[0]), (E), (V)), \
-__builtin_choose_expr                                                   \
-(                                                                       \
- sizeof(*X)==8,                                                         \
- __impl_compare_exchange_union(uint64_t, &((*(X))[0]), (E), (V)),       \
-__builtin_choose_expr                                                   \
-(                                                                       \
- sizeof(*X)==4,                                                         \
- __impl_compare_exchange_union(uint32_t, &((*(X))[0]), (E), (V)),       \
- __builtin_choose_expr                                                  \
-(                                                                       \
- sizeof(*X)==2,                                                         \
- __impl_compare_exchange_union(uint16_t, &((*(X))[0]), (E), (V)),       \
- __builtin_choose_expr                                                  \
-(                                                                       \
- sizeof(*X)==1,                                                         \
- __impl_compare_exchange_union(uint8_t, &((*(X))[0]), (E), (V)),        \
- ({                                                                     \
- __typeof__((*X)[0])* _e = (E);                                         \
- __typeof__((*X)[0]) const _v = (V);                                    \
- __impl_compare_exchange(sizeof _r, (&((*X)[0])), _e, &_v, MOS, MOF);   \
  }))))))
 
 #endif

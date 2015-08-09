@@ -10,9 +10,9 @@
 /* gcc 4.7 and 4.8 implement atomic operations but not atomic
    types. This test is meant to stay simple, we don't know of any
    other compiler that fakes to be gcc 4.[78] or 4.[78].x */
-#if !defined(__ATOMIC_RELAXED) && __GNUC__ == 4 && __GNUC_MINOR__ < 7
-#undef __ATOMIC_FORCE_SYNC
-#define __ATOMIC_FORCE_SYNC 1
+#if !defined(__ATOMIC_RELAXED) || (__GNUC__ == 4 && (__GNUC_MINOR__ == 7 || __GNUC_MINOR__ == 8))
+# undef __ATOMIC_FORCE_SYNC
+# define __ATOMIC_FORCE_SYNC 1
 #endif
 
 #ifdef __SIZEOF_INT128__
@@ -43,6 +43,7 @@ typedef struct { uint64_t a[2]; } __impl_uint128_t;
    type. */
 #define _Atomic(T) __typeof__(T volatile[1])
 #define _Atomic_aligned(T) __attribute__ ((__aligned__(__atomic_align(T)))) __typeof__(T[1])
+#define _Thread_local __thread
 #endif
 
 #ifndef __ATOMIC_RELAXED
