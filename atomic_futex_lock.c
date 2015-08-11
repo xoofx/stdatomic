@@ -22,7 +22,25 @@ static size_t g_slow_wake = 0;
 # define ACCOUNT(X, V) do { } while(0)
 #endif
 
-void atomic_summarize(void) {
+#define RAW_OUT_(F, P, T, FR, ...)              \
+do {                                            \
+  FILE* _f = (F);                               \
+  T _v[] = { __VA_ARGS__ };                     \
+  size_t _l = sizeof _v/sizeof _v[0];           \
+  char _s[] = # __VA_ARGS__;                    \
+  for (char* _p = _s; *_p; ++_p)                \
+    if (*_p == ' ') *_p = '\t';                 \
+  fprintf(_f, "#" P ":\t%s\n", _s);             \
+  fprintf(_f, "#" P ":\t" FR, _v[0]);           \
+  for (size_t i = 1; i < _l; ++i) {             \
+    fprintf(_f, ",\t" FR, _v[i]);               \
+  }                                             \
+  fputc('\n', _f);                              \
+ } while (0);
+
+#define RAW_OUT(...) RAW_OUT_(__VA_ARGS__)
+
+void atomic_summarize(FILE* out) {
   fprintf(stderr, "summary of usage of atomic lock functions\n");
   fprintf(stderr, "\tslow path, lock:\t%zu\n", g_total);
   fprintf(stderr, "\touter iterations:\t%zu\t(%.4f per slow lock)\n", g_slow, g_slow*1.0/g_total);
@@ -30,6 +48,9 @@ void atomic_summarize(void) {
   fprintf(stderr, "\tinner iterations:\t%zu futex\t(%.4f per outer)\n", g_futex, g_futex*1.0/g_slow);
   fprintf(stderr, "\tfailed futex:\t\t%zu\t\t(%.4f per futex)\n", g_wouldblock, g_wouldblock*1.0/g_futex);
   fprintf(stderr, "\tslow path, unlock:\t%zu\t(%.4f per slow lock)\n", g_slow_wake, g_slow_wake*1.0/g_total);
+  if (out)
+    RAW_OUT(out, "lock statistic", size_t, "%zu",
+            g_total, g_slow, g_spin, g_futex, g_wouldblock, g_slow_wake);
 }
 
 /* This is just a heuristic. We assume that one round of spinning is
@@ -126,7 +147,7 @@ double timespecdiff(struct timespec* end, struct timespec* start) {
   return ret;
 }
 
-void atomic_calibrate(void) {
+void atomic_calibrate(FILE* out) {
   _Atomic(unsigned) loc = ATOMIC_VAR_INIT(42u);
   unsigned val = 0;
   size_t i;
@@ -212,16 +233,16 @@ void atomic_calibrate(void) {
     if (smax < spin_time[j]) smax = spin_time[j];
   }
   /* Throw away the extreme points of our measurements. */
-  double ftm = (ft1-fmin-fmax)/(iterJ-2);
-  double wtm = (wt1-wmin-wmax)/(iterJ-2);
-  double stm = (st1-smin-smax)/(iterJ-2);
+  double futex_wait_fail_mean = (ft1-fmin-fmax)/(iterJ-2);
+  double futex_wake_mean = (wt1-wmin-wmax)/(iterJ-2);
+  double spin_mean = (st1-smin-smax)/(iterJ-2);
 
   ft1 = 0;
   wt1 = 0;
   st1 = 0;
 
   double factor = 0.9;
-  double estimate = ftm*factor/stm;
+  double estimate = futex_wait_fail_mean*factor/spin_mean;
   if (estimate < 5.0) spins_max = 5u;
   else {
     if (100.0 < estimate) spins_max = 100u;
@@ -234,27 +255,33 @@ void atomic_calibrate(void) {
   double st2 = 0;
 
   for (j = 0; j < iterJ; ++j) {
-    double fd1 = futex_time[j] - ftm;
+    double fd1 = futex_time[j] - futex_wait_fail_mean;
     ft1 += fd1;
     ft2 += fd1*fd1;
-    double wd1 = wake_time[j] - wtm;
+    double wd1 = wake_time[j] - futex_wake_mean;
     wt1 += wd1;
     wt2 += wd1*wd1;
-    double sd1 = spin_time[j] - stm;
+    double sd1 = spin_time[j] - spin_mean;
     st1 += sd1;
     st2 += sd1*sd1;
   }
 
-  double ftd = sqrt((ft2 - (ft1*ft1)/iterJ)/(iterJ-1));
-  double wtd = sqrt((wt2 - (wt1*wt1)/iterJ)/(iterJ-1));
-  double std = sqrt((st2 - (st1*st1)/iterJ)/(iterJ-1));
+  double futex_wait_fail_dev = sqrt((ft2 - (ft1*ft1)/iterJ)/(iterJ-1));
+  double futex_wake_dev = sqrt((wt2 - (wt1*wt1)/iterJ)/(iterJ-1));
+  double spin_dev = sqrt((st2 - (st1*st1)/iterJ)/(iterJ-1));
 
-  fprintf(stderr, "end of calibration after %g sec:\n",
-          timespecdiff(&all_end, &all_start));
-  fprintf(stderr, "\tspin\t= %g (+%g)\n", stm, std);
-  fprintf(stderr, "\tfail\t= %g (+%g)\n", ftm, ftd);
-  fprintf(stderr, "\twake\t= %g (+%g)\n", wtm, wtd);
-  fprintf(stderr, "\tspins_max\t= %u (%g)\n", spins_max, estimate);
+  if (out) {
+    fprintf(stderr, "end of calibration after %g sec:\n",
+            timespecdiff(&all_end, &all_start));
+    fprintf(stderr, "\tspin\t= %g (+%g)\n", spin_mean, spin_dev);
+    fprintf(stderr, "\tfail\t= %g (+%g)\n", futex_wait_fail_mean, futex_wait_fail_dev);
+    fprintf(stderr, "\twake\t= %g (+%g)\n", futex_wake_mean, futex_wake_dev);
+    fprintf(stderr, "\tspins_max\t= %u (%g)\n", spins_max, estimate);
+    RAW_OUT(out, "lock calibration", double, "%g",
+            futex_wait_fail_mean, futex_wait_fail_dev,
+            futex_wake_mean, futex_wake_dev,
+            spin_mean, spin_dev);
+  }
 }
 
 #pragma weak atomic_inject
