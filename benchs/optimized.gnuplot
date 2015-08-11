@@ -11,13 +11,13 @@
 #    	gnuplot home:     http://www.gnuplot.info
 #    	faq, bugs, etc:   type "help FAQ"
 #    	immediate help:   type "help"  (plot window: hit 'h')
-# set terminal postscript landscape noenhanced defaultplex \
+set terminal postscript landscape noenhanced defaultplex \
    leveldefault color colortext \
    dashed dashlength 1.0 linewidth 1.0 butt noclip \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-# set output 'optimized.eps'
+set output 'optimized.eps'
 unset clip points
 set clip one
 unset clip two
@@ -36,7 +36,7 @@ set timefmt x2 "%d/%m/%y,%H:%M"
 set x2data 
 set boxwidth
 set style fill  empty border
-set style rectangle back fc lt -3 fillstyle   solid 1.00 border lt -1
+set style rectangle back fc  lt -3 fillstyle   solid 1.00 border lt -1
 set style circle radius graph 0.02, first 0, 0 
 set style ellipse size graph 0.05, 0.03, first 0 angle 0 units xy
 set dummy x,y
@@ -157,5 +157,9 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-plot "./optimized-lockfull.csv" using 1:6 smooth unique, "./optimized-lockfree.csv" using 1:6 smooth unique
+plot "./optimized-lockfull.csv" using 1:6 smooth unique title "lockfree",   \
+     "./optimized-lockfree.csv" using 1:6 smooth unique title "CS lock",                      \
+     "./optimized-lockfull-yield-0.csv" using 1:6 smooth unique title "CS lock 0 yield",      \
+     "./optimized-lockfull-yield-64.csv" using 1:6 smooth unique title "CS lock 1/64 yield",  \
+     "./optimized-lockfull-yield-32.csv" using 1:6 smooth unique title "CS lock, 1/32 yield"
 #    EOF
