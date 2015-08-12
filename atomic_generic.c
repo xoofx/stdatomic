@@ -14,8 +14,8 @@
    atomic_flag if we know nothing else about the platform. */
 
 typedef _Atomic(unsigned) __impl_lock;
-void __impl_mut_lock_slow(_Atomic(unsigned)* loc);
-void __impl_mut_unlock_slow(_Atomic(unsigned)* loc);
+void __impl_mut_lock_slow(__impl_lock* loc);
+void __impl_mut_unlock_slow(__impl_lock* loc);
 
 static unsigned const contrib = ((UINT_MAX/2u)+2u);
 
@@ -26,7 +26,7 @@ extern _Thread_local _Bool atomic_faulty;
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(_Atomic(unsigned)* loc)
+void __impl_mut_lock(__impl_lock* loc)
 {
   if (!atomic_compare_exchange_strong_explicit(loc, (unsigned[1]){ 0 }, contrib, memory_order_acq_rel, memory_order_consume))
     __impl_mut_lock_slow(loc);
@@ -37,7 +37,7 @@ void __impl_mut_lock(_Atomic(unsigned)* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(_Atomic(unsigned)* loc)
+void __impl_mut_unlock(__impl_lock* loc)
 {
   if (contrib != atomic_fetch_sub_explicit(loc, contrib, memory_order_relaxed))
     __impl_mut_unlock_slow(loc);
