@@ -9,20 +9,36 @@
 # include <stdio.h>
 #endif
 
+#ifdef ATOMIC_INJECT
+/* A function to inject right after the lock acquisition. */
+extern void atomic_inject(void);
+/* If this is true the thread will go into atomic_inject. */
+extern _Thread_local _Bool atomic_faulty;
+#endif
+
+/* The different choices to implement the locking for the generic
+   atomic functions. */
+#define ATOMIC_GENERIC_LOCK_FUTEX 1
+#define ATOMIC_GENERIC_LOCK_FLAG 2
+#define ATOMIC_GENERIC_LOCK_PTHREAD 3
+#define ATOMIC_GENERIC_LOCK_MTX 4
+#define ATOMIC_GENERIC_LOCK_MUSL 5
+#define ATOMIC_GENERIC_LOCK_FLAG_ONLY 6
+#define ATOMIC_GENERIC_LOCK_CMPXCHG 7
+
+#ifndef ATOMIC_GENERIC_LOCK
+# define ATOMIC_GENERIC_LOCK ATOMIC_GENERIC_LOCK_FUTEX
+#endif
+
+#if ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_FUTEX
 /* This is compatible with musl's internal locks. */
 /* The lock itself must be lock-free, so in general the can only be an
    atomic_flag if we know nothing else about the platform. */
-
 typedef _Atomic(unsigned) __impl_lock;
 void __impl_mut_lock_slow(__impl_lock* loc);
 void __impl_mut_unlock_slow(__impl_lock* loc);
 
 static unsigned const contrib = ((UINT_MAX/2u)+2u);
-
-#ifdef ATOMIC_INJECT
-extern void atomic_inject(void);
-extern _Thread_local _Bool atomic_faulty;
-#endif
 
 __attribute__((__always_inline__))
 static inline
@@ -42,6 +58,142 @@ void __impl_mut_unlock(__impl_lock* loc)
   if (contrib != atomic_fetch_sub_explicit(loc, contrib, memory_order_relaxed))
     __impl_mut_unlock_slow(loc);
 }
+/************************************************************************************/
+#elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_FLAG
+#include "pthread_impl.h"
+/* This implementation ignores the problem that a statically
+   initialized atomic_flag might, theoretically, not be properly
+   initialized. */
+typedef atomic_flag __impl_lock;
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(__impl_lock* loc)
+{
+  do { a_spin(); } while (atomic_flag_test_and_set_explicit(loc, memory_order_acq_rel));
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(__impl_lock* loc)
+{
+  atomic_flag_clear(loc);
+}
+/************************************************************************************/
+#elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_FLAG_ONLY
+#include "pthread_impl.h"
+/* This implementation ignores the problem that a statically
+   initialized atomic_flag might, theoretically, not be properly
+   initialized. */
+typedef atomic_flag __impl_lock;
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(__impl_lock* loc)
+{
+  do { /* */ } while (atomic_flag_test_and_set_explicit(loc, memory_order_acq_rel));
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(__impl_lock* loc)
+{
+  atomic_flag_clear(loc);
+}
+/************************************************************************************/
+#elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_CMPXCHG
+#include "pthread_impl.h"
+typedef _Atomic(unsigned) __impl_lock;
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(__impl_lock* loc) {
+  do {
+    /* */
+  } while (!atomic_compare_exchange_strong_explicit(loc,
+                                                    (unsigned[1]){ 0 },
+                                                    1u,
+                                                    memory_order_acq_rel,
+                                                    memory_order_consume));
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(__impl_lock* loc)
+{
+  atomic_store_explicit(loc, 0u, memory_order_release);
+}
+/************************************************************************************/
+#elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_PTHREAD
+#include <pthread.h>
+typedef pthread_mutex_t __impl_lock;
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(__impl_lock* loc)
+{
+  pthread_mutex_lock(loc);
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(__impl_lock* loc)
+{
+  pthread_mutex_unlock(loc);
+}
+/************************************************************************************/
+#elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_MTX
+#include <threads.h>
+typedef mtx_t __impl_lock;
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(__impl_lock* loc)
+{
+  mtx_lock(loc);
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(__impl_lock* loc)
+{
+  mtx_unlock(loc);
+}
+/************************************************************************************/
+#elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_MUSL
+#include "pthread_impl.h"
+typedef struct __impl_lock __impl_lock;
+struct __impl_lock { int volatile p[2]; };
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_lock(__impl_lock* loc)
+{
+  LOCK(loc->p);
+#ifdef ATOMIC_INJECT
+  if (atomic_faulty) atomic_inject();
+#endif
+}
+
+__attribute__((__always_inline__))
+static inline
+void __impl_mut_unlock(__impl_lock* loc)
+{
+  UNLOCK(loc->p);
+}
+#else
+# error "unknown lock strategy"
+#endif
 
 /* the size of this table has a trade off between the probability of
    collisions (the bigger the table, the better) and the waste of
