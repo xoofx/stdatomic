@@ -66,7 +66,6 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
   size_t spin = 0;
 #endif
   unsigned const sm = spins_max;
-  unsigned spins = 0;
   unsigned val = 1+atomic_fetch_add_explicit(loc, 1, memory_order_relaxed);
   if (!(val & lockbit)) goto BIT_UNSET;
   /* The lock acquisition loop. This has been designed such that the
@@ -78,8 +77,8 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
      same loop are less perturbed. */
   for (;;) {
     /* The lock bit is set by someone else, spin until it is unset. */
-    for (spins = 0; spins < sm; ++spins) {
-      a_spin();
+    unsigned spins = 0;
+    for (;;) {
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
       val -= contrib;
@@ -89,6 +88,8 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
         goto FINISH;
       }
       if (!(val & lockbit)) goto BIT_UNSET;
+      ++spins;
+      if (spins >= sm) break;
     }
     /* The same inner loop as before, but with futex wait instead of
        a_spin. */
