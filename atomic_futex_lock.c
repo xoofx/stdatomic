@@ -65,6 +65,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
   size_t wouldblock = 0;
   size_t spin = 0;
 #endif
+  unsigned const sm = spins_max;
   unsigned spins = 0;
   unsigned val = 1+atomic_fetch_add_explicit(loc, 1, memory_order_relaxed);
   if (!(val & lockbit)) goto BIT_UNSET;
@@ -77,7 +78,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
      same loop are less perturbed. */
   for (;;) {
     /* The lock bit is set by someone else, spin until it is unset. */
-    for (spins = 0; spins < spins_max; ++spins) {
+    for (spins = 0; spins < sm; ++spins) {
       a_spin();
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
@@ -109,11 +110,11 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
   BIT_UNSET:
     ACCOUNT(spin, spins);
     ACCOUNT(slow, 1);
-    do {
-      a_spin();
-      if (atomic_compare_exchange_strong_explicit(loc, &val, val|lockbit, memory_order_acq_rel, memory_order_consume))
+    for (unsigned des = val|lockbit;;des = val|lockbit) {
+      if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume))
         goto FINISH;
-    } while (!(val & lockbit));
+      if (val & lockbit) break;
+    }
   }
  FINISH:
   /* We hold the lock here, so these additions are fine as long we
