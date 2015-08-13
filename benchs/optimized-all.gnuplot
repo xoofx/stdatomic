@@ -112,7 +112,7 @@ set cbtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autoj
 set cbtics autofreq  norangelimit
 set rtics axis in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set rtics autofreq  norangelimit
-set title "" 
+set title "musl, comparative between different lock primitives for generic atomics" 
 set title  offset character 0, 0, 0 font "" norotate
 set timestamp bottom 
 set timestamp "" 
@@ -158,7 +158,7 @@ set fontpath
 set psdir
 set fit noerrorvariables
 plot                                                                                             \
-     "./optimized-lockfree.csv" using 1:6 smooth unique title "instruction",                     \
+     "./optimized-lockfree.csv" using 1:6 smooth unique title "16 byte instruction",             \
      "./optimized-lockfull-v4.csv" using 1:6 smooth unique title "futex lock",                   \
      "./optimized-musl.csv" using 1:6 smooth unique title "musl lock",                           \
      "./optimized-pthread.csv" using 1:6 smooth unique title "pthread_mutex_t",                  \

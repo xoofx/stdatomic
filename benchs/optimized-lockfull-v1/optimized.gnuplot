@@ -112,7 +112,7 @@ set cbtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autoj
 set cbtics autofreq  norangelimit
 set rtics axis in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set rtics autofreq  norangelimit
-set title "" 
+set title "musl, stress test for the futex based lock primitive, forced descheduling" 
 set title  offset character 0, 0, 0 font "" norotate
 set timestamp bottom 
 set timestamp "" 
@@ -125,13 +125,13 @@ set xlabel "threads"
 set xlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
-set xrange [ * : * ] noreverse nowriteback
+set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
 set ylabel "locks/second" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ * : * ] noreverse nowriteback
+set yrange [ * : 6E6 ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -158,17 +158,16 @@ set fontpath
 set psdir
 set fit noerrorvariables
 plot                                                                                             \
-     "./optimized-lockfree.csv" using 1:6 smooth unique title "instruction",                     \
-     "./optimized-lockfull.csv" using 1:6 smooth unique title "futex lock",                      \
-     "./optimized-lockfull-yield-0.csv" using 1:6 smooth unique title "futex lock  0     yield", \
-     "./optimized-lockfull-yield-1024.csv" using 1:6 smooth unique title "futex lock 1/1024 yield", \
-     "./optimized-lockfull-yield-512.csv" using 1:6 smooth unique title "futex lock 1/512  yield", \
-     "./optimized-lockfull-yield-256.csv" using 1:6 smooth unique title "futex lock 1/256  yield", \
-     "./optimized-lockfull-yield-128.csv" using 1:6 smooth unique title "futex lock 1/128  yield", \
-     "./optimized-lockfull-yield-64.csv" using 1:6 smooth unique title "futex lock 1/64   yield", \
-     "./optimized-lockfull-yield-32.csv" using 1:6 smooth unique title "futex lock 1/32   yield", \
-     "./optimized-lockfull-yield-16.csv" using 1:6 smooth unique title "futex lock 1/16   yield", \
-     "./optimized-lockfull-yield-8.csv" using 1:6 smooth unique title "futex lock 1/8    yield", \
-     "./optimized-lockfull-yield-4.csv" using 1:6 smooth unique title "futex lock 1/4    yield", \
-     "./optimized-lockfull-yield-2.csv" using 1:6 smooth unique title "futex lock 1/2    yield"
+     "./optimized-lockfull.csv" using 1:6 smooth unique title "original",                      \
+     "./optimized-lockfull-yield-0.csv" using 1:6 smooth unique title "instrumented", \
+     "./optimized-lockfull-yield-1024.csv" using 1:6 smooth unique title "1/1024 yield", \
+     "./optimized-lockfull-yield-512.csv" using 1:6 smooth unique title "1/512  yield", \
+     "./optimized-lockfull-yield-256.csv" using 1:6 smooth unique title "1/256  yield", \
+     "./optimized-lockfull-yield-128.csv" using 1:6 smooth unique title "1/128  yield", \
+     "./optimized-lockfull-yield-64.csv" using 1:6 smooth unique title "1/64   yield", \
+     "./optimized-lockfull-yield-32.csv" using 1:6 smooth unique title "1/32   yield", \
+     "./optimized-lockfull-yield-16.csv" using 1:6 smooth unique title "1/16   yield", \
+     "./optimized-lockfull-yield-8.csv" using 1:6 smooth unique title "1/8    yield", \
+     "./optimized-lockfull-yield-4.csv" using 1:6 smooth unique title "1/4    yield", \
+     "./optimized-lockfull-yield-2.csv" using 1:6 smooth unique title "1/2    yield"
 #    EOF
