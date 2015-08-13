@@ -23,8 +23,23 @@ void atomic_flag_clear_explicit(volatile atomic_flag*, memory_order);
 #define atomic_flag_clear(A) atomic_flag_clear_explicit((A), memory_order_seq_cst)
 
 #ifndef __ATOMIC_FORCE_SYNC
-# define atomic_flag_test_and_set_explicit(A, MO)  (__atomic_test_and_set(&((A)->f), MO) == __GCC_ATOMIC_TEST_AND_SET_TRUEVAL)
-# define atomic_flag_clear_explicit(A, MO)          __atomic_clear(&(A)->f, MO)
+# define atomic_flag_test_and_set_explicit(A, MO)                       \
+({                                                                      \
+  memory_order _mo = (MO);                                              \
+  memory_order _mof =                                                   \
+    /* there is no way to specify release order in case of failure */   \
+    (_mo == memory_order_release                                        \
+     ? memory_order_relaxed                                             \
+     : (_mo == memory_order_acq_rel                                     \
+        ? memory_order_acquire                                          \
+        : _mo));                                                        \
+  !__atomic_compare_exchange_n(&((A)->f),                               \
+                               (_Bool[1]){ !__GCC_ATOMIC_TEST_AND_SET_TRUEVAL }, \
+                               __GCC_ATOMIC_TEST_AND_SET_TRUEVAL,       \
+                               0, _mo, _mof);                           \
+   })
+# define atomic_flag_clear_explicit(A, MO)                              \
+__atomic_store_n(&((A)->f), !__GCC_ATOMIC_TEST_AND_SET_TRUEVAL, MO)
 #else
 # define atomic_flag_test_and_set_explicit(A, O)                        \
 ({                                                                      \
