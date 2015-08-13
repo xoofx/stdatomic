@@ -17,7 +17,7 @@ set terminal postscript landscape noenhanced defaultplex \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-set output 'optimized.eps'
+set output 'futex-relative.eps'
 unset clip points
 set clip one
 unset clip two
@@ -48,7 +48,8 @@ set format z "% g"
 set format cb "% g"
 set format r "% g"
 set angles radians
-unset grid
+#unset grid
+set grid x
 set raxis
 set key title ""
 set key inside bottom left vertical Right noreverse enhanced autotitles nobox
@@ -63,7 +64,7 @@ unset style arrow
 set style histogram clustered gap 2 title  offset character 0, 0, 0
 unset logscale
 set logscale x 10
-set logscale y 10
+#set logscale y 10
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -103,10 +104,10 @@ set mcbtics default
 #set xtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autojustify
 #set xtics autofreq  norangelimit
 set xtics 2
-#set ytics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autojustify
-#set ytics autofreq  norangelimit
-set ytics 2
-set format y "%.0b %B"
+set ytics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autojustify
+set ytics autofreq  norangelimit
+#set ytics 2
+#set format y "%.0b %B"
 set ztics border in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set ztics autofreq  norangelimit
 set nox2tics
@@ -130,11 +131,11 @@ set x2label ""
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
-set ylabel "locks/second" 
+set ylabel "relative performance" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ 250E3 : 6E6 ] noreverse nowriteback
+set yrange [ * : * ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -167,11 +168,8 @@ set style increment userstyles
 paste(file, base) = sprintf("< paste %s.dat %s.dat", file, base)
 files = "optimized-lockfull-yield-1024 optimized-lockfull-yield-512 optimized-lockfull-yield-256 optimized-lockfull-yield-128 optimized-lockfull-yield-64 optimized-lockfull-yield-32 optimized-lockfull-yield-16 optimized-lockfull-yield-8 optimized-lockfull-yield-4 optimized-lockfull-yield-2"
 base = "optimized-lockfull"
-plot                                                                                             \
-     paste(base, base) using 1:2 with lines title "original",                      \
-     paste("optimized-lockfull-yield-0", base) using 1:2 with lines title "instrumented",                      \
-     for [file in files] paste(file, base) using 1:($2) with lines title sprintf("p = 1/%s", file[26:])
-
-
-#for [file in files] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2/$6) with lines title sprintf("%s", file[26:])
+plot                                                                                                 \
+     paste(base, base) using 1:($2/$6) with lines title "original",                                  \
+     paste("optimized-lockfull-yield-0", base) using 1:($2/$6) with lines title "instrumented",                      \
+     for [file in files] paste(file, base) using 1:($2/$6) with lines title sprintf("p = 1/%s", file[26:])
 #    EOF

@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0
 %%Title: optimized.eps
 %%Creator: gnuplot 4.6 patchlevel 6
-%%CreationDate: Thu Aug 13 23:09:32 2015
+%%CreationDate: Thu Aug 13 23:42:39 2015
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 554 770
 %%Orientation: Landscape
@@ -435,7 +435,7 @@ SDict begin [
   /Author (gustedt)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Thu Aug 13 23:09:32 2015)
+  /CreationDate (Thu Aug 13 23:42:39 2015)
   /DOCINFO pdfmark
 end
 } ifelse
@@ -932,7 +932,7 @@ LCb setrgbcolor
 (threads) Cshow
 LTb
 3865 4829 M
-(musl, stress test for the futex based lock primitive, forced descheduling) Cshow
+(musl, stress test for the futex based lock primitive, forced descheduling with probability p) Cshow
 LCb setrgbcolor
 3865 4548 M
 () Cshow
@@ -954,16 +954,16 @@ LT0
 2030 2121 M
 399 0 V
 854 4452 M
-732 -556 V
-428 -288 V
-304 -498 V
-428 -149 V
-304 3 V
+732 -552 V
+428 -291 V
+304 -497 V
+428 -146 V
+304 -1 V
 428 68 V
-304 -55 V
+304 -53 V
 428 -17 V
-304 -44 V
-732 -73 V
+304 -46 V
+732 -72 V
 732 -93 V
 732 -80 V
 % End plot #1
@@ -979,17 +979,17 @@ LT1
 399 0 V
 854 4459 M
 732 -556 V
-428 -434 V
-304 -461 V
-428 -93 V
-304 -49 V
-428 82 V
+428 -422 V
+304 -470 V
+428 -96 V
+304 -47 V
+428 81 V
 304 7 V
-428 -72 V
+428 -73 V
 304 -43 V
-732 -61 V
+732 -60 V
 732 -64 V
-732 -76 V
+732 -77 V
 % End plot #2
 % Begin plot #3
 stroke
@@ -997,20 +997,20 @@ LT2
 LC2 setrgbcolor
 LCb setrgbcolor
 1946 1841 M
-(1/1024 yield) Rshow
+(p = 1/1024) Rshow
 LT2
 2030 1841 M
 399 0 V
-854 4432 M
-732 -535 V
+854 4433 M
+732 -534 V
 428 -369 V
-304 -506 V
-428 -160 V
+304 -507 V
+428 -161 V
 304 -22 V
 428 -38 V
-304 -11 V
+304 -10 V
 428 -26 V
-304 -13 V
+304 -14 V
 732 -65 V
 732 -69 V
 732 -143 V
@@ -1021,22 +1021,22 @@ LT3
 LC3 setrgbcolor
 LCb setrgbcolor
 1946 1701 M
-(1/512  yield) Rshow
+(p = 1/512) Rshow
 LT3
 2030 1701 M
 399 0 V
 854 4462 M
-732 -585 V
+732 -583 V
 428 -346 V
 304 -513 V
-428 -201 V
-304 -37 V
-428 1 V
+428 -202 V
+304 -38 V
+428 3 V
 304 -40 V
-428 -31 V
+428 -32 V
 304 -39 V
 732 -61 V
-732 -109 V
+732 -110 V
 732 -211 V
 % End plot #4
 % Begin plot #5
@@ -1045,46 +1045,46 @@ LT4
 LC4 setrgbcolor
 LCb setrgbcolor
 1946 1561 M
-(1/256  yield) Rshow
+(p = 1/256) Rshow
 LT4
 2030 1561 M
 399 0 V
 854 4448 M
-732 -597 V
-428 -283 V
-304 -520 V
-428 -196 V
-304 -28 V
-428 -26 V
+732 -593 V
+428 -286 V
+304 -521 V
+428 -194 V
+304 -30 V
+428 -25 V
 304 -10 V
 428 -64 V
-304 -8 V
-732 -111 V
+304 -9 V
+732 -110 V
 732 -162 V
-732 -295 V
+732 -296 V
 % End plot #5
 % Begin plot #6
 stroke
 LT5
 1.00 0.00 0.00 C LCb setrgbcolor
 1946 1421 M
-(1/128  yield) Rshow
+(p = 1/128) Rshow
 LT5
 1.00 0.00 0.00 C 2030 1421 M
 399 0 V
 854 4453 M
-732 -588 V
-428 -308 V
+732 -585 V
+428 -311 V
 304 -541 V
-428 -210 V
+428 -208 V
 304 -15 V
-428 -55 V
-304 -10 V
-428 -15 V
-304 -61 V
+428 -56 V
+304 -9 V
+428 -17 V
+304 -60 V
 732 -137 V
 732 -179 V
-732 -344 V
+732 -345 V
 % End plot #6
 % Begin plot #7
 stroke
@@ -1092,13 +1092,13 @@ LT6
 LC6 setrgbcolor
 LCb setrgbcolor
 1946 1281 M
-(1/64   yield) Rshow
+(p = 1/64) Rshow
 LT6
 2030 1281 M
 399 0 V
 854 4436 M
-732 -581 V
-428 -330 V
+732 -578 V
+428 -332 V
 304 -496 V
 428 -232 V
 304 -63 V
@@ -1106,7 +1106,7 @@ LT6
 304 -11 V
 428 -63 V
 304 -13 V
-732 -126 V
+732 -127 V
 732 -233 V
 732 -374 V
 % End plot #7
@@ -1116,20 +1116,20 @@ LT7
 LC7 setrgbcolor
 LCb setrgbcolor
 1946 1141 M
-(1/32   yield) Rshow
+(p = 1/32) Rshow
 LT7
 2030 1141 M
 399 0 V
 854 4424 M
-732 -587 V
-428 -290 V
-304 -555 V
+732 -585 V
+428 -292 V
+304 -554 V
 428 -242 V
 304 -73 V
 428 -34 V
-304 -60 V
-428 -29 V
-304 -28 V
+304 -59 V
+428 -30 V
+304 -29 V
 732 -155 V
 732 -237 V
 732 -369 V
@@ -1140,16 +1140,16 @@ LT8
 LC8 setrgbcolor
 LCb setrgbcolor
 1946 1001 M
-(1/16   yield) Rshow
+(p = 1/16) Rshow
 LT8
 2030 1001 M
 399 0 V
 854 4383 M
-732 -557 V
-428 -297 V
-304 -575 V
-428 -273 V
-304 -154 V
+732 -552 V
+428 -302 V
+304 -574 V
+428 -272 V
+304 -156 V
 428 -62 V
 304 -46 V
 428 -16 V
@@ -1163,21 +1163,21 @@ stroke
 LT0
 1.00 0.00 1.00 C LCb setrgbcolor
 1946 861 M
-(1/8    yield) Rshow
+(p = 1/8) Rshow
 LT0
 1.00 0.00 1.00 C 2030 861 M
 399 0 V
-854 4292 M
-732 -474 V
-428 -404 V
+854 4293 M
+732 -473 V
+428 -405 V
 304 -528 V
 428 -251 V
-304 -334 V
+304 -335 V
 428 -113 V
 304 -51 V
 428 -30 V
-304 -48 V
-732 -89 V
+304 -47 V
+732 -90 V
 732 -216 V
 732 -305 V
 % End plot #10
@@ -1187,22 +1187,22 @@ LT1
 LC1 setrgbcolor
 LCb setrgbcolor
 1946 721 M
-(1/4    yield) Rshow
+(p = 1/4) Rshow
 LT1
 2030 721 M
 399 0 V
 854 4148 M
 732 -416 V
-428 -438 V
-304 -572 V
-428 -179 V
-304 -631 V
-428 -213 V
+428 -437 V
+304 -570 V
+428 -182 V
+304 -630 V
+428 -214 V
 304 -85 V
 428 -2 V
-304 -6 V
+304 -5 V
 732 -107 V
-732 -154 V
+732 -155 V
 732 -245 V
 % End plot #11
 % Begin plot #12
@@ -1211,7 +1211,7 @@ LT2
 LC2 setrgbcolor
 LCb setrgbcolor
 1946 581 M
-(1/2    yield) Rshow
+(p = 1/2) Rshow
 LT2
 2030 581 M
 399 0 V
@@ -1219,15 +1219,15 @@ LT2
 732 -299 V
 428 -509 V
 304 -464 V
-428 -425 V
-304 -811 V
+428 -422 V
+304 -814 V
 3478 817 L
 304 -83 V
 428 -15 V
 304 -1 V
-732 -38 V
-732 -48 V
-6591 448 L
+732 -37 V
+732 -49 V
+6592 448 L
 % End plot #12
 stroke
 1.000 UL
