@@ -17,7 +17,7 @@ set terminal postscript landscape noenhanced defaultplex \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-set output 'optimized.eps'
+set output 'optimized-relative.eps'
 unset clip points
 set clip one
 unset clip two
@@ -48,10 +48,11 @@ set format z "% g"
 set format cb "% g"
 set format r "% g"
 set angles radians
-unset grid
+#unset grid
+set grid x
 set raxis
 set key title ""
-set key inside bottom left vertical Right noreverse enhanced autotitles nobox
+set key inside top right vertical Right noreverse enhanced autotitles nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
@@ -63,7 +64,7 @@ unset style arrow
 set style histogram clustered gap 2 title  offset character 0, 0, 0
 unset logscale
 set logscale x 10
-set logscale y 10
+#set logscale y 10
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -103,10 +104,8 @@ set mcbtics default
 #set xtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autojustify
 #set xtics autofreq  norangelimit
 set xtics 2
-#set ytics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autojustify
-#set ytics autofreq  norangelimit
-set ytics 2
-set format y "%.0b %B"
+set ytics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autojustify
+set ytics autofreq  norangelimit
 set ztics border in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set ztics autofreq  norangelimit
 set nox2tics
@@ -115,7 +114,7 @@ set cbtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autoj
 set cbtics autofreq  norangelimit
 set rtics axis in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set rtics autofreq  norangelimit
-set title "musl, stress test for the futex based lock primitive, forced descheduling" 
+set title "musl, comparative between different lock primitives, relative to pthread_mutex_t" 
 set title  offset character 0, 0, 0 font "" norotate
 set timestamp bottom 
 set timestamp "" 
@@ -130,11 +129,11 @@ set x2label ""
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
-set ylabel "locks/second" 
+set ylabel "relative performance" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ 250E3 : 6E6 ] noreverse nowriteback
+set yrange [ 0.6 : 1.5 ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -160,21 +159,11 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-set for [i = 1:20] style line i lw 3
+base = "optimized-pthread"
+#files = "optimized-lockfree optimized-lockfull-v4 optimized-musl optimized-mtx optimized-flag-only optimized-cmpxchg-v0 optimized-pthread"
+files = "optimized-lockfull-v4 optimized-musl optimized-mtx optimized-flag-only optimized-cmpxchg-v0 optimized-pthread"
+set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
-set style line 10 lc rgb "magenta"
 set style increment userstyles
-plot                                                                                             \
-     "./optimized-lockfull.csv" using 1:6 smooth unique title "original",                      \
-     "./optimized-lockfull-yield-0.csv" using 1:6 smooth unique title "instrumented", \
-     "./optimized-lockfull-yield-1024.csv" using 1:6 smooth unique title "1/1024 yield", \
-     "./optimized-lockfull-yield-512.csv" using 1:6 smooth unique title "1/512  yield", \
-     "./optimized-lockfull-yield-256.csv" using 1:6 smooth unique title "1/256  yield", \
-     "./optimized-lockfull-yield-128.csv" using 1:6 smooth unique title "1/128  yield", \
-     "./optimized-lockfull-yield-64.csv" using 1:6 smooth unique title "1/64   yield", \
-     "./optimized-lockfull-yield-32.csv" using 1:6 smooth unique title "1/32   yield", \
-     "./optimized-lockfull-yield-16.csv" using 1:6 smooth unique title "1/16   yield", \
-     "./optimized-lockfull-yield-8.csv" using 1:6 smooth unique title "1/8    yield", \
-     "./optimized-lockfull-yield-4.csv" using 1:6 smooth unique title "1/4    yield", \
-     "./optimized-lockfull-yield-2.csv" using 1:6 smooth unique title "1/2    yield"
+plot for [file in files] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2/$6) with lines title sprintf("%s", file[11:])
 #    EOF
