@@ -191,11 +191,10 @@ void atomic_calibrate(FILE* out) {
     }
     clock_gettime(CLOCK_MONOTONIC, &wake_end);
 
-    /* Determine the cost of mis-predicted futex_wait */
+    /* Determine the cost of mis-predicted round of spinning */
     clock_gettime(CLOCK_MONOTONIC, &spin_start);
     for (i = 0; i < iterI; ++i) {
-    SHORTCUT1:
-      a_spin();
+    SHORTCUT1:;
       /* Change the value in the same way as in the real loop. */
       unsigned des = val-1;
       val -= contrib;
