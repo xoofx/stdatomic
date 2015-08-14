@@ -778,3 +778,783 @@
 #lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
 #lock statistic:	0,	0,	0,	0,	0,	0
 #45z5cheyIUz:55CDAFE2.056961635:logger end:
+#FyVwe9BL4Db:55CDC1C4.709804612:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.58377e-07,	2.20656e-10,	1.12119e-07,	2.47358e-10,	1.44526e-08,	8.76898e-09
+#FyVwe9BL4Db:55CDC1C6.583330545:parallelism:	min,	max,	max/min
+#FyVwe9BL4Db:55CDC1C6.583330545:parallelism:	6.92425e+07,	2.08657e+08,	3.01342
+#FyVwe9BL4Db:55CDC1D0.586600684:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#FyVwe9BL4Db:55CDC1D0.586600684:performance:	1,	10,	1.88664e+07,	1.88664e+06,	3.76613e+07,	3.76613e+06,	1.25791e+07,	5.02404e+07,	0.250379
+#FyVwe9BL4Db:55CDC1D0.587388990:random generator:	tot,	min,	max,	avg,	dev
+#FyVwe9BL4Db:55CDC1D0.587388990:random generator:	18866426,	99,	184,	144.1377,	11.923903
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#FyVwe9BL4Db:55CDC1D0.587407865:logger end:
+#QkCFIDM858A:55CDC1D0.588661536:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.22748e-07,	5.13257e-09,	7.55944e-08,	1.32514e-11,	1.13879e-08,	3.4902e-09
+#QkCFIDM858A:55CDC1D2.864662184:parallelism:	min,	max,	max/min
+#QkCFIDM858A:55CDC1D2.864662184:parallelism:	7.10412e+07,	2.35224e+08,	3.3111
+#QkCFIDM858A:55CDC1DC.867822045:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#QkCFIDM858A:55CDC1DC.867822045:performance:	1,	10,	1.89678e+07,	1.89678e+06,	3.78572e+07,	3.78572e+06,	1.25989e+07,	5.04561e+07,	0.2497
+#QkCFIDM858A:55CDC1DC.868583660:random generator:	tot,	min,	max,	avg,	dev
+#QkCFIDM858A:55CDC1DC.868583660:random generator:	18967829,	114,	193,	145.25098,	11.671811
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#QkCFIDM858A:55CDC1DC.868600299:logger end:
+#8wmcSNhVJkQ:55CDC1DC.869812473:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.27431e-07,	1.35533e-08,	9.36155e-08,	1.04872e-08,	1.13754e-08,	3.68739e-10
+#8wmcSNhVJkQ:55CDC1DE.692877199:parallelism:	min,	max,	max/min
+#8wmcSNhVJkQ:55CDC1DE.692877199:parallelism:	7.13936e+07,	2.212e+08,	3.09831
+#8wmcSNhVJkQ:55CDC1E8.693246983:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#8wmcSNhVJkQ:55CDC1E8.693246983:performance:	1,	10,	1.88606e+07,	1.88606e+06,	3.77172e+07,	3.77172e+06,	1.26772e+07,	5.03944e+07,	0.25156
+#8wmcSNhVJkQ:55CDC1E8.693957798:random generator:	tot,	min,	max,	avg,	dev
+#8wmcSNhVJkQ:55CDC1E8.693957798:random generator:	18860584,	107,	193,	145.01172,	12.228992
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#8wmcSNhVJkQ:55CDC1E8.693974344:logger end:
+#HbRPfkIEzFC:55CDC1E8.695207696:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.32883e-07,	3.01305e-09,	8.46821e-08,	2.41992e-11,	1.25184e-08,	3.64137e-11
+#HbRPfkIEzFC:55CDC1EA.380838241:parallelism:	min,	max,	max/min
+#HbRPfkIEzFC:55CDC1EA.380838241:parallelism:	7.05145e+07,	2.25316e+08,	3.19532
+#HbRPfkIEzFC:55CDC1F4.382058769:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#HbRPfkIEzFC:55CDC1F4.382058769:performance:	1,	10,	1.86295e+07,	1.86295e+06,	3.7239e+07,	3.7239e+06,	1.25067e+07,	4.97457e+07,	0.251413
+#HbRPfkIEzFC:55CDC1F4.382844756:random generator:	tot,	min,	max,	avg,	dev
+#HbRPfkIEzFC:55CDC1F4.382844756:random generator:	18629547,	98,	182,	142.91699,	11.745424
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#HbRPfkIEzFC:55CDC1F4.382862923:logger end:
+#7IGCwTRtRyR:55CDC1F4.384006671:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.33386e-07,	1.35807e-09,	8.60649e-08,	4.52043e-09,	1.25169e-08,	3.52192e-10
+#7IGCwTRtRyR:55CDC1F6.821325234:parallelism:	min,	max,	max/min
+#7IGCwTRtRyR:55CDC1F6.821325234:parallelism:	7.20122e+07,	2.25785e+08,	3.13537
+#7IGCwTRtRyR:55CDC200.826494450:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#7IGCwTRtRyR:55CDC200.826494450:performance:	1,	10,	1.87804e+07,	1.87804e+06,	3.74306e+07,	3.74306e+06,	1.25385e+07,	4.99691e+07,	0.250926
+#7IGCwTRtRyR:55CDC200.827210475:random generator:	tot,	min,	max,	avg,	dev
+#7IGCwTRtRyR:55CDC200.827210475:random generator:	18780430,	105,	187,	143.65234,	12.459053
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#7IGCwTRtRyR:55CDC200.827227328:logger end:
+#JgAS6bn8WqI:55CDC200.828530578:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.32574e-07,	1.03184e-09,	8.46355e-08,	1.69866e-11,	1.25289e-08,	1.88116e-11
+#JgAS6bn8WqI:55CDC202.648901075:parallelism:	min,	max,	max/min
+#JgAS6bn8WqI:55CDC202.648901075:parallelism:	7.10886e+07,	2.18945e+08,	3.07988
+#JgAS6bn8WqI:55CDC20C.653849263:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#JgAS6bn8WqI:55CDC20C.653849263:performance:	2,	10,	1.1633e+07,	1.1633e+06,	2.31629e+07,	2.31629e+06,	7.73831e+06,	3.09012e+07,	0.250421
+#JgAS6bn8WqI:55CDC20C.654688330:random generator:	tot,	min,	max,	avg,	dev
+#JgAS6bn8WqI:55CDC20C.654688330:random generator:	11632965,	60,	120,	88.552734,	9.2010854
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#JgAS6bn8WqI:55CDC20C.654707645:logger end:
+#FXoCujKKFMD:55CDC20C.655908764:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.4211e-07,	2.60621e-09,	9.0744e-08,	1.46348e-11,	1.34246e-08,	3.31669e-11
+#FXoCujKKFMD:55CDC20E.468912530:parallelism:	min,	max,	max/min
+#FXoCujKKFMD:55CDC20E.468912530:parallelism:	6.84999e+07,	2.00439e+08,	2.92612
+#FXoCujKKFMD:55CDC218.471005114:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#FXoCujKKFMD:55CDC218.471005114:performance:	2,	10,	1.14494e+07,	1.14494e+06,	2.28579e+07,	2.28579e+06,	7.68127e+06,	3.05392e+07,	0.251522
+#FXoCujKKFMD:55CDC218.471833954:random generator:	tot,	min,	max,	avg,	dev
+#FXoCujKKFMD:55CDC218.471833954:random generator:	11449350,	62,	125,	87.648438,	9.6059934
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#FXoCujKKFMD:55CDC218.471853412:logger end:
+#FPMNLfcyqLp:55CDC218.473124873:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.4145e-07,	2.86961e-10,	9.09941e-08,	3.56589e-11,	1.34285e-08,	2.42981e-11
+#FPMNLfcyqLp:55CDC21A.296672899:parallelism:	min,	max,	max/min
+#FPMNLfcyqLp:55CDC21A.296672899:parallelism:	6.78984e+07,	1.97758e+08,	2.91257
+#FPMNLfcyqLp:55CDC224.297515890:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#FPMNLfcyqLp:55CDC224.297515890:performance:	2,	10,	1.16159e+07,	1.16159e+06,	2.32172e+07,	2.32172e+06,	7.73702e+06,	3.09542e+07,	0.24995
+#FPMNLfcyqLp:55CDC224.298356337:random generator:	tot,	min,	max,	avg,	dev
+#FPMNLfcyqLp:55CDC224.298356337:random generator:	11615934,	56,	121,	88.677734,	9.6119047
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#FPMNLfcyqLp:55CDC224.298376021:logger end:
+#Q5vaj1ccrUT:55CDC224.299521226:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.42448e-07,	2.63631e-09,	9.06596e-08,	1.42611e-11,	1.34255e-08,	4.08282e-11
+#Q5vaj1ccrUT:55CDC226.136916634:parallelism:	min,	max,	max/min
+#Q5vaj1ccrUT:55CDC226.136916634:parallelism:	6.78727e+07,	2.05519e+08,	3.02801
+#Q5vaj1ccrUT:55CDC230.139725161:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Q5vaj1ccrUT:55CDC230.139725161:performance:	2,	10,	1.1458e+07,	1.1458e+06,	2.28652e+07,	2.28652e+06,	7.64241e+06,	3.05076e+07,	0.250509
+#Q5vaj1ccrUT:55CDC230.140533959:random generator:	tot,	min,	max,	avg,	dev
+#Q5vaj1ccrUT:55CDC230.140533959:random generator:	11458016,	61,	114,	87.267578,	9.4190321
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Q5vaj1ccrUT:55CDC230.140552659:logger end:
+#62CZk6V9VEr:55CDC230.141662081:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.3692e-07,	9.21683e-10,	8.75621e-08,	3.56127e-11,	1.29438e-08,	1.8379e-11
+#62CZk6V9VEr:55CDC231.964909080:parallelism:	min,	max,	max/min
+#62CZk6V9VEr:55CDC231.964909080:parallelism:	6.8198e+07,	2.00555e+08,	2.94078
+#62CZk6V9VEr:55CDC23B.968112412:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#62CZk6V9VEr:55CDC23B.968112412:performance:	2,	10,	1.14963e+07,	1.14963e+06,	2.29513e+07,	2.29513e+06,	7.72855e+06,	3.06799e+07,	0.251909
+#62CZk6V9VEr:55CDC23B.969049154:random generator:	tot,	min,	max,	avg,	dev
+#62CZk6V9VEr:55CDC23B.969049154:random generator:	11496315,	56,	121,	87.977539,	9.577103
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#62CZk6V9VEr:55CDC23B.969068832:logger end:
+#5jDR9dMKN79:55CDC23B.970215477:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.43931e-07,	1.66477e-09,	1.04443e-07,	9.92036e-11,	1.33958e-08,	3.73845e-11
+#5jDR9dMKN79:55CDC23D.660896973:parallelism:	min,	max,	max/min
+#5jDR9dMKN79:55CDC23D.660896973:parallelism:	6.93208e+07,	1.96655e+08,	2.83689
+#5jDR9dMKN79:55CDC247.661381556:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#5jDR9dMKN79:55CDC247.661381556:performance:	3,	10,	8.80063e+06,	880063,	1.75996e+07,	1.75996e+06,	5.94732e+06,	2.35469e+07,	0.252573
+#5jDR9dMKN79:55CDC247.662269611:random generator:	tot,	min,	max,	avg,	dev
+#5jDR9dMKN79:55CDC247.662269611:random generator:	8800627,	44,	105,	68.014648,	7.9853715
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#5jDR9dMKN79:55CDC247.662290307:logger end:
+#9SpslvrcoBz:55CDC247.663531972:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.9355e-07,	8.04979e-09,	1.24937e-07,	8.02143e-09,	1.51432e-08,	2.18981e-09
+#9SpslvrcoBz:55CDC249.476930989:parallelism:	min,	max,	max/min
+#9SpslvrcoBz:55CDC249.476930989:parallelism:	6.93769e+07,	2.08714e+08,	3.00841
+#9SpslvrcoBz:55CDC253.478328683:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#9SpslvrcoBz:55CDC253.478328683:performance:	3,	10,	8.64734e+06,	864734,	1.72763e+07,	1.72763e+06,	5.76082e+06,	2.30371e+07,	0.250067
+#9SpslvrcoBz:55CDC253.479185461:random generator:	tot,	min,	max,	avg,	dev
+#9SpslvrcoBz:55CDC253.479185461:random generator:	8647339,	43,	96,	65.891602,	7.958038
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#9SpslvrcoBz:55CDC253.479205168:logger end:
+#Blc9WpoTCij:55CDC253.480399531:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.49172e-07,	2.10652e-09,	1.07569e-07,	8.51848e-11,	1.39165e-08,	2.66435e-11
+#Blc9WpoTCij:55CDC255.288527931:parallelism:	min,	max,	max/min
+#Blc9WpoTCij:55CDC255.288527931:parallelism:	6.70196e+07,	2.05067e+08,	3.05981
+#Blc9WpoTCij:55CDC25F.294260886:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Blc9WpoTCij:55CDC25F.294260886:performance:	3,	10,	8.91823e+06,	891823,	1.77243e+07,	1.77243e+06,	5.93357e+06,	2.36579e+07,	0.250808
+#Blc9WpoTCij:55CDC25F.295118575:random generator:	tot,	min,	max,	avg,	dev
+#Blc9WpoTCij:55CDC25F.295118575:random generator:	8918230,	42,	92,	67.700195,	7.8979909
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Blc9WpoTCij:55CDC25F.295138780:logger end:
+#1NlPvpg8kKX:55CDC25F.296499520:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.49156e-07,	3.33292e-10,	1.08341e-07,	1.89141e-10,	1.39098e-08,	2.14634e-11
+#1NlPvpg8kKX:55CDC261.112995922:parallelism:	min,	max,	max/min
+#1NlPvpg8kKX:55CDC261.112995922:parallelism:	6.9214e+07,	2.09747e+08,	3.03042
+#1NlPvpg8kKX:55CDC26B.113924271:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#1NlPvpg8kKX:55CDC26B.113924271:performance:	3,	10,	8.68519e+06,	868519,	1.73598e+07,	1.73598e+06,	5.83129e+06,	2.31911e+07,	0.251445
+#1NlPvpg8kKX:55CDC26B.114789328:random generator:	tot,	min,	max,	avg,	dev
+#1NlPvpg8kKX:55CDC26B.114789328:random generator:	8685193,	43,	95,	66.458008,	8.3434461
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#1NlPvpg8kKX:55CDC26B.114809140:logger end:
+#EjPAeNnKEVo:55CDC26B.115965045:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.42043e-07,	2.60539e-09,	9.2346e-08,	3.95201e-09,	1.34056e-08,	2.36634e-11
+#EjPAeNnKEVo:55CDC26C.948856388:parallelism:	min,	max,	max/min
+#EjPAeNnKEVo:55CDC26C.948856388:parallelism:	7.00348e+07,	2.02527e+08,	2.89181
+#EjPAeNnKEVo:55CDC276.956726111:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#EjPAeNnKEVo:55CDC276.956726111:performance:	3,	10,	8.64073e+06,	864073,	1.71427e+07,	1.71427e+06,	5.67559e+06,	2.28183e+07,	0.24873
+#EjPAeNnKEVo:55CDC276.957584610:random generator:	tot,	min,	max,	avg,	dev
+#EjPAeNnKEVo:55CDC276.957584610:random generator:	8640729,	37,	96,	65.347656,	8.4172839
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#EjPAeNnKEVo:55CDC276.957604661:logger end:
+#QPswrnYfwEH:55CDC276.958894072:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.42979e-07,	1.76432e-09,	9.06818e-08,	4.52972e-11,	1.33819e-08,	8.20986e-11
+#QPswrnYfwEH:55CDC278.650311618:parallelism:	min,	max,	max/min
+#QPswrnYfwEH:55CDC278.650311618:parallelism:	6.89605e+07,	1.97922e+08,	2.87007
+#QPswrnYfwEH:55CDC282.656669969:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#QPswrnYfwEH:55CDC282.656669969:performance:	4,	10,	6.48518e+06,	648518,	1.28446e+07,	1.28446e+06,	4.3438e+06,	1.71884e+07,	0.252717
+#QPswrnYfwEH:55CDC282.657531944:random generator:	tot,	min,	max,	avg,	dev
+#QPswrnYfwEH:55CDC282.657531944:random generator:	6485177,	28,	71,	49.448242,	6.921375
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#QPswrnYfwEH:55CDC282.657551814:logger end:
+#Q9FeuUlqexe:55CDC282.658964185:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.48872e-07,	2.54992e-09,	9.40829e-08,	4.40157e-10,	1.36015e-08,	8.99037e-11
+#Q9FeuUlqexe:55CDC284.340908319:parallelism:	min,	max,	max/min
+#Q9FeuUlqexe:55CDC284.340908319:parallelism:	6.89767e+07,	2.10133e+08,	3.04643
+#Q9FeuUlqexe:55CDC28E.342329576:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Q9FeuUlqexe:55CDC28E.342329576:performance:	4,	10,	6.44639e+06,	644639,	1.28774e+07,	1.28774e+06,	4.26936e+06,	1.71468e+07,	0.248989
+#Q9FeuUlqexe:55CDC28E.343186064:random generator:	tot,	min,	max,	avg,	dev
+#Q9FeuUlqexe:55CDC28E.343186064:random generator:	6446391,	28,	76,	49.210938,	7.4443151
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Q9FeuUlqexe:55CDC28E.343205989:logger end:
+#MmijKPGjIuV:55CDC28E.344377161:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.47708e-07,	2.79348e-09,	9.3341e-08,	1.53424e-11,	1.39053e-08,	2.79277e-11
+#MmijKPGjIuV:55CDC290.132939144:parallelism:	min,	max,	max/min
+#MmijKPGjIuV:55CDC290.132939144:parallelism:	6.72037e+07,	2.05005e+08,	3.0505
+#MmijKPGjIuV:55CDC29A.134249309:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#MmijKPGjIuV:55CDC29A.134249309:performance:	4,	10,	6.32467e+06,	632467,	1.2635e+07,	1.2635e+06,	4.21322e+06,	1.68483e+07,	0.250069
+#MmijKPGjIuV:55CDC29A.135133595:random generator:	tot,	min,	max,	avg,	dev
+#MmijKPGjIuV:55CDC29A.135133595:random generator:	6324672,	28,	72,	48.354492,	6.949076
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#MmijKPGjIuV:55CDC29A.135154014:logger end:
+#E6Kg62oJ8u4:55CDC29A.136316167:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.47326e-07,	3.35058e-09,	9.30933e-08,	5.90762e-12,	1.3915e-08,	2.30625e-11
+#E6Kg62oJ8u4:55CDC29B.933909457:parallelism:	min,	max,	max/min
+#E6Kg62oJ8u4:55CDC29B.933909457:parallelism:	6.80529e+07,	1.98255e+08,	2.91325
+#E6Kg62oJ8u4:55CDC2A5.936347208:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#E6Kg62oJ8u4:55CDC2A5.936347208:performance:	4,	10,	6.34166e+06,	634166,	1.26424e+07,	1.26424e+06,	4.23985e+06,	1.68823e+07,	0.251142
+#E6Kg62oJ8u4:55CDC2A5.937218074:random generator:	tot,	min,	max,	avg,	dev
+#E6Kg62oJ8u4:55CDC2A5.937218074:random generator:	6341664,	28,	77,	48.412109,	6.7616949
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#E6Kg62oJ8u4:55CDC2A5.937238207:logger end:
+#88IIGC671Ei:55CDC2A5.938378721:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.47394e-07,	8.18884e-09,	9.59699e-08,	2.7845e-09,	1.38737e-08,	8.7165e-11
+#88IIGC671Ei:55CDC2A8.373034987:parallelism:	min,	max,	max/min
+#88IIGC671Ei:55CDC2A8.373034987:parallelism:	6.86716e+07,	2.03582e+08,	2.96457
+#88IIGC671Ei:55CDC2B2.374011214:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#88IIGC671Ei:55CDC2B2.374011214:performance:	4,	10,	6.45365e+06,	645365,	1.28995e+07,	1.28995e+06,	4.28132e+06,	1.71808e+07,	0.249193
+#88IIGC671Ei:55CDC2B2.374907708:random generator:	tot,	min,	max,	avg,	dev
+#88IIGC671Ei:55CDC2B2.374907708:random generator:	6453647,	31,	77,	49.298828,	7.0611461
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#88IIGC671Ei:55CDC2B2.374928710:logger end:
+#35DqkfZlnVU:55CDC2B2.376143355:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.49283e-07,	7.95051e-09,	9.46193e-08,	1.26932e-09,	1.38941e-08,	1.2527e-10
+#35DqkfZlnVU:55CDC2B4.196907240:parallelism:	min,	max,	max/min
+#35DqkfZlnVU:55CDC2B4.196907240:parallelism:	6.78757e+07,	1.97222e+08,	2.90563
+#35DqkfZlnVU:55CDC2BE.201476642:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#35DqkfZlnVU:55CDC2BE.201476642:performance:	6,	10,	5.64098e+06,	564098,	1.12024e+07,	1.12024e+06,	3.73169e+06,	1.49341e+07,	0.249877
+#35DqkfZlnVU:55CDC2BE.202379745:random generator:	tot,	min,	max,	avg,	dev
+#35DqkfZlnVU:55CDC2BE.202379745:random generator:	5640977,	22,	61,	42.833008,	6.2853648
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#35DqkfZlnVU:55CDC2BE.202400350:logger end:
+#M7bM8DUi1b5:55CDC2BE.203816414:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53647e-07,	2.91267e-09,	9.76873e-08,	1.60776e-11,	1.44168e-08,	4.27842e-11
+#M7bM8DUi1b5:55CDC2C0.016901638:parallelism:	min,	max,	max/min
+#M7bM8DUi1b5:55CDC2C0.016901638:parallelism:	6.72837e+07,	2.06188e+08,	3.06446
+#M7bM8DUi1b5:55CDC2CA.022829754:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#M7bM8DUi1b5:55CDC2CA.022829754:performance:	6,	10,	5.78939e+06,	578939,	1.14724e+07,	1.14724e+06,	3.83015e+06,	1.53026e+07,	0.250294
+#M7bM8DUi1b5:55CDC2CA.023720894:random generator:	tot,	min,	max,	avg,	dev
+#M7bM8DUi1b5:55CDC2CA.023720894:random generator:	5789393,	22,	68,	43.837891,	6.6625909
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#M7bM8DUi1b5:55CDC2CA.023741936:logger end:
+#Evc0ESPghcF:55CDC2CA.025139779:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.64232e-07,	2.01034e-08,	1.26128e-07,	1.75198e-08,	1.41955e-08,	4.70491e-10
+#Evc0ESPghcF:55CDC2CB.852707882:parallelism:	min,	max,	max/min
+#Evc0ESPghcF:55CDC2CB.852707882:parallelism:	6.71596e+07,	2.1359e+08,	3.18034
+#Evc0ESPghcF:55CDC2D5.857181604:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Evc0ESPghcF:55CDC2D5.857181604:performance:	6,	10,	5.79596e+06,	579596,	1.15158e+07,	1.15158e+06,	3.85332e+06,	1.53691e+07,	0.250719
+#Evc0ESPghcF:55CDC2D5.858069689:random generator:	tot,	min,	max,	avg,	dev
+#Evc0ESPghcF:55CDC2D5.858069689:random generator:	5795958,	27,	68,	44.12793,	6.7356336
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Evc0ESPghcF:55CDC2D5.858090502:logger end:
+#4QiGlS1KijM:55CDC2D5.859367936:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54961e-07,	2.15984e-10,	1.13282e-07,	2.00727e-09,	1.44415e-08,	3.52136e-11
+#4QiGlS1KijM:55CDC2D7.676934900:parallelism:	min,	max,	max/min
+#4QiGlS1KijM:55CDC2D7.676934900:parallelism:	6.90529e+07,	1.98368e+08,	2.87269
+#4QiGlS1KijM:55CDC2E1.679818021:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#4QiGlS1KijM:55CDC2E1.679818021:performance:	6,	10,	5.73372e+06,	573372,	1.14253e+07,	1.14253e+06,	3.81984e+06,	1.52451e+07,	0.250562
+#4QiGlS1KijM:55CDC2E1.680713583:random generator:	tot,	min,	max,	avg,	dev
+#4QiGlS1KijM:55CDC2E1.680713583:random generator:	5733718,	22,	67,	43.958008,	6.8021325
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#4QiGlS1KijM:55CDC2E1.680734404:logger end:
+#Gr5R8rQtP9V:55CDC2E1.681956121:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53485e-07,	2.62341e-09,	9.75635e-08,	4.02079e-11,	1.44164e-08,	4.92955e-11
+#Gr5R8rQtP9V:55CDC2E3.388662236:parallelism:	min,	max,	max/min
+#Gr5R8rQtP9V:55CDC2E3.388662236:parallelism:	6.83391e+07,	2.06754e+08,	3.02542
+#Gr5R8rQtP9V:55CDC2ED.391472626:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Gr5R8rQtP9V:55CDC2ED.391472626:performance:	6,	10,	5.72091e+06,	572091,	1.13966e+07,	1.13966e+06,	3.83156e+06,	1.52281e+07,	0.25161
+#Gr5R8rQtP9V:55CDC2ED.392364101:random generator:	tot,	min,	max,	avg,	dev
+#Gr5R8rQtP9V:55CDC2ED.392364101:random generator:	5720907,	27,	67,	43.682617,	6.4230044
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Gr5R8rQtP9V:55CDC2ED.392384978:logger end:
+#3irzoyj43qp:55CDC2ED.393662905:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.52973e-07,	1.09422e-09,	9.76935e-08,	3.34101e-11,	1.44391e-08,	3.34466e-11
+#3irzoyj43qp:55CDC2EF.176932672:parallelism:	min,	max,	max/min
+#3irzoyj43qp:55CDC2EF.176932672:parallelism:	6.66492e+07,	2.0115e+08,	3.01804
+#3irzoyj43qp:55CDC2F9.178220481:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#3irzoyj43qp:55CDC2F9.178220481:performance:	8,	10,	3.83942e+06,	383942,	7.67697e+06,	767697,	2.57143e+06,	1.02484e+07,	0.25091
+#3irzoyj43qp:55CDC2F9.179110935:random generator:	tot,	min,	max,	avg,	dev
+#3irzoyj43qp:55CDC2F9.179110935:random generator:	3839424,	16,	48,	29.748047,	5.5619673
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#3irzoyj43qp:55CDC2F9.179131908:logger end:
+#Bm0cIttKIFv:55CDC2F9.181242393:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.91942e-07,	7.22703e-09,	1.19202e-07,	7.84311e-09,	1.7901e-08,	1.10838e-09
+#Bm0cIttKIFv:55CDC2FA.912886741:parallelism:	min,	max,	max/min
+#Bm0cIttKIFv:55CDC2FA.912886741:parallelism:	6.66142e+07,	1.97155e+08,	2.95966
+#Bm0cIttKIFv:55CDC304.914675035:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Bm0cIttKIFv:55CDC304.914675035:performance:	8,	10,	3.61811e+06,	361811,	7.2228e+06,	722280,	2.42649e+06,	9.6493e+06,	0.251469
+#Bm0cIttKIFv:55CDC304.915578695:random generator:	tot,	min,	max,	avg,	dev
+#Bm0cIttKIFv:55CDC304.915578695:random generator:	3618109,	12,	47,	27.764648,	5.4961357
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Bm0cIttKIFv:55CDC304.915599483:logger end:
+#CN8snpihCdw:55CDC304.916822396:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53242e-07,	1.16287e-09,	9.79926e-08,	6.61216e-10,	1.44353e-08,	2.30142e-11
+#CN8snpihCdw:55CDC307.133338631:parallelism:	min,	max,	max/min
+#CN8snpihCdw:55CDC307.133338631:parallelism:	6.89886e+07,	2.089e+08,	3.02804
+#CN8snpihCdw:55CDC311.134735075:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#CN8snpihCdw:55CDC311.134735075:performance:	8,	10,	3.86903e+06,	386903,	7.72206e+06,	772206,	2.58639e+06,	1.03084e+07,	0.2509
+#CN8snpihCdw:55CDC311.135670423:random generator:	tot,	min,	max,	avg,	dev
+#CN8snpihCdw:55CDC311.135670423:random generator:	3869026,	10,	51,	29.587891,	5.5345789
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#CN8snpihCdw:55CDC311.135692031:logger end:
+#IaFExgJkFSX:55CDC311.136923663:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.527e-07,	8.66609e-10,	9.77222e-08,	3.52655e-11,	1.44473e-08,	1.29808e-11
+#IaFExgJkFSX:55CDC312.936879646:parallelism:	min,	max,	max/min
+#IaFExgJkFSX:55CDC312.936879646:parallelism:	6.79608e+07,	2.10364e+08,	3.09538
+#IaFExgJkFSX:55CDC31C.937902346:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#IaFExgJkFSX:55CDC31C.937902346:performance:	8,	10,	3.62973e+06,	362973,	7.25471e+06,	725471,	2.43397e+06,	9.68868e+06,	0.251218
+#IaFExgJkFSX:55CDC31C.938878897:random generator:	tot,	min,	max,	avg,	dev
+#IaFExgJkFSX:55CDC31C.938878897:random generator:	3629731,	12,	49,	28.072266,	5.0917921
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#IaFExgJkFSX:55CDC31C.938900788:logger end:
+#tjUF7bjHhB:55CDC31C.940109911:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53058e-07,	2.97542e-09,	9.7694e-08,	1.79617e-11,	1.4443e-08,	3.00998e-11
+#tjUF7bjHhB:55CDC31E.752908023:parallelism:	min,	max,	max/min
+#tjUF7bjHhB:55CDC31E.752908023:parallelism:	6.92047e+07,	2.04359e+08,	2.95296
+#tjUF7bjHhB:55CDC328.755199511:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#tjUF7bjHhB:55CDC328.755199511:performance:	8,	10,	3.87862e+06,	387862,	7.73306e+06,	773306,	2.59278e+06,	1.03258e+07,	0.251096
+#tjUF7bjHhB:55CDC328.756086987:random generator:	tot,	min,	max,	avg,	dev
+#tjUF7bjHhB:55CDC328.756086987:random generator:	3878621,	15,	48,	29.709961,	5.504895
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#tjUF7bjHhB:55CDC328.756107743:logger end:
+#E9JdmEAgv8z:55CDC328.757347917:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54666e-07,	9.95037e-10,	9.77083e-08,	1.32351e-11,	1.44537e-08,	2.9629e-11
+#E9JdmEAgv8z:55CDC32A.565483455:parallelism:	min,	max,	max/min
+#E9JdmEAgv8z:55CDC32A.565483455:parallelism:	6.67444e+07,	1.9636e+08,	2.94197
+#E9JdmEAgv8z:55CDC334.567144530:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#E9JdmEAgv8z:55CDC334.567144530:performance:	12,	10,	3.22012e+06,	322012,	6.43811e+06,	643811,	2.19818e+06,	8.63629e+06,	0.254529
+#E9JdmEAgv8z:55CDC334.568059687:random generator:	tot,	min,	max,	avg,	dev
+#E9JdmEAgv8z:55CDC334.568059687:random generator:	3220118,	10,	43,	25.146484,	4.9077539
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#E9JdmEAgv8z:55CDC334.568080392:logger end:
+#KITVUIJJEmI:55CDC334.569310794:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54982e-07,	8.02451e-09,	1.13181e-07,	1.5819e-09,	1.44388e-08,	1.37275e-11
+#KITVUIJJEmI:55CDC336.388992970:parallelism:	min,	max,	max/min
+#KITVUIJJEmI:55CDC336.388992970:parallelism:	6.82666e+07,	1.99622e+08,	2.92416
+#KITVUIJJEmI:55CDC340.392375399:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#KITVUIJJEmI:55CDC340.392375399:performance:	12,	10,	3.1786e+06,	317860,	6.31917e+06,	631917,	2.12384e+06,	8.44301e+06,	0.25155
+#KITVUIJJEmI:55CDC340.393271281:random generator:	tot,	min,	max,	avg,	dev
+#KITVUIJJEmI:55CDC340.393271281:random generator:	3178596,	10,	42,	24.476562,	5.0914835
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#KITVUIJJEmI:55CDC340.393292270:logger end:
+#QCnrIG1DXkZ:55CDC340.394467028:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54676e-07,	1.89584e-09,	9.7733e-08,	3.23666e-11,	1.44406e-08,	3.23015e-11
+#QCnrIG1DXkZ:55CDC342.084887867:parallelism:	min,	max,	max/min
+#QCnrIG1DXkZ:55CDC342.084887867:parallelism:	6.67736e+07,	1.97426e+08,	2.95665
+#QCnrIG1DXkZ:55CDC34C.088255735:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#QCnrIG1DXkZ:55CDC34C.088255735:performance:	12,	10,	3.21524e+06,	321524,	6.4017e+06,	640170,	2.20642e+06,	8.60813e+06,	0.256319
+#QCnrIG1DXkZ:55CDC34C.089159649:random generator:	tot,	min,	max,	avg,	dev
+#QCnrIG1DXkZ:55CDC34C.089159649:random generator:	3215238,	12,	41,	24.893555,	4.843534
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#QCnrIG1DXkZ:55CDC34C.089180291:logger end:
+#L3L8GyIEYVe:55CDC34C.090385532:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.5345e-07,	7.70857e-09,	9.5419e-08,	1.02823e-09,	1.4456e-08,	2.08487e-11
+#L3L8GyIEYVe:55CDC34D.912899408:parallelism:	min,	max,	max/min
+#L3L8GyIEYVe:55CDC34D.912899408:parallelism:	6.64293e+07,	1.98474e+08,	2.98774
+#L3L8GyIEYVe:55CDC357.917755407:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#L3L8GyIEYVe:55CDC357.917755407:performance:	12,	10,	3.30411e+06,	330411,	6.53837e+06,	653837,	2.16822e+06,	8.70659e+06,	0.249032
+#L3L8GyIEYVe:55CDC357.918644318:random generator:	tot,	min,	max,	avg,	dev
+#L3L8GyIEYVe:55CDC357.918644318:random generator:	3304111,	12,	42,	24.996094,	4.9807042
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#L3L8GyIEYVe:55CDC357.918665008:logger end:
+#M5Sd5QyaqFY:55CDC357.919758883:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53677e-07,	3.83966e-09,	9.76935e-08,	5.13862e-11,	1.44308e-08,	2.99006e-11
+#M5Sd5QyaqFY:55CDC359.732900782:parallelism:	min,	max,	max/min
+#M5Sd5QyaqFY:55CDC359.732900782:parallelism:	6.72263e+07,	1.89296e+08,	2.81581
+#M5Sd5QyaqFY:55CDC363.733926950:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#M5Sd5QyaqFY:55CDC363.733926950:performance:	12,	10,	3.27289e+06,	327289,	6.54384e+06,	654384,	2.18437e+06,	8.72821e+06,	0.250266
+#M5Sd5QyaqFY:55CDC363.734812775:random generator:	tot,	min,	max,	avg,	dev
+#M5Sd5QyaqFY:55CDC363.734812775:random generator:	3272894,	10,	43,	25.104492,	5.1198557
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#M5Sd5QyaqFY:55CDC363.734833420:logger end:
+#AwgSdDQbQly:55CDC363.736071500:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.55679e-07,	2.93459e-09,	1.13585e-07,	2.01551e-09,	1.44271e-08,	3.08309e-11
+#AwgSdDQbQly:55CDC365.544898312:parallelism:	min,	max,	max/min
+#AwgSdDQbQly:55CDC365.544898312:parallelism:	6.76091e+07,	2.07444e+08,	3.06829
+#AwgSdDQbQly:55CDC36F.552100144:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#AwgSdDQbQly:55CDC36F.552100144:performance:	16,	10,	3.18141e+06,	318141,	6.27886e+06,	627886,	2.09285e+06,	8.37171e+06,	0.249991
+#AwgSdDQbQly:55CDC36F.553001620:random generator:	tot,	min,	max,	avg,	dev
+#AwgSdDQbQly:55CDC36F.553001620:random generator:	3181414,	8,	40,	23.890625,	4.7793698
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#AwgSdDQbQly:55CDC36F.553022931:logger end:
+#MryBYeAX2J1:55CDC36F.554319810:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.49762e-07,	3.79726e-09,	9.47279e-08,	1.96148e-09,	1.38985e-08,	1.62235e-10
+#MryBYeAX2J1:55CDC371.248872955:parallelism:	min,	max,	max/min
+#MryBYeAX2J1:55CDC371.248872955:parallelism:	6.88533e+07,	2.02568e+08,	2.94202
+#MryBYeAX2J1:55CDC37B.251727709:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#MryBYeAX2J1:55CDC37B.251727709:performance:	16,	10,	3.05071e+06,	305071,	6.09472e+06,	609472,	2.044e+06,	8.13873e+06,	0.251146
+#MryBYeAX2J1:55CDC37B.252624619:random generator:	tot,	min,	max,	avg,	dev
+#MryBYeAX2J1:55CDC37B.252624619:random generator:	3050709,	9,	38,	23.18457,	4.8844034
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#MryBYeAX2J1:55CDC37B.252645681:logger end:
+#MIT12QIYd12:55CDC37B.253892767:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.5488e-07,	8.15181e-09,	9.92266e-08,	2.63057e-09,	1.44302e-08,	1.08101e-10
+#MIT12QIYd12:55CDC37D.144907561:parallelism:	min,	max,	max/min
+#MIT12QIYd12:55CDC37D.144907561:parallelism:	6.66462e+07,	1.99756e+08,	2.99726
+#MIT12QIYd12:55CDC387.147376302:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#MIT12QIYd12:55CDC387.147376302:performance:	16,	10,	3.11138e+06,	311138,	6.2095e+06,	620950,	2.11354e+06,	8.32304e+06,	0.253939
+#MIT12QIYd12:55CDC387.148264840:random generator:	tot,	min,	max,	avg,	dev
+#MIT12QIYd12:55CDC387.148264840:random generator:	3111376,	11,	40,	24.271484,	4.8708167
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#MIT12QIYd12:55CDC387.148285752:logger end:
+#FN94HV0lBaB:55CDC387.149477463:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.5332e-07,	2.80915e-09,	9.79979e-08,	6.9404e-10,	1.44378e-08,	4.6003e-11
+#FN94HV0lBaB:55CDC388.934718803:parallelism:	min,	max,	max/min
+#FN94HV0lBaB:55CDC388.934718803:parallelism:	6.86978e+07,	2.07059e+08,	3.01406
+#FN94HV0lBaB:55CDC392.941920911:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#FN94HV0lBaB:55CDC392.941920911:performance:	16,	10,	3.18228e+06,	318228,	6.28186e+06,	628186,	2.09246e+06,	8.37432e+06,	0.249866
+#FN94HV0lBaB:55CDC392.943290432:random generator:	tot,	min,	max,	avg,	dev
+#FN94HV0lBaB:55CDC392.943290432:random generator:	3182276,	9,	43,	23.983398,	5.0551908
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#FN94HV0lBaB:55CDC392.943323262:logger end:
+#BzfeCKymweZ:55CDC392.944960299:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.55119e-07,	1.56522e-08,	1.17487e-07,	1.20039e-08,	1.44194e-08,	1.09929e-09
+#BzfeCKymweZ:55CDC394.644909737:parallelism:	min,	max,	max/min
+#BzfeCKymweZ:55CDC394.644909737:parallelism:	6.81495e+07,	2.01582e+08,	2.95793
+#BzfeCKymweZ:55CDC39E.648652839:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#BzfeCKymweZ:55CDC39E.648652839:performance:	16,	10,	3.14773e+06,	314773,	6.25128e+06,	625128,	2.10624e+06,	8.35752e+06,	0.252017
+#BzfeCKymweZ:55CDC39E.649539848:random generator:	tot,	min,	max,	avg,	dev
+#BzfeCKymweZ:55CDC39E.649539848:random generator:	3147729,	11,	43,	24.074219,	5.0315096
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#BzfeCKymweZ:55CDC39E.649561121:logger end:
+#J20q5jsGnCf:55CDC39E.650701962:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.55733e-07,	1.89688e-09,	9.74884e-08,	2.10884e-11,	1.44311e-08,	2.03961e-11
+#J20q5jsGnCf:55CDC3A0.337573940:parallelism:	min,	max,	max/min
+#J20q5jsGnCf:55CDC3A0.337573940:parallelism:	6.83017e+07,	2.06216e+08,	3.01919
+#J20q5jsGnCf:55CDC3AA.340426983:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#J20q5jsGnCf:55CDC3AA.340426983:performance:	24,	10,	3.05253e+06,	305253,	6.09729e+06,	609729,	2.0681e+06,	8.16539e+06,	0.253277
+#J20q5jsGnCf:55CDC3AA.341415643:random generator:	tot,	min,	max,	avg,	dev
+#J20q5jsGnCf:55CDC3AA.341415643:random generator:	3052527,	7,	41,	23.589844,	4.9730195
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#J20q5jsGnCf:55CDC3AA.341437246:logger end:
+#Mm1YDdAuekH:55CDC3AA.342618138:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53978e-07,	1.64259e-09,	9.85044e-08,	2.21099e-09,	1.44386e-08,	2.27889e-11
+#Mm1YDdAuekH:55CDC3AC.204909351:parallelism:	min,	max,	max/min
+#Mm1YDdAuekH:55CDC3AC.204909351:parallelism:	6.77415e+07,	1.95437e+08,	2.88505
+#Mm1YDdAuekH:55CDC3B6.209289706:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Mm1YDdAuekH:55CDC3B6.209289706:performance:	24,	10,	3.05141e+06,	305141,	6.08661e+06,	608661,	2.07277e+06,	8.15939e+06,	0.254035
+#Mm1YDdAuekH:55CDC3B6.210178020:random generator:	tot,	min,	max,	avg,	dev
+#Mm1YDdAuekH:55CDC3B6.210178020:random generator:	3051408,	8,	43,	23.540039,	5.0740709
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Mm1YDdAuekH:55CDC3B6.210199175:logger end:
+#4nmpSf2oBh7:55CDC3B6.211396993:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53321e-07,	2.42179e-09,	9.91525e-08,	3.61367e-09,	1.4444e-08,	3.2419e-11
+#4nmpSf2oBh7:55CDC3B8.048912678:parallelism:	min,	max,	max/min
+#4nmpSf2oBh7:55CDC3B8.048912678:parallelism:	6.73896e+07,	2.06901e+08,	3.07023
+#4nmpSf2oBh7:55CDC3C2.052777450:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#4nmpSf2oBh7:55CDC3C2.052777450:performance:	24,	10,	3.02942e+06,	302942,	6.04318e+06,	604318,	2.02391e+06,	8.06709e+06,	0.250885
+#4nmpSf2oBh7:55CDC3C2.053666177:random generator:	tot,	min,	max,	avg,	dev
+#4nmpSf2oBh7:55CDC3C2.053666177:random generator:	3029425,	10,	39,	23.291016,	4.7219126
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#4nmpSf2oBh7:55CDC3C2.053687110:logger end:
+#EZDK6Ey0WZv:55CDC3C2.054891518:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54395e-07,	7.90775e-10,	9.8405e-08,	1.73711e-09,	1.4437e-08,	1.53713e-11
+#EZDK6Ey0WZv:55CDC3C4.269310849:parallelism:	min,	max,	max/min
+#EZDK6Ey0WZv:55CDC3C4.269310849:parallelism:	6.70358e+07,	2.07619e+08,	3.09713
+#EZDK6Ey0WZv:55CDC3CE.272567203:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#EZDK6Ey0WZv:55CDC3CE.272567203:performance:	24,	10,	2.9492e+06,	294920,	5.89365e+06,	589365,	1.97844e+06,	7.87209e+06,	0.251323
+#EZDK6Ey0WZv:55CDC3CE.273456210:random generator:	tot,	min,	max,	avg,	dev
+#EZDK6Ey0WZv:55CDC3CE.273456210:random generator:	2949196,	9,	40,	22.416992,	4.6748578
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#EZDK6Ey0WZv:55CDC3CE.273477343:logger end:
+#9cQsNnT1Xu5:55CDC3CE.274680092:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.56163e-07,	4.45581e-09,	1.00165e-07,	6.14776e-09,	1.44473e-08,	3.74486e-11
+#9cQsNnT1Xu5:55CDC3D0.080950683:parallelism:	min,	max,	max/min
+#9cQsNnT1Xu5:55CDC3D0.080950683:parallelism:	6.67542e+07,	2.11415e+08,	3.16707
+#9cQsNnT1Xu5:55CDC3DA.085017365:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#9cQsNnT1Xu5:55CDC3DA.085017365:performance:	24,	10,	3.07742e+06,	307742,	6.12435e+06,	612435,	2.04031e+06,	8.16466e+06,	0.249895
+#9cQsNnT1Xu5:55CDC3DA.085911885:random generator:	tot,	min,	max,	avg,	dev
+#9cQsNnT1Xu5:55CDC3DA.085911885:random generator:	3077416,	9,	39,	23.373047,	4.6505968
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#9cQsNnT1Xu5:55CDC3DA.085932986:logger end:
+#EFMcBT3KU05:55CDC3DA.087183444:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.58737e-07,	3.06228e-09,	9.78653e-08,	1.49033e-09,	1.44335e-08,	2.56924e-11
+#EFMcBT3KU05:55CDC3DB.892914328:parallelism:	min,	max,	max/min
+#EFMcBT3KU05:55CDC3DB.892914328:parallelism:	6.73794e+07,	2.09949e+08,	3.11592
+#EFMcBT3KU05:55CDC3E5.899033285:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#EFMcBT3KU05:55CDC3E5.899033285:performance:	32,	10,	3.03328e+06,	303328,	6.01758e+06,	601758,	2.02915e+06,	8.04673e+06,	0.252171
+#EFMcBT3KU05:55CDC3E5.899922264:random generator:	tot,	min,	max,	avg,	dev
+#EFMcBT3KU05:55CDC3E5.899922264:random generator:	3033285,	9,	40,	23.234375,	4.8196963
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#EFMcBT3KU05:55CDC3E5.899943392:logger end:
+#DTzjFwxwunB:55CDC3E5.901216865:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.5333e-07,	1.58873e-09,	9.75114e-08,	2.23746e-11,	1.44358e-08,	3.15242e-11
+#DTzjFwxwunB:55CDC3E7.712666950:parallelism:	min,	max,	max/min
+#DTzjFwxwunB:55CDC3E7.712666950:parallelism:	6.84223e+07,	2.04906e+08,	2.99473
+#DTzjFwxwunB:55CDC3F1.716923226:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#DTzjFwxwunB:55CDC3F1.716923226:performance:	32,	10,	3.02121e+06,	302121,	6.02042e+06,	602042,	2.03814e+06,	8.05856e+06,	0.252916
+#DTzjFwxwunB:55CDC3F1.717821113:random generator:	tot,	min,	max,	avg,	dev
+#DTzjFwxwunB:55CDC3F1.717821113:random generator:	3021207,	10,	39,	23.098633,	4.711733
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#DTzjFwxwunB:55CDC3F1.717842509:logger end:
+#JNIJIrwkDPe:55CDC3F1.719125829:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53037e-07,	9.14623e-10,	9.91929e-08,	3.03527e-09,	1.4443e-08,	3.88479e-11
+#JNIJIrwkDPe:55CDC3F3.413458349:parallelism:	min,	max,	max/min
+#JNIJIrwkDPe:55CDC3F3.413458349:parallelism:	6.81385e+07,	2.12481e+08,	3.11836
+#JNIJIrwkDPe:55CDC3FD.417671668:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#JNIJIrwkDPe:55CDC3FD.417671668:performance:	32,	10,	3.02022e+06,	302022,	6.02258e+06,	602258,	2.02577e+06,	8.04835e+06,	0.2517
+#JNIJIrwkDPe:55CDC3FD.418562526:random generator:	tot,	min,	max,	avg,	dev
+#JNIJIrwkDPe:55CDC3FD.418562526:random generator:	3020219,	10,	41,	23.353516,	4.6991636
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#JNIJIrwkDPe:55CDC3FD.418583211:logger end:
+#4RvY5Mi1fm9:55CDC3FD.419795082:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53342e-07,	3.15899e-09,	9.77104e-08,	3.01443e-11,	1.44224e-08,	3.43448e-11
+#4RvY5Mi1fm9:55CDC3FF.232904084:parallelism:	min,	max,	max/min
+#4RvY5Mi1fm9:55CDC3FF.232904084:parallelism:	6.76974e+07,	2.04506e+08,	3.02088
+#4RvY5Mi1fm9:55CDC409.244881296:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#4RvY5Mi1fm9:55CDC409.244881296:performance:	32,	10,	3.01624e+06,	301624,	5.9227e+06,	592270,	1.98758e+06,	7.91028e+06,	0.251266
+#4RvY5Mi1fm9:55CDC409.245782380:random generator:	tot,	min,	max,	avg,	dev
+#4RvY5Mi1fm9:55CDC409.245782380:random generator:	3016236,	9,	39,	22.635742,	4.7158902
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#4RvY5Mi1fm9:55CDC409.245804126:logger end:
+#8HBZsKKY62x:55CDC409.247299652:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.51367e-07,	3.06251e-09,	1.13518e-07,	1.0545e-08,	1.40401e-08,	2.4435e-10
+#8HBZsKKY62x:55CDC40B.064894953:parallelism:	min,	max,	max/min
+#8HBZsKKY62x:55CDC40B.064894953:parallelism:	6.78973e+07,	1.96802e+08,	2.89852
+#8HBZsKKY62x:55CDC415.069466436:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#8HBZsKKY62x:55CDC415.069466436:performance:	32,	10,	2.94258e+06,	294258,	5.88393e+06,	588393,	1.96391e+06,	7.84784e+06,	0.250248
+#8HBZsKKY62x:55CDC415.070397312:random generator:	tot,	min,	max,	avg,	dev
+#8HBZsKKY62x:55CDC415.070397312:random generator:	2942585,	8,	38,	22.438477,	4.7922759
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#8HBZsKKY62x:55CDC415.070419767:logger end:
+#Eo2gGaKm8Fe:55CDC415.071702883:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.55681e-07,	7.768e-09,	9.79944e-08,	1.76372e-09,	1.45142e-08,	2.57186e-10
+#Eo2gGaKm8Fe:55CDC416.900935471:parallelism:	min,	max,	max/min
+#Eo2gGaKm8Fe:55CDC416.900935471:parallelism:	6.72137e+07,	1.96259e+08,	2.91992
+#Eo2gGaKm8Fe:55CDC420.911560349:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Eo2gGaKm8Fe:55CDC420.911560349:performance:	64,	10,	2.82913e+06,	282913,	5.60653e+06,	560653,	1.87724e+06,	7.48377e+06,	0.250841
+#Eo2gGaKm8Fe:55CDC420.912597997:random generator:	tot,	min,	max,	avg,	dev
+#Eo2gGaKm8Fe:55CDC420.912597997:random generator:	2829128,	8,	39,	21.46582,	4.7193787
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Eo2gGaKm8Fe:55CDC420.912619968:logger end:
+#37wzbXzAJyW:55CDC420.913950484:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53037e-07,	2.83431e-09,	9.77266e-08,	3.52371e-11,	1.44284e-08,	3.76126e-11
+#37wzbXzAJyW:55CDC422.712915915:parallelism:	min,	max,	max/min
+#37wzbXzAJyW:55CDC422.712915915:parallelism:	6.83546e+07,	2.05561e+08,	3.00727
+#37wzbXzAJyW:55CDC42C.721089783:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#37wzbXzAJyW:55CDC42C.721089783:performance:	64,	10,	2.75317e+06,	275317,	5.50634e+06,	550634,	1.89335e+06,	7.39969e+06,	0.255869
+#37wzbXzAJyW:55CDC42C.722014527:random generator:	tot,	min,	max,	avg,	dev
+#37wzbXzAJyW:55CDC42C.722014527:random generator:	2753168,	8,	38,	21.420898,	4.4973754
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#37wzbXzAJyW:55CDC42C.722035850:logger end:
+#AFtNUqPXusr:55CDC42C.723362689:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54562e-07,	1.0054e-09,	9.86055e-08,	2.24506e-09,	1.44349e-08,	3.48873e-11
+#AFtNUqPXusr:55CDC42E.556908842:parallelism:	min,	max,	max/min
+#AFtNUqPXusr:55CDC42E.556908842:parallelism:	6.7955e+07,	2.10316e+08,	3.09493
+#AFtNUqPXusr:55CDC438.565503622:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#AFtNUqPXusr:55CDC438.565503622:performance:	64,	10,	2.8485e+06,	284850,	5.65972e+06,	565972,	1.87284e+06,	7.53256e+06,	0.248632
+#AFtNUqPXusr:55CDC438.566399260:random generator:	tot,	min,	max,	avg,	dev
+#AFtNUqPXusr:55CDC438.566399260:random generator:	2848496,	8,	38,	21.553711,	4.845718
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#AFtNUqPXusr:55CDC438.566420623:logger end:
+#P9NkXMDDcfH:55CDC438.567800341:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.5335e-07,	2.44365e-09,	9.76969e-08,	2.06602e-11,	1.44439e-08,	2.44722e-11
+#P9NkXMDDcfH:55CDC43A.396930313:parallelism:	min,	max,	max/min
+#P9NkXMDDcfH:55CDC43A.396930313:parallelism:	6.68077e+07,	2.07661e+08,	3.10834
+#P9NkXMDDcfH:55CDC444.407150534:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#P9NkXMDDcfH:55CDC444.407150534:performance:	64,	10,	2.81647e+06,	281647,	5.60873e+06,	560873,	1.88313e+06,	7.49186e+06,	0.251357
+#P9NkXMDDcfH:55CDC444.408087300:random generator:	tot,	min,	max,	avg,	dev
+#P9NkXMDDcfH:55CDC444.408087300:random generator:	2816468,	8,	39,	21.338867,	4.7018032
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#P9NkXMDDcfH:55CDC444.408109341:logger end:
+#dXIolISgc0:55CDC444.409492156:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.6138e-07,	1.41619e-08,	1.04349e-07,	8.22575e-09,	1.4204e-08,	3.12211e-10
+#dXIolISgc0:55CDC446.167511408:parallelism:	min,	max,	max/min
+#dXIolISgc0:55CDC446.167511408:parallelism:	6.59159e+07,	1.98086e+08,	3.00513
+#dXIolISgc0:55CDC450.176610848:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#dXIolISgc0:55CDC450.176610848:performance:	64,	10,	2.80904e+06,	280904,	5.59499e+06,	559499,	1.904e+06,	7.49899e+06,	0.253901
+#dXIolISgc0:55CDC450.177507954:random generator:	tot,	min,	max,	avg,	dev
+#dXIolISgc0:55CDC450.177507954:random generator:	2809036,	9,	40,	21.717773,	4.6790894
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#dXIolISgc0:55CDC450.177529310:logger end:
+#Krv4VsRGhpR:55CDC450.178858417:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.53564e-07,	1.39844e-09,	9.83839e-08,	1.9947e-09,	1.44507e-08,	2.51044e-11
+#Krv4VsRGhpR:55CDC451.880909662:parallelism:	min,	max,	max/min
+#Krv4VsRGhpR:55CDC451.880909662:parallelism:	6.84349e+07,	2.06412e+08,	3.01619
+#Krv4VsRGhpR:55CDC45B.897619543:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Krv4VsRGhpR:55CDC45B.897619543:performance:	128,	10,	2.47943e+06,	247943,	4.95623e+06,	495623,	1.69096e+06,	6.6472e+06,	0.254387
+#Krv4VsRGhpR:55CDC45B.898528735:random generator:	tot,	min,	max,	avg,	dev
+#Krv4VsRGhpR:55CDC45B.898528735:random generator:	2479433,	7,	36,	19.21582,	4.3490545
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Krv4VsRGhpR:55CDC45B.898550758:logger end:
+#Z7qT7AblRN:55CDC45B.900019915:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.93649e-07,	1.42631e-08,	1.21116e-07,	1.06787e-08,	1.43673e-08,	4.23015e-10
+#Z7qT7AblRN:55CDC45D.704907929:parallelism:	min,	max,	max/min
+#Z7qT7AblRN:55CDC45D.704907929:parallelism:	6.5973e+07,	2.03374e+08,	3.08269
+#Z7qT7AblRN:55CDC467.723938194:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Z7qT7AblRN:55CDC467.723938194:performance:	128,	10,	2.41162e+06,	241162,	4.7857e+06,	478570,	1.63248e+06,	6.41818e+06,	0.254353
+#Z7qT7AblRN:55CDC467.724840896:random generator:	tot,	min,	max,	avg,	dev
+#Z7qT7AblRN:55CDC467.724840896:random generator:	2411619,	6,	34,	18.467773,	4.2108337
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Z7qT7AblRN:55CDC467.724862788:logger end:
+#QM1TrA80zcJ:55CDC467.726237489:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54088e-07,	1.68644e-09,	9.74068e-08,	1.66266e-11,	1.4459e-08,	1.63857e-09
+#QM1TrA80zcJ:55CDC469.416804842:parallelism:	min,	max,	max/min
+#QM1TrA80zcJ:55CDC469.416804842:parallelism:	6.72747e+07,	2.11598e+08,	3.14528
+#QM1TrA80zcJ:55CDC473.432874079:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#QM1TrA80zcJ:55CDC473.432874079:performance:	128,	10,	2.50573e+06,	250573,	5.00774e+06,	500774,	1.68105e+06,	6.6888e+06,	0.251324
+#QM1TrA80zcJ:55CDC473.433871811:random generator:	tot,	min,	max,	avg,	dev
+#QM1TrA80zcJ:55CDC473.433871811:random generator:	2505726,	7,	35,	19.467773,	4.4766077
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#QM1TrA80zcJ:55CDC473.433907317:logger end:
+#IVqXXkmzsd4:55CDC473.435362599:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	2.33372e-07,	0.000316094,	1.34705e-07,	1.51876e-08,	1.60605e-08,	2.06621e-09
+#IVqXXkmzsd4:55CDC475.252922622:parallelism:	min,	max,	max/min
+#IVqXXkmzsd4:55CDC475.252922622:parallelism:	6.6398e+07,	2.0462e+08,	3.08172
+#IVqXXkmzsd4:55CDC47F.268555612:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#IVqXXkmzsd4:55CDC47F.268555612:performance:	128,	10,	2.48989e+06,	248989,	4.96177e+06,	496177,	1.64444e+06,	6.60621e+06,	0.248923
+#IVqXXkmzsd4:55CDC47F.269450161:random generator:	tot,	min,	max,	avg,	dev
+#IVqXXkmzsd4:55CDC47F.269450161:random generator:	2489892,	7,	34,	19.069336,	4.2928112
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#IVqXXkmzsd4:55CDC47F.269471282:logger end:
+#6K14EhNe4bN:55CDC47F.270731182:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54434e-07,	4.5877e-09,	9.7722e-08,	1.54636e-11,	1.44419e-08,	1.43512e-11
+#6K14EhNe4bN:55CDC481.685330465:parallelism:	min,	max,	max/min
+#6K14EhNe4bN:55CDC481.685330465:parallelism:	6.79174e+07,	2.08315e+08,	3.06718
+#6K14EhNe4bN:55CDC48B.704832343:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#6K14EhNe4bN:55CDC48B.704832343:performance:	128,	10,	2.52362e+06,	252362,	4.98946e+06,	498946,	1.63783e+06,	6.62729e+06,	0.247134
+#6K14EhNe4bN:55CDC48B.705723429:random generator:	tot,	min,	max,	avg,	dev
+#6K14EhNe4bN:55CDC48B.705723429:random generator:	2523616,	7,	33,	18.931641,	4.3593715
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#6K14EhNe4bN:55CDC48B.705745179:logger end:
+#3vjcVrdy3U3:55CDC48B.706945369:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.54011e-07,	8.25877e-09,	9.75914e-08,	4.5595e-11,	1.4449e-08,	4.65094e-11
+#3vjcVrdy3U3:55CDC48D.536175371:parallelism:	min,	max,	max/min
+#3vjcVrdy3U3:55CDC48D.536175371:parallelism:	6.70944e+07,	2.00089e+08,	2.9822
+#3vjcVrdy3U3:55CDC497.568368377:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#3vjcVrdy3U3:55CDC497.568368377:performance:	256,	10,	2.03054e+06,	203054,	4.04608e+06,	404608,	1.35111e+06,	5.39719e+06,	0.250336
+#3vjcVrdy3U3:55CDC497.569265229:random generator:	tot,	min,	max,	avg,	dev
+#3vjcVrdy3U3:55CDC497.569265229:random generator:	2030539,	6,	28,	15.461914,	3.8389518
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#3vjcVrdy3U3:55CDC497.569286231:logger end:
+#Bt3IXWoKwkA:55CDC497.570635748:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.55878e-07,	8.75031e-09,	9.95171e-08,	4.77083e-09,	1.44463e-08,	1.90336e-11
+#Bt3IXWoKwkA:55CDC499.276853135:parallelism:	min,	max,	max/min
+#Bt3IXWoKwkA:55CDC499.276853135:parallelism:	6.78055e+07,	2.09014e+08,	3.08255
+#Bt3IXWoKwkA:55CDC4A3.312708075:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#Bt3IXWoKwkA:55CDC4A3.312708075:performance:	256,	10,	2.01878e+06,	201878,	3.99441e+06,	399441,	1.32347e+06,	5.31787e+06,	0.248871
+#Bt3IXWoKwkA:55CDC4A3.313573741:random generator:	tot,	min,	max,	avg,	dev
+#Bt3IXWoKwkA:55CDC4A3.313573741:random generator:	2018779,	4,	30,	15.171875,	3.9431133
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#Bt3IXWoKwkA:55CDC4A3.313594243:logger end:
+#5V95D0Z2aIj:55CDC4A3.314984172:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.49016e-07,	1.4696e-09,	9.43167e-08,	5.3898e-10,	1.38995e-08,	3.46641e-11
+#5V95D0Z2aIj:55CDC4A4.996879465:parallelism:	min,	max,	max/min
+#5V95D0Z2aIj:55CDC4A4.996879465:parallelism:	6.59646e+07,	2.03302e+08,	3.08199
+#5V95D0Z2aIj:55CDC4AF.034339334:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#5V95D0Z2aIj:55CDC4AF.034339334:performance:	256,	10,	2.06288e+06,	206288,	4.08509e+06,	408509,	1.34524e+06,	5.43033e+06,	0.247727
+#5V95D0Z2aIj:55CDC4AF.035231894:random generator:	tot,	min,	max,	avg,	dev
+#5V95D0Z2aIj:55CDC4AF.035231894:random generator:	2062879,	5,	28,	15.56543,	3.8662406
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#5V95D0Z2aIj:55CDC4AF.035253360:logger end:
+#GmNK0k4VfNE:55CDC4AF.036717265:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.77855e-07,	3.13668e-08,	1.20421e-07,	2.66604e-08,	1.57108e-08,	3.70813e-09
+#GmNK0k4VfNE:55CDC4B0.849047912:parallelism:	min,	max,	max/min
+#GmNK0k4VfNE:55CDC4B0.849047912:parallelism:	6.69063e+07,	2.0363e+08,	3.04351
+#GmNK0k4VfNE:55CDC4BA.878424154:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#GmNK0k4VfNE:55CDC4BA.878424154:performance:	256,	10,	1.9869e+06,	198690,	3.95893e+06,	395893,	1.31492e+06,	5.27385e+06,	0.249328
+#GmNK0k4VfNE:55CDC4BA.879315959:random generator:	tot,	min,	max,	avg,	dev
+#GmNK0k4VfNE:55CDC4BA.879315959:random generator:	1986903,	4,	28,	15.083984,	3.866893
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#GmNK0k4VfNE:55CDC4BA.879336823:logger end:
+#KzI6DJGy2Rg:55CDC4BA.880760859:logger start:
+#lock calibration:	futex_wait_fail_mean,	futex_wait_fail_dev,	futex_wake_mean,	futex_wake_dev,	spin_mean,	spin_dev
+#lock calibration:	1.55065e-07,	4.29649e-10,	1.12552e-07,	2.27935e-10,	1.44516e-08,	4.16947e-11
+#KzI6DJGy2Rg:55CDC4BC.684894452:parallelism:	min,	max,	max/min
+#KzI6DJGy2Rg:55CDC4BC.684894452:parallelism:	6.18178e+07,	2.02956e+08,	3.28313
+#KzI6DJGy2Rg:55CDC4C6.722671399:performance:	thrds,	secs,	allocs,	allocs/secs,	locks,	locks/secs,	injecs,	locks+injecs,	injecs/(locks+injecs)
+#KzI6DJGy2Rg:55CDC4C6.722671399:performance:	256,	10,	1.98521e+06,	198521,	3.92843e+06,	392843,	1.3222e+06,	5.25063e+06,	0.251817
+#KzI6DJGy2Rg:55CDC4C6.723530225:random generator:	tot,	min,	max,	avg,	dev
+#KzI6DJGy2Rg:55CDC4C6.723530225:random generator:	1985206,	5,	31,	15.080078,	3.9969971
+#lock statistic:	g_total,	g_slow,	g_spin,	g_futex,	g_wouldblock,	g_slow_wake
+#lock statistic:	0,	0,	0,	0,	0,	0
+#KzI6DJGy2Rg:55CDC4C6.723550738:logger end:
