@@ -19,7 +19,7 @@ my $sum2 = 0;
 
 sub printstat() {
     if ($n == 1) {
-        print "\t${act}\t${est}\t0\n";
+        print "\t${act}\t${est}\t0\t1\n";
     } else {
         my $mean = $est - ($sum / $n);
         my $var = ($sum2 - ($sum * $sum) / $n) / ($n - 1);

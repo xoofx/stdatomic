@@ -77,19 +77,19 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
      same loop are less perturbed. */
   for (;;) {
     /* The lock bit is set by someone else, spin until it is unset. */
-    unsigned spins = 0;
+    unsigned spins = sm;
     for (;;) {
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
       val -= contrib;
       if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume)) {
-        ACCOUNT(spin, spins);
+        ACCOUNT(spin, sm-spins);
         ACCOUNT(slow, 1);
         goto FINISH;
       }
       if (!(val & lockbit)) goto BIT_UNSET;
-      ++spins;
-      if (spins >= sm) break;
+      --spins;
+      if (!spins) break;
     }
     /* The same inner loop as before, but with futex wait instead of
        a_spin. */
@@ -101,7 +101,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
       unsigned des = val-1;
       val -= contrib;
       if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume)) {
-        ACCOUNT(spin, spins);
+        ACCOUNT(spin, sm-spins);
         ACCOUNT(slow, 1);
         goto FINISH;
       }
@@ -109,7 +109,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
     }
     /* The lock bit isn't set, try to acquire it. */
   BIT_UNSET:
-    ACCOUNT(spin, spins);
+    ACCOUNT(spin, sm-spins);
     ACCOUNT(slow, 1);
     for (unsigned des = val|lockbit;;des = val|lockbit) {
       if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume))
@@ -242,7 +242,7 @@ void atomic_calibrate(FILE* out) {
   wt1 = 0;
   st1 = 0;
 
-  double factor = 0.9;
+  double factor = 2.1;
   double estimate = futex_wait_fail_mean*factor/spin_mean;
   if (estimate < 5.0) spins_max = 5u;
   else {

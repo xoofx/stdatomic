@@ -87,12 +87,12 @@ void __impl_mut_unlock(__impl_lock* loc)
 /* This implementation ignores the problem that a statically
    initialized atomic_flag might, theoretically, not be properly
    initialized. */
-typedef atomic_flag __impl_lock;
+typedef _Atomic(_Bool) __impl_lock;
 __attribute__((__always_inline__))
 static inline
 void __impl_mut_lock(__impl_lock* loc)
 {
-  do { /* */ } while (atomic_flag_test_and_set_explicit(loc, memory_order_acq_rel));
+  do { /* */ } while (__atomic_test_and_set(loc, MO) == __GCC_ATOMIC_TEST_AND_SET_TRUEVAL);
 #ifdef ATOMIC_INJECT
   if (atomic_faulty) atomic_inject();
 #endif
@@ -102,7 +102,7 @@ __attribute__((__always_inline__))
 static inline
 void __impl_mut_unlock(__impl_lock* loc)
 {
-  atomic_flag_clear(loc);
+  __atomic_clear(loc);
 }
 /************************************************************************************/
 #elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_CMPXCHG
