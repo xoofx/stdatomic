@@ -1021,6 +1021,14 @@ file:benchs/benchs-comparison/test-benchs-relative.eps
     very important, here. The scenario should be rare and what we have
     to ensure here is safety and security, not performance.
 
+    To emphasize on the discussion about spinning I also added two
+    not-so-good benchmarks to the picture. Both show what happens if
+    we remove the spinning phase of the futex and musl locks. Not only
+    is the performance worse for a small number of threads, also the
+    performance for the many-threads congestion is really bad. This is
+    because the arrival of many new threads disturbs the attempts of
+    everybody going into the =futex_wait=.
+
 * Footnotes
 
 [fn:1] The version shown here is actually an improved version of the
