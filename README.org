@@ -825,3 +825,204 @@ life. As a good heuristic value is
     The variable =atomic_faulty= can be used to switch the code
     injection on and off, such that you may experiment with different
     probabilities of failure.
+
+* Benchmarks
+
+** The framework
+
+   I have run a long series of benchmarks to validate the
+   approach. The code for the benchmark is at the moment integrated in
+   /p11/ with comes with /Modular C/, see [[cmod.gforge.inria.fr][Cmod]]. To compile it you'd
+   need
+
+   - a C11 compliant library, that has C11 threads. I only know of [[www.muls-libc.org][musl]].
+   - a C11 compiler that also has gcc extension. I tested with gcc and
+     clang.
+   - Cmod
+   - [[p99.gforge.inria.fr][P99]], my old macro library. This one could probably avoided, it is
+     just needed for some parts of p11.
+
+   The test in p11 is called p11#test#lifo. It is based on a stack
+   implementation (Last In First Out) that uses an atomic pair of
+   pointers for the head to avoid the ABA problem.
+
+** The test program
+
+   The test creates or deletes a random number of list elements in the
+   lifo inside a loop. It understands the following command line arguments:
+
+   -t the number of threads to use for the run
+
+   -s the number of seconds to run all the threads in parallel
+
+   -f to force descheduling of threads with a given probability. If
+   you provide a value $N$, here, the probability will be $1/N$.
+
+   -l a file to use for logging
+
+   At compile time, you may chose between different lock primitives to
+   protect the atomic pair:
+
+   - the futex based algorithm described here
+
+   - a spin lock implemented with =atomic_flag=, itself based on a
+     =test_and_set= instruction/builtin.
+
+   - =pthread_mutex_t=
+
+   - =mtx_t=
+
+   - musl's lowlevel =lock/unlock= functions
+
+   - a spin lock implemented directly with
+     =atomic_compare_exchange_strong_explicit=
+
+   This is done by defining a macro =ATOMIC_GENERIC_LOCK= to some
+   value when compiling =atomic_generic.c=.
+
+   The idea of this benchmark is to have a application that runs on
+   full load, stress tests the platform with a lot of allocations and
+   deallocations and in the middle of that does a lot of locking and
+   unlocking.
+
+** The test platform
+
+   For the moment I only have tested on a =x86_64= machine with 2x2
+   hypethreaded cores. It has 16 byte atomic instructions (like most
+   such machines have now) and uses them if you compile with
+   =-march=native=. Thereby we obtain the first test to obtain the
+   performance when the atomic is done on instruction level.
+
+   All other test are compiled without that option and thus the
+   compiler replaces the atomic operation by a call to the
+   corresponding function of the library.
+
+** Comparative performance of the different lock primitives
+
+   I compared the different locks for 1 up to 256 threads. All runs
+   are for 10 seconds, each point represents the mean value of 10
+   experiments. The performance measure is the number of locks per
+   second that the application achieves.
+
+#+BEGIN_CENTER
+#+LABEL:fig:all
+#+ATTR_LaTeX: :width 0.95\linewidth :options angle=-90
+#+ATTR_HTML:  :width "95%"
+[[file:benchs/benchs-comparison/test-benchs-all.eps]]
+#+END_CENTER
+
+   First, we see that using the instruction if it is available is a
+   real benefit. In case of only a few threads it is about 2 times
+   faster, in case of many threads and real congestion it is 4 times
+   faster. This is unbeatable.
+
+   To compare the lock based versions more thoroughly, let us plot
+   their curves relatively, taking the =pthread_mutex_t= based version
+   as a reference.  The =mtx_t= implementation has the same behavior
+   as for =pthread_mutex_t=. This is not very surprising, since in
+   musl these two mutex implementations share most of their code,
+   still.
+
+
+#+BEGIN_CENTER
+#+LABEL:fig:all
+#+ATTR_LaTeX: :width 0.95\linewidth :options angle=-90
+#+ATTR_HTML:  :width "95%"
+file:benchs/benchs-comparison/test-benchs-relative.eps
+#+END_CENTER
+
+   - The spinlock based on =atomic_compare_exchange_strong_explicit=
+     has the best performance of all implementations for a few
+     processors. There it is about $30$ to $40 \%$ better than the
+     =pthread_mutex_t= implementation. Then, starting at 8 threads the
+     behavior becomes erratic and performance drops severely if used
+     with a lot of threads.
+
+   - Musl's internal lock[fn:1] is a bit worse for one thread, and
+     then its relative performance increase to be about $20\%$ better
+     than =pthread_mutex_t=. If we have a lot of threads it is about
+     $10\%$ better.
+
+   - The futex based new implementation shows a mix of the other ones
+     and always performs better than the =pthread_mutex_t=
+     implementation. For a few threads it is $10$ to $20 \%$
+     better. This advantage then reduces to about $5 \%$ for a lot of
+     threads.
+
+*** Lower range of thread numbers
+
+    For this application the performance in the lower range of is
+    largely dominated by the fast path, that is by a very small number
+    of assembler instructions that constitute the good case, when a
+    thread doesn't encounter congestion. Typical realizations of the
+    four different categories result in the following memory
+    instructions.
+
+| /        | <>         |                                  |
+|          | lock       | unlock                           |
+|----------+------------+----------------------------------|
+| spinlock | =cmpxchgl= | =movl=                           |
+| futex    | =cmpxchgl= | =lock addl=                      |
+| mutex    | =cmpxchgl= | =movl=, =xchg=                   |
+| musl     | =xchg=     | =movl=, =mov=, =lock orl=, =mov= |
+|----------+------------+----------------------------------|
+
+     The spinlock is the most efficient because it talks less to the
+     memory. Only one =cmpxchgl= to test and set the flag and one
+     =movl= to clear it at the end.
+
+     Musl's internal lock implementation actually looses for the
+     unlock. It has four different memory instructions. To of them
+     originates from the internal macro =a_store=, which needs a
+     synchronization of the =mov= instruction to avoid reordering on
+     the processor. It results in two instructions:
+
+#+begin_src [x86masm]Assembler
+	mov eax, (%rdi)
+        lock orl (%rsp)
+#+end_src
+
+     We observed an improvement whe =a_store= is implemented directly
+     with on atomic instruction, e.g.
+
+#+begin_src [x86masm]Assembler
+	xchg %eax, (%rdi)
+#+end_src
+
+     Such a change could perhaps be integrated into musl at a later
+     stage.
+
+     The mutex implementations have two memory instructions for the
+     unlock functions. One =movl= from memory to CPU for a waiters
+     counter, and one =xchg= to manipulate the lock itself.
+
+     Our implementation attempts to combine the two instructions for
+     unlock into one: on the fast path we only need one atomic
+     addition. By that we are better than the mutex, we save one
+     =movl= instruction for the waiters counter. We are also a bit
+     worse than the spinlock, because that only has a write to memory
+     to perform, and doesn't need information from memory to be
+     returned to the CPU.
+
+*** Higher range of thread numbers
+
+    We see from the spinlock implementation, that spinning becomes
+    expensive as soon as we exceed the number of cores (the machine
+    has 4 hyperthread cores). As soon as 4 threads are stuck in the
+    spin loop, the application can't go forward. So these spin loops
+    are just wasted.
+
+    The other lock implementations are quite similar and are able to
+    cope with the situation. In particular, performance doesn't
+    degrade below a reasonable limit. This is needed to ensure
+    responsiveness of applications that come under high stress,
+    usually a configuration error or even an attack. I don't think
+    that the difference in performance between the implementations is
+    very important, here. The scenario should be rare and what we have
+    to ensure here is safety and security, not performance.
+
+* Footnotes
+
+[fn:1] The version shown here is actually an improved version of the
+one currently distributed with musl.
+ 
