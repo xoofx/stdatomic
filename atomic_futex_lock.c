@@ -57,7 +57,7 @@ void atomic_summarize(FILE* out) {
    10 times faster than a failed call to futex_wait. */
 static unsigned spins_max = 10;
 
-void __impl_mut_lock_slow(_Atomic(unsigned)* loc)
+void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
 {
 #ifdef BENCH
   size_t slow = 0;

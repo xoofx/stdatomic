@@ -30,22 +30,51 @@ extern _Thread_local _Bool atomic_faulty;
 # define ATOMIC_GENERIC_LOCK ATOMIC_GENERIC_LOCK_FUTEX
 #endif
 
+/* translate a memory constraint for the lock side */
+__attribute__((__always_inline__))
+static inline
+int mol(int mo)
+{
+  switch (mo) {
+  default: return mo;
+  case memory_order_release: return memory_order_relaxed;
+  case memory_order_acq_rel: return memory_order_acquire;
+  };
+}
+
+/* translate a memory constraint for the unlock side */
+__attribute__((__always_inline__))
+static inline
+int mou(int mo)
+{
+  switch (mo) {
+  default: return mo;
+  case memory_order_acquire: return memory_order_relaxed;
+  case memory_order_consume: return memory_order_relaxed;
+  case memory_order_acq_rel: return memory_order_release;
+  };
+}
+
+
+
 #if ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_FUTEX
 /* This is compatible with musl's internal locks. */
 /* The lock itself must be lock-free, so in general the can only be an
    atomic_flag if we know nothing else about the platform. */
 typedef _Atomic(unsigned) __impl_lock;
-void __impl_mut_lock_slow(__impl_lock* loc);
+void __impl_mut_lock_slow(__impl_lock* loc, unsigned val, int mo);
 void __impl_mut_unlock_slow(__impl_lock* loc);
 
 static unsigned const contrib = ((UINT_MAX/2u)+2u);
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc)
+void __impl_mut_lock(__impl_lock* loc, int mo)
 {
-  if (!atomic_compare_exchange_strong_explicit(loc, (unsigned[1]){ 0 }, contrib, memory_order_acq_rel, memory_order_consume))
-    __impl_mut_lock_slow(loc);
+  int mof = mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume;
+  unsigned val = 0;
+  if (__builtin_expect(!atomic_compare_exchange_strong_explicit(loc, &val, contrib, mo, mof), 0))
+    __impl_mut_lock_slow(loc, val, mo);
 #ifdef ATOMIC_INJECT
   if (atomic_faulty) atomic_inject();
 #endif
@@ -53,9 +82,9 @@ void __impl_mut_lock(__impl_lock* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
-  if (contrib != atomic_fetch_sub_explicit(loc, contrib, memory_order_relaxed))
+  if (contrib != atomic_fetch_sub_explicit(loc, contrib, mo))
     __impl_mut_unlock_slow(loc);
 }
 /************************************************************************************/
@@ -67,9 +96,9 @@ void __impl_mut_unlock(__impl_lock* loc)
 typedef atomic_flag __impl_lock;
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc)
+void __impl_mut_lock(__impl_lock* loc, int mo)
 {
-  do { a_spin(); } while (atomic_flag_test_and_set_explicit(loc, memory_order_acq_rel));
+  do { a_spin(); } while (atomic_flag_test_and_set_explicit(loc, mo));
 #ifdef ATOMIC_INJECT
   if (atomic_faulty) atomic_inject();
 #endif
@@ -77,7 +106,7 @@ void __impl_mut_lock(__impl_lock* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
   atomic_flag_clear(loc);
 }
@@ -90,9 +119,9 @@ void __impl_mut_unlock(__impl_lock* loc)
 typedef _Atomic(_Bool) __impl_lock;
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc)
+void __impl_mut_lock(__impl_lock* loc, int mo)
 {
-  do { /* */ } while (__atomic_test_and_set(loc, MO) == __GCC_ATOMIC_TEST_AND_SET_TRUEVAL);
+  do { /* */ } while (__atomic_test_and_set(loc, mo) == __GCC_ATOMIC_TEST_AND_SET_TRUEVAL);
 #ifdef ATOMIC_INJECT
   if (atomic_faulty) atomic_inject();
 #endif
@@ -100,7 +129,7 @@ void __impl_mut_lock(__impl_lock* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
   __atomic_clear(loc);
 }
@@ -110,14 +139,15 @@ void __impl_mut_unlock(__impl_lock* loc)
 typedef _Atomic(unsigned) __impl_lock;
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc) {
+void __impl_mut_lock(__impl_lock* loc, int mo) {
+  int mof = mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume;
   do {
     /* */
   } while (!atomic_compare_exchange_strong_explicit(loc,
                                                     (unsigned[1]){ 0 },
                                                     1u,
-                                                    memory_order_acq_rel,
-                                                    memory_order_consume));
+                                                    mo,
+                                                    mof));
 #ifdef ATOMIC_INJECT
   if (atomic_faulty) atomic_inject();
 #endif
@@ -125,9 +155,11 @@ void __impl_mut_lock(__impl_lock* loc) {
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
-  atomic_store_explicit(loc, 0u, memory_order_release);
+  atomic_exchange_explicit(loc,
+                           0u,
+                           mo);
 }
 /************************************************************************************/
 #elif ATOMIC_GENERIC_LOCK == ATOMIC_GENERIC_LOCK_PTHREAD
@@ -135,7 +167,7 @@ void __impl_mut_unlock(__impl_lock* loc)
 typedef pthread_mutex_t __impl_lock;
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc)
+void __impl_mut_lock(__impl_lock* loc, int mo)
 {
   pthread_mutex_lock(loc);
 #ifdef ATOMIC_INJECT
@@ -145,7 +177,7 @@ void __impl_mut_lock(__impl_lock* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
   pthread_mutex_unlock(loc);
 }
@@ -155,7 +187,7 @@ void __impl_mut_unlock(__impl_lock* loc)
 typedef mtx_t __impl_lock;
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc)
+void __impl_mut_lock(__impl_lock* loc, int mo)
 {
   mtx_lock(loc);
 #ifdef ATOMIC_INJECT
@@ -165,7 +197,7 @@ void __impl_mut_lock(__impl_lock* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
   mtx_unlock(loc);
 }
@@ -177,7 +209,7 @@ struct __impl_lock { int volatile p[2]; };
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_lock(__impl_lock* loc)
+void __impl_mut_lock(__impl_lock* loc, int mo)
 {
   LOCK(loc->p);
 #ifdef ATOMIC_INJECT
@@ -187,7 +219,7 @@ void __impl_mut_lock(__impl_lock* loc)
 
 __attribute__((__always_inline__))
 static inline
-void __impl_mut_unlock(__impl_lock* loc)
+void __impl_mut_unlock(__impl_lock* loc, int mo)
 {
   UNLOCK(loc->p);
 }
@@ -291,34 +323,27 @@ uintptr_t __impl_8(void volatile const* x) {
 #endif
 #define hash __ATOMIC_HASH
 
-
 void __impl_load (size_t size, void volatile* ptr, void volatile* ret, int mo) {
 	unsigned pos = hash(ptr);
-	__impl_mut_lock(&table[pos]);
-	if (mo == memory_order_seq_cst)
-		atomic_thread_fence(memory_order_seq_cst);
+	__impl_mut_lock(&table[pos], mol(mo));
 	memcpy((void*)ret, (void*)ptr, size);
-	__impl_mut_unlock(&table[pos]);
+	__impl_mut_unlock(&table[pos], mou(mo));
 }
 
 void __impl_store (size_t size, void volatile* ptr, void const volatile* val, int mo) {
 	unsigned pos = hash(ptr);
-	__impl_mut_lock(&table[pos]);
+	__impl_mut_lock(&table[pos], mol(mo));
 	memcpy((void*)ptr, (void*)val, size);
-	if (mo == memory_order_seq_cst)
-		atomic_thread_fence(memory_order_seq_cst);
-	__impl_mut_unlock(&table[pos]);
+	__impl_mut_unlock(&table[pos], mou(mo));
 }
 
 static
 void atomic_exchange_restrict (size_t size, void volatile*__restrict__ ptr, void const volatile*__restrict__ val, void volatile*__restrict__ ret, int mo) {
 	unsigned pos = hash(ptr);
-	__impl_mut_lock(&table[pos]);
+	__impl_mut_lock(&table[pos], mol(mo));
 	memcpy((void*)ret, (void*)ptr, size);
-	if (mo == memory_order_seq_cst)
-		atomic_thread_fence(memory_order_seq_cst);
 	memcpy((void*)ptr, (void*)val, size);
-	__impl_mut_unlock(&table[pos]);
+	__impl_mut_unlock(&table[pos], mou(mo));
 }
 
 void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const volatile* val, void volatile* ret, int mo) {
@@ -333,18 +358,17 @@ void __impl_exchange (size_t size, void volatile*__restrict__ ptr, void const vo
 
 _Bool __impl_compare_exchange (size_t size, void volatile* ptr, void volatile* expected, void const volatile* desired, int mos, int mof) {
 	unsigned pos = hash(ptr);
-	__impl_mut_lock(&table[pos]);
+	__impl_mut_lock(&table[pos], mol(mos));
 	_Bool ret = !memcmp((void*)ptr, (void*)expected, size);
-	if (ret) {
+	if (__builtin_expect(ret, 1)) {
 		memcpy((void*)ptr, (void*)desired, size);
-		if (mos == memory_order_seq_cst)
-			atomic_thread_fence(memory_order_seq_cst);
+		__impl_mut_unlock(&table[pos], mou(mos));
+                __asm__ volatile("# comment":::"memory");
 	} else {
-		if (mof == memory_order_seq_cst)
-			atomic_thread_fence(memory_order_seq_cst);
 		memcpy((void*)expected, (void*)ptr, size);
+		__impl_mut_unlock(&table[pos], mou(mof));
+                __asm__ volatile("#comment":::"memory");
 	}
-	__impl_mut_unlock(&table[pos]);
 	/* fprintf(stderr, "cas for %p (%zu) at pos %u, %s, exp %p, des %p\n", */
 	/*         ptr, size, pos, ret ? "suceeded" : "failed", */
 	/*         expected, desired); */
