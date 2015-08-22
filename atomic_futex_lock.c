@@ -66,7 +66,29 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
   size_t spin = 0;
 #endif
   unsigned const sm = spins_max;
-  unsigned val = 1+atomic_fetch_add_explicit(loc, 1, memory_order_relaxed);
+  unsigned spins = sm;
+  /* A first lock acquisition loop. This is to capture the case medium
+     congestion. We still hope to be able to set the HO and LO bit of
+     *loc all at once. */
+  for (;;) {
+    /* be optimistic and hope that the lock has been released */
+    unsigned des;
+    if (val & lockbit) {
+      des = val;
+      val -= contrib;
+    } else {
+      des = val + contrib;
+    }
+    if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume)) {
+      ACCOUNT(spin, sm-spins);
+      ACCOUNT(slow, 1);
+      goto FINISH;
+    }
+    --spins;
+    if (!spins) break;
+  }
+  ACCOUNT(spin, sm);
+  val = 1+atomic_fetch_add_explicit(loc, 1, memory_order_relaxed);
   if (!(val & lockbit)) goto BIT_UNSET;
   /* The lock acquisition loop. This has been designed such that the
      only possible change that is done inside that loop is setting
@@ -77,7 +99,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
      same loop are less perturbed. */
   for (;;) {
     /* The lock bit is set by someone else, spin until it is unset. */
-    unsigned spins = sm;
+    spins = sm;
     for (;;) {
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
