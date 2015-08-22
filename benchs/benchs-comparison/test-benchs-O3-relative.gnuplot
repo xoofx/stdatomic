@@ -17,7 +17,7 @@ set terminal postscript landscape noenhanced defaultplex \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-set output 'test-benchs-all.eps'
+set output 'test-benchs-O3-relative.eps'
 unset clip points
 set clip one
 unset clip two
@@ -64,7 +64,7 @@ unset style arrow
 set style histogram clustered gap 2 title  offset character 0, 0, 0
 unset logscale
 set logscale x 10
-set logscale y 10
+#set logscale y 10
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -129,11 +129,11 @@ set x2label ""
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
-set ylabel "locks/second" 
+set ylabel "relative performance" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ 6E5 : 1.2E7 ] noreverse nowriteback
+set yrange [ 0.6 : * ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -159,10 +159,10 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-base = "futex"
-files = "16b cmpxchg-mo futex-mo musl-mo pthread-mo musl-no-spin futex-no-spin"
+base = "pthread-mo-O3"
+files = "cmpxchg-mo-O3 futex-mo-O3 futex-mo-O3-accounted musl-mo-O3 pthread-mo-O3 pthread-mo"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles
-plot for [file in files] sprintf("test-%s.dat", file) using 1:($2) with lines title sprintf("%s", file)
+plot for [file in files] sprintf("< paste test-%s.dat test-%s.dat", file, base) using 1:($2/$6) with lines title sprintf("%s", file)
 #    EOF

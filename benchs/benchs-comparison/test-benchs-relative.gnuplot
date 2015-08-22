@@ -159,8 +159,8 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-base = "pthread"
-files = "cmpxchg futex musl pthread musl-no-spin futex-no-spin"
+base = "pthread-mo-O3"
+files = "cmpxchg-mo-O3 cmpxchg-mo futex-mo-O3 futex-mo musl-mo-O3 musl-mo pthread-mo-O3 pthread-mo musl-no-spin futex-no-spin"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles

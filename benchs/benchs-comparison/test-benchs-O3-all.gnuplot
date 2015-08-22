@@ -17,7 +17,7 @@ set terminal postscript landscape noenhanced defaultplex \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-set output 'test-benchs-all.eps'
+set output 'test-benchs-O3-all.eps'
 unset clip points
 set clip one
 unset clip two
@@ -160,7 +160,7 @@ set fontpath
 set psdir
 set fit noerrorvariables
 base = "futex"
-files = "16b cmpxchg-mo futex-mo musl-mo pthread-mo musl-no-spin futex-no-spin"
+files = "16b cmpxchg-mo-O3 futex-mo-O3 futex-mo-O3-accounted musl-mo-O3 pthread-mo-O3 pthread-mo"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles
