@@ -160,9 +160,9 @@ set fontpath
 set psdir
 set fit noerrorvariables
 base = "test-16b-shortcut"
-files = "test-16b-no-shortcut test-16b-shortcut"
+files = "test-16b-no-shortcut test-16b-shortcut test-16b-spin0 test-mono-16b-spin0 test-mono-16b-no-shortcut"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles
-plot for [file in files] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2) with lines title sprintf("%s", file[6:])
+plot for [file in files] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2) with lines title sprintf("%s", file[10:])
 #    EOF
