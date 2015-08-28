@@ -67,6 +67,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
 #endif
   unsigned const sm = spins_max;
   unsigned spins = sm;
+  int mof = mo == memory_order_relaxed ? memory_order_relaxed : memory_order_consume;
   /* A first lock acquisition loop. This is to capture the case medium
      congestion. We still hope to be able to set the HO and LO bit of
      *loc all at once. */
@@ -79,7 +80,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
     } else {
       des = val + contrib;
     }
-    if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume)) {
+    if (atomic_compare_exchange_strong_explicit(loc, &val, des, mo, mof)) {
       ACCOUNT(spin, sm-spins);
       ACCOUNT(slow, 1);
       goto FINISH;
@@ -104,7 +105,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
       val -= contrib;
-      if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume)) {
+      if (atomic_compare_exchange_strong_explicit(loc, &val, des, mo, mof)) {
         ACCOUNT(spin, sm-spins);
         ACCOUNT(slow, 1);
         goto FINISH;
@@ -122,7 +123,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
       /* be optimistic and hope that the lock has been released */
       unsigned des = val-1;
       val -= contrib;
-      if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume)) {
+      if (atomic_compare_exchange_strong_explicit(loc, &val, des, mo, mof)) {
         ACCOUNT(spin, sm-spins);
         ACCOUNT(slow, 1);
         goto FINISH;
@@ -134,7 +135,7 @@ void __impl_mut_lock_slow(_Atomic(unsigned)* loc, unsigned val, int mo)
     ACCOUNT(spin, sm-spins);
     ACCOUNT(slow, 1);
     for (unsigned des = val|lockbit;;des = val|lockbit) {
-      if (atomic_compare_exchange_strong_explicit(loc, &val, des, memory_order_acq_rel, memory_order_consume))
+      if (atomic_compare_exchange_strong_explicit(loc, &val, des, mo, mof))
         goto FINISH;
       if (val & lockbit) break;
     }
