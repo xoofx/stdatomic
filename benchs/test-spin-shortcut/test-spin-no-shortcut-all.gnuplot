@@ -17,7 +17,7 @@ set terminal postscript landscape noenhanced defaultplex \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-set output 'test-spin-shortcut-all.eps'
+set output 'test-spin-no-shortcut-all.eps'
 unset clip points
 set clip one
 unset clip two
@@ -161,7 +161,7 @@ set psdir
 set fit noerrorvariables
 base = "test-16b-shortcut"
 #files = "test-16b-shortcut test-16b-no-shortcut test-16b-spin0 test-mono-16b-spin0 test-mono-16b-no-shortcut test-ht2-16b-spin0 test-ht2-16b-no-shortcut test-c2-16b-spin0 test-c2-16b-no-shortcut"
-files = "test-mono-16b-no-shortcut test-mono-16b-spin0 test-ht2-16b-no-shortcut test-ht2-16b-spin0 test-16b-no-shortcut test-16b-shortcut test-16b-spin0"
+files = "test-mono-16b-no-shortcut test-ht2-16b-no-shortcut test-c2-16b-no-shortcut test-16b-no-shortcut"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles

@@ -12,5 +12,11 @@ DATA = ${SOURCES:.txt=.dat}
 test-spin-shortcut-all.eps : test-spin-shortcut-all.gnuplot test-*.dat
 	gnuplot test-spin-shortcut-all.gnuplot
 
+test-spin-no-shortcut-all.eps : test-spin-no-shortcut-all.gnuplot test-*.dat
+	gnuplot test-spin-no-shortcut-all.gnuplot
+
+test-spin0-all.eps : test-spin0-all.gnuplot test-*.dat
+	gnuplot test-spin0-all.gnuplot
+
 test-spin-shortcut-relative.eps : test-spin-shortcut-relative.gnuplot test-*.dat
 	gnuplot test-spin-shortcut-relative.gnuplot
