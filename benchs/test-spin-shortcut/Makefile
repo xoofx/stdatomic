@@ -6,6 +6,9 @@ DATA = ${SOURCES:.txt=.dat}
 %.csv : %.txt
 	grep performance $< | grep -v thrds | sed 's/^.*://1' | sed 's/,//g' |sort -n > $@
 
+%-per-thread.csv : %.txt
+	grep locks $< | grep -v thrds | sed 's/^.*://1' | sed 's/,//g' |sort -n > $@
+
 %.dat : %.csv
 	../summarize.pl < $< > $@
 

@@ -17,7 +17,7 @@ set terminal postscript landscape noenhanced defaultplex \
    nobackground \
    palfuncparam 2000,0.003 \
    "Helvetica" 14  fontscale 1.0 
-set output 'test-spin-shortcut-all.eps'
+set output 'test-relative-v2.eps'
 unset clip points
 set clip one
 unset clip two
@@ -52,7 +52,7 @@ set angles radians
 set grid x
 set raxis
 set key title ""
-set key inside top right vertical Right noreverse enhanced autotitles nobox
+set key inside top left vertical Right noreverse enhanced autotitles nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
@@ -114,7 +114,7 @@ set cbtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autoj
 set cbtics autofreq  norangelimit
 set rtics axis in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set rtics autofreq  norangelimit
-set title "musl, stress test on malloc/free, different spin strategies for __wait"
+set title "stress test on lock primitives, different implementations for generic atomics" 
 set title  offset character 0, 0, 0 font "" norotate
 set timestamp bottom 
 set timestamp "" 
@@ -129,11 +129,11 @@ set x2label ""
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
-set ylabel "calls/second" 
+set ylabel "relative performance" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ 0.6 : * ] noreverse nowriteback
+set yrange [ * : * ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -159,15 +159,10 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-base = "test-16b-shortcut"
-#files = "test-16b-shortcut test-16b-no-shortcut test-16b-spin0 test-mono-16b-spin0 test-mono-16b-no-shortcut test-ht2-16b-spin0 test-ht2-16b-no-shortcut test-c2-16b-spin0 test-c2-16b-no-shortcut"
-filesM = "test-mono-16b-no-shortcut test-mono-16b-spin0"
-filesH = "test-ht2-16b-no-shortcut test-ht2-16b-spin0"
-filesC = "test-16b-no-shortcut test-16b-no-shortcut-v2 test-16b-shortcut test-16b-spin0"
+base = "futex"
+files = "16b cmpxchg musl futex pthread"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles
-plot for [file in filesM] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2) with lines title sprintf("%6s core %16s", "mono", file[15:]), \
-     for [file in filesH] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2) with lines title sprintf("%6s ht core %16s", "2 ht", file[14:]), \
-     for [file in filesC] sprintf("< paste %s.dat %s.dat", file, base) using 1:($2) with lines title sprintf("%6s ht core%16s", "2x2 ht", file[10:]),
+plot for [file in files] sprintf("< paste test-%s-v2.dat test-%s-v2.dat", file, base) using 1:($2/$6) with lines title sprintf("%s", file)
 #    EOF

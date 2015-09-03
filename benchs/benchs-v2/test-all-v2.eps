@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0
-%%Title: test-spin-no-shortcut-all.eps
+%%Title: test-all-v2.eps
 %%Creator: gnuplot 4.6 patchlevel 6
-%%CreationDate: Thu Sep  3 12:51:04 2015
+%%CreationDate: Thu Sep  3 12:51:13 2015
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 554 770
 %%Orientation: Landscape
@@ -429,13 +429,13 @@ systemdict /pdfmark known not {
   userdict /pdfmark systemdict /cleartomark get put
 } if
 SDict begin [
-  /Title (test-spin-no-shortcut-all.eps)
+  /Title (test-all-v2.eps)
   /Subject (gnuplot plot)
   /Creator (gnuplot 4.6 patchlevel 6)
   /Author (gustedt)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Thu Sep  3 12:51:04 2015)
+  /CreationDate (Thu Sep  3 12:51:13 2015)
   /DOCINFO pdfmark
 end
 } ifelse
@@ -768,9 +768,7 @@ stroke
 LTa
 LCa setrgbcolor
 4580 448 M
-0 3548 V
-0 560 R
-0 63 V
+0 4171 V
 stroke
 LTb
 LCb setrgbcolor
@@ -819,9 +817,7 @@ stroke
 LTa
 LCa setrgbcolor
 5291 448 M
-0 3548 V
-0 560 R
-0 63 V
+0 4171 V
 stroke
 LTb
 LCb setrgbcolor
@@ -850,8 +846,8 @@ stroke
 LTa
 LCa setrgbcolor
 6003 448 M
-0 3548 V
-0 560 R
+0 3408 V
+0 700 R
 0 63 V
 stroke
 LTb
@@ -873,8 +869,8 @@ stroke
 LTa
 LCa setrgbcolor
 6714 448 M
-0 3548 V
-0 560 R
+0 3408 V
+0 700 R
 0 63 V
 stroke
 LTb
@@ -900,7 +896,7 @@ Z stroke
 LCb setrgbcolor
 112 2533 M
 currentpoint gsave translate -270 rotate 0 0 M
-(calls/second) Cshow
+(locks/second) Cshow
 grestore
 LTb
 LCb setrgbcolor
@@ -914,7 +910,7 @@ LCb setrgbcolor
 (threads) Cshow
 LTb
 3949 4829 M
-(musl, stress test on malloc/free, different spin strategies for __wait) Cshow
+(stress test on lock primitives, different implementations for generic atomics) Cshow
 LCb setrgbcolor
 3949 4548 M
 () Cshow
@@ -931,22 +927,23 @@ LT0
 LC0 setrgbcolor
 LCb setrgbcolor
 6226 4486 M
-(mono-16b-no-shortcut) Rshow
+(16b) Rshow
 LT0
 6310 4486 M
 399 0 V
-1022 4053 M
-712 -54 V
-416 -156 V
-295 -33 V
-416 -138 V
-296 -19 V
-416 -60 V
-295 -14 V
-712 -108 V
-711 -195 V
-712 -178 V
-711 -180 V
+1022 4008 M
+1734 2614 L
+416 -300 V
+295 -157 V
+416 0 V
+296 -21 V
+416 11 V
+295 14 V
+416 32 V
+296 -51 V
+711 -7 V
+712 -18 V
+711 -14 V
 % End plot #1
 % Begin plot #2
 stroke
@@ -954,22 +951,23 @@ LT1
 LC1 setrgbcolor
 LCb setrgbcolor
 6226 4346 M
-(ht2-16b-no-shortcut) Rshow
+(cmpxchg) Rshow
 LT1
 6310 4346 M
 399 0 V
-1022 3979 M
-712 -400 V
-416 -21 V
-295 -46 V
-416 -28 V
-296 -54 V
-416 -59 V
-295 -23 V
-712 -97 V
-711 -150 V
-712 -122 V
-711 -72 V
+1022 2440 M
+712 -786 V
+416 -254 V
+295 -267 V
+2861 975 L
+296 -95 V
+3573 769 L
+295 -74 V
+416 -69 V
+296 -43 V
+711 -62 V
+712 -28 V
+711 -15 V
 % End plot #2
 % Begin plot #3
 stroke
@@ -977,22 +975,23 @@ LT2
 LC2 setrgbcolor
 LCb setrgbcolor
 6226 4206 M
-(c2-16b-no-shortcut) Rshow
+(musl) Rshow
 LT2
 6310 4206 M
 399 0 V
-1022 4073 M
-1734 2271 L
-416 5 V
-295 -44 V
-416 -7 V
-296 -5 V
-416 -27 V
-295 9 V
-712 -12 V
-711 -29 V
-712 -11 V
-711 -3 V
+1022 2116 M
+712 -650 V
+416 -244 V
+295 -138 V
+416 -18 V
+296 -15 V
+416 -5 V
+295 -2 V
+416 -14 V
+296 3 V
+711 -19 V
+712 -17 V
+711 -46 V
 % End plot #3
 % Begin plot #4
 stroke
@@ -1000,23 +999,48 @@ LT3
 LC3 setrgbcolor
 LCb setrgbcolor
 6226 4066 M
-(16b-no-shortcut) Rshow
+(futex) Rshow
 LT3
 6310 4066 M
 399 0 V
-1022 4039 M
-1734 2340 L
-416 38 V
-295 -188 V
+1022 2452 M
+712 -759 V
+416 -298 V
+295 -290 V
+416 -37 V
+296 4 V
+416 -18 V
+295 -6 V
 416 -1 V
-296 -7 V
-416 3 V
-295 -5 V
-712 -28 V
-711 6 V
-712 10 V
-711 -14 V
+296 -3 V
+711 -15 V
+712 -25 V
+711 -31 V
 % End plot #4
+% Begin plot #5
+stroke
+LT4
+LC4 setrgbcolor
+LCb setrgbcolor
+6226 3926 M
+(pthread) Rshow
+LT4
+6310 3926 M
+399 0 V
+1022 2277 M
+712 -812 V
+416 -271 V
+2445 979 L
+416 3 V
+296 0 V
+416 0 V
+295 0 V
+416 -6 V
+296 -1 V
+711 -7 V
+712 -9 V
+711 -19 V
+% End plot #5
 stroke
 1.000 UL
 LTb
