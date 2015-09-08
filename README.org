@@ -1,6 +1,6 @@
 #+TITLE:  An implementation of the C11 =<stdatomic.h>= interface
 #+AUTHOR: Jens Gustedt
-#+DATE: July, 2015
+#+HTML: <h1 align="center" >Jens Gustedt</h1>
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \lstset{
@@ -1031,8 +1031,6 @@ file:benchs/benchs-comparison/test-benchs-relative.png
     performance for the many-threads congestion is really bad. This is
     because the arrival of many new threads disturbs the attempts of
     everybody going into the =futex_wait=.
-
-------------
 
 * Footnotes
 

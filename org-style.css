@@ -67,7 +67,7 @@ p, ul, blockquote, pre, td, th, label {
 	margin-bottom: 1.5em;
 }
 p.small, #postamble {
-	margin: 0;
+    margin: 0;
 	font-size: 0.8333333333333334em;
 	line-height: 1.8em;
 	margin-bottom: 1.8em;
@@ -92,7 +92,7 @@ table {
 */
 
 #table-of-contents {
-	width: 15em;
+	width: 15%;
 	float: left;
 	overflow: auto;
 }
@@ -107,8 +107,9 @@ div.outline-2 {
 }
 
 #postamble {
-	clear: both;
-	text-align: center;
+    border-top: 1px solid darkred;
+    clear: both;
+    text-align: left;
 }
 
 div.outline-2 pre {
@@ -121,15 +122,11 @@ div.outline-2 pre {
 /* @group Header */
 
 h1.title {
-	margin-top: 10px;
+	margin-top: 1.5ex;
+	margin-bottom: 1.5ex;
 	text-align: center;
-}
-
-h1.title {
-	font-size: 4em;
+	font-size: 3.5ex;
 	font-weight: bold;
-	letter-spacing: -0.1em;
-	margin-bottom: 0.2em;
 }
 
 /* @end */
@@ -226,4 +223,5 @@ a:hover {
 
 #postamble p {
     margin: 0px;
+    text-color: red;
 }
