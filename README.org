@@ -12,6 +12,7 @@
 #+LATEX_HEADER:         frame=single,
 #+LATEX_HEADER:         basewidth={0.4em,0.4em},
 #+LATEX_HEADER:         }
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./org-style.css" />
 
 * Short description
 
@@ -717,14 +718,15 @@ independent of $P$ itself.
 
 The exact value for $E$ is not so easy to measure or guess in real
 life. As a good heuristic value is
-\begin{displaymath}
+
+\begin{equation}
 \frac{t_{spin}}{t_{fail}} =
 \begin{cases}
 0 & \textrm{if $\hat{P} \leq 1+\epsilon$}\\
 0.5 + \frac{\epsilon}{2} & \textrm{if $\hat{P} \leq 2$}\\
 0.9 & \textrm{otherwise.}
 \end{cases}
-\end{displaymath}
+\end{equation}
 
 
 
@@ -907,8 +909,8 @@ life. As a good heuristic value is
 #+BEGIN_CENTER
 #+LABEL:fig:all
 #+ATTR_LaTeX: :width 0.95\linewidth :options angle=-90
-#+ATTR_HTML:  :width "95%"
-[[file:benchs/benchs-comparison/test-benchs-all.eps]]
+#+ATTR_HTML:  :width 95%
+[[file:benchs/benchs-comparison/test-benchs-all.png]]
 #+END_CENTER
 
    First, we see that using the instruction if it is available is a
@@ -927,8 +929,8 @@ life. As a good heuristic value is
 #+BEGIN_CENTER
 #+LABEL:fig:all
 #+ATTR_LaTeX: :width 0.95\linewidth :options angle=-90
-#+ATTR_HTML:  :width "95%"
-file:benchs/benchs-comparison/test-benchs-relative.eps
+#+ATTR_HTML:  :width 95%
+file:benchs/benchs-comparison/test-benchs-relative.png
 #+END_CENTER
 
    - The spinlock based on =atomic_compare_exchange_strong_explicit=
@@ -1028,6 +1030,8 @@ file:benchs/benchs-comparison/test-benchs-relative.eps
     performance for the many-threads congestion is really bad. This is
     because the arrival of many new threads disturbs the attempts of
     everybody going into the =futex_wait=.
+
+------------
 
 * Footnotes
 

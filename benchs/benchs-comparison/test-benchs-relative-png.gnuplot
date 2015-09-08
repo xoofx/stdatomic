@@ -11,13 +11,8 @@
 #    	gnuplot home:     http://www.gnuplot.info
 #    	faq, bugs, etc:   type "help FAQ"
 #    	immediate help:   type "help"  (plot window: hit 'h')
-set terminal postscript landscape noenhanced defaultplex \
-   leveldefault color colortext \
-   dashed dashlength 1.0 linewidth 1.0 butt noclip \
-   nobackground \
-   palfuncparam 2000,0.003 \
-   "Helvetica" 14  fontscale 1.0 
-set output 'test-all-v2.eps'
+set terminal png size 1280,960
+set output 'test-benchs-relative.png'
 unset clip points
 set clip one
 unset clip two
@@ -52,7 +47,7 @@ set angles radians
 set grid x
 set raxis
 set key title ""
-set key inside top right vertical Right noreverse enhanced autotitles nobox
+set key inside bottom left vertical Right noreverse enhanced autotitles nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
@@ -114,7 +109,7 @@ set cbtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autoj
 set cbtics autofreq  norangelimit
 set rtics axis in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set rtics autofreq  norangelimit
-set title "stress test on lock primitives, different implementations for generic atomics" 
+set title "stdatomic, stress test on lock primitives"
 set title  offset character 0, 0, 0 font "" norotate
 set timestamp bottom 
 set timestamp "" 
@@ -129,7 +124,7 @@ set x2label ""
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
-set ylabel "locks/second" 
+set ylabel "relative performance" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
@@ -159,11 +154,10 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-base = "pthread"
-files = "16b cmpxchg musl futex pthread"
+base = "pthread-mo-O3"
+files = "cmpxchg-mo-O3 cmpxchg-mo futex-mo-O3 futex-mo musl-mo-O3 musl-mo pthread-mo-O3 pthread-mo musl-no-spin futex-no-spin"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles
-plot for [file in files] sprintf("< paste test-%s-v2.dat test-%s-v2.dat", file, base) using 1:($2) with lines title sprintf("%s", file), \
-     for [file in files] sprintf("< paste test-%s-v2-nofree.dat test-%s-v2.dat", file, base) using 1:($2) with lines title sprintf("no free %s", file) \
+plot for [file in files] sprintf("< paste test-%s.dat test-%s.dat", file, base) using 1:($2/$6) with lines title sprintf("%s", file)
 #    EOF
