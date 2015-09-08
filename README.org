@@ -13,7 +13,7 @@
 #+LATEX_HEADER:         basewidth={0.4em,0.4em},
 #+LATEX_HEADER:         }
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./org-style.css" />
-#+HTML_MATHJAX: mathml:t path:"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+#+HTML_MATHJAX: mathml:t path:"/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 
 * Short description
 
@@ -909,7 +909,7 @@ life. As a good heuristic value is
 
 #+BEGIN_CENTER
 #+LABEL:fig:all
-#+ATTR_LaTeX: :width 0.95\linewidth :options angle=-90
+#+ATTR_LaTeX: :width 0.95\linewidth
 #+ATTR_HTML:  :width 95%
 [[file:benchs/benchs-comparison/test-benchs-all.png]]
 #+END_CENTER
@@ -929,7 +929,7 @@ life. As a good heuristic value is
 
 #+BEGIN_CENTER
 #+LABEL:fig:all
-#+ATTR_LaTeX: :width 0.95\linewidth :options angle=-90
+#+ATTR_LaTeX: :width 0.95\linewidth
 #+ATTR_HTML:  :width 95%
 file:benchs/benchs-comparison/test-benchs-relative.png
 #+END_CENTER
