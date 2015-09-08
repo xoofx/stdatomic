@@ -4,7 +4,7 @@
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \lstset{
-#+LATEX_HEADER:         keywordstyle=\color{blue},
+#+LATEX_HEADER:         keywordstyle=\bf\color{blue},
 #+LATEX_HEADER:         commentstyle=\color{red},
 #+LATEX_HEADER:         stringstyle=\color{green},
 #+LATEX_HEADER:         basicstyle=\ttfamily\small,
@@ -12,6 +12,7 @@
 #+LATEX_HEADER:         frame=single,
 #+LATEX_HEADER:         basewidth={0.4em,0.4em},
 #+LATEX_HEADER:         }
+#+HTML_HEAD: <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./org-style.css" />
 
 * Short description
