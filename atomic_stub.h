@@ -119,7 +119,8 @@ T __impl_or_fetch_ ## N(void volatile* X, T const V, int MO) {          \
     R = E | V;                                                          \
   }                                                                     \
   return R;                                                             \
-}
+}                                                                       \
+ INSTANTIATE_STUB_NAND(N, T)
 
 #define INSTANTIATE_STUB_NAND(N, T)                                     \
 T __impl_fetch_nand_ ## N(void volatile* X, T const V, int MO);         \
@@ -170,8 +171,7 @@ T __impl_exchange_ ## N(void volatile* X, T const V, int MO) {          \
 }                                                                       \
 _Bool __impl_compare_exchange_ ## N(void volatile* X, T* E, T const V, int MOS, int MOf) { \
   return __impl_compare_exchange(N, X, E, &V, MOS, MOf);                \
-}                                                                       \
- INSTANTIATE_STUB_NAND(N, T)
+}
 
 #define INSTANTIATE_STUB_LC(N, T) INSTANTIATE_STUB_LCA(N, T) INSTANTIATE_STUB_LCM(N, T)
 
