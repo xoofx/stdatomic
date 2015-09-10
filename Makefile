@@ -14,10 +14,13 @@ GENERICS :=					\
 	atomic_generic_8.c			\
 	atomic_generic_16.c
 
+FUTEX := atomic_futex_lock.c
+
 OBJECTS := ${SOURCES:.c=.o} ${GENERICS:.c=.o} lock-repl.o
 ASSEMBS := ${SOURCES:.c=.s} ${GENERICS:.c=.s}
 DEPENDS := ${OBJECTS:.o=.dep}
 MEMBERS := ${patsubst %.o, ${TARGET}(%.o),${OBJECTS}}
+FUTEXO  := ${FUTEX:.c=.o}
 
 EFUNCS =					\
 	load					\
@@ -189,6 +192,10 @@ else
 libatomic.a : ${MEMBERS}
 endif
 
+libstdatomic.a : libatomic.a ${MUSL}/src/stdatomic/${FUTEXO}
+	cp libatomic.a libstdatomic.a
+	${AR} rc libstdatomic.a ${MUSL}/src/stdatomic/${FUTEXO}
+
 redefine_syms.txt : Makefile
 	@echo -n ${RFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __atomic_\1\n/g'  > $@
 	@echo -n ${SFUNCS} | sed 's/\([a-z0-9_][a-z0-9_]*\) */__impl_\1 __sync_\1\n/g'    >>$@
@@ -210,9 +217,12 @@ clean :
 beautify :
 	astyle --options=.astylerc *.c *.h
 
-musl : ${SOURCES} ${GENERICS} atomic_futex_lock.c atomic_pragma.h
+musl : ${SOURCES} ${GENERICS} ${FUTEX} atomic_pragma.h
 	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
-	cp ${SOURCES} ${GENERICS} atomic_futex_lock.c ${MUSL}/src/stdatomic/
+	cp ${SOURCES} ${GENERICS} ${FUTEX} ${MUSL}/src/stdatomic/
 	cp atomic*.h  stdatomic-impl.h ${MUSL}/src/internal/
+
+${MUSL}/src/stdatomic/${FUTEXO} : musl
+	make -C ${MUSL} $@
 
 -include ${DEPENDS}
