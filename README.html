@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>An implementation of the C11 <code>&lt;stdatomic.h&gt;</code> interface</title>
-<!-- 2015-09-08 Di 23:59 -->
+<!-- 2015-09-17 Do 16:51 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Jens Gustedt" />
@@ -185,65 +185,64 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#sec-1">1. Short description</a></li>
-<li><a href="#sec-2">2. Implemented library features</a>
+<li><a href="#sec-1">1. Implemented library features</a>
 <ul>
-<li><a href="#sec-2-1">2.1. Type, constants and function interfaces</a></li>
-<li><a href="#sec-2-2">2.2. Type generic functions</a>
+<li><a href="#sec-1-1">1.1. Type, constants and function interfaces</a></li>
+<li><a href="#sec-1-2">1.2. Type generic functions</a>
 <ul>
-<li><a href="#sec-2-2-1">2.2.1. The <code>__atomic_</code> ABI</a></li>
-<li><a href="#sec-2-2-2">2.2.2. Clang's <code>__c11_atomic</code> built-ins</a></li>
-<li><a href="#sec-2-2-3">2.2.3. The <code>__sync</code> ABI</a></li>
-<li><a href="#sec-2-2-4">2.2.4. The lock-full fallback functions</a></li>
+<li><a href="#sec-1-2-1">1.2.1. The <code>__atomic_</code> ABI</a></li>
+<li><a href="#sec-1-2-2">1.2.2. Clang's <code>__c11_atomic</code> built-ins</a></li>
+<li><a href="#sec-1-2-3">1.2.3. The <code>__sync</code> ABI</a></li>
+<li><a href="#sec-1-2-4">1.2.4. The lock-full fallback functions</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#sec-3">3. The <code>&lt;stdatomic.h&gt;</code> header file</a>
+<li><a href="#sec-2">2. The <code>&lt;stdatomic.h&gt;</code> header file</a>
 <ul>
-<li><a href="#sec-3-1">3.1. Full C11 support</a></li>
-<li><a href="#sec-3-2">3.2. Partial C11 atomics support</a>
+<li><a href="#sec-2-1">2.1. Full C11 support</a></li>
+<li><a href="#sec-2-2">2.2. Partial C11 atomics support</a>
 <ul>
-<li><a href="#sec-3-2-1">3.2.1. Issues</a></li>
+<li><a href="#sec-2-2-1">2.2.1. Issues</a></li>
 </ul>
 </li>
-<li><a href="#sec-3-3">3.3. Basic atomics support</a></li>
+<li><a href="#sec-2-3">2.3. Basic atomics support</a></li>
 </ul>
 </li>
-<li><a href="#sec-4">4. The implementation</a>
+<li><a href="#sec-3">3. The implementation</a>
 <ul>
-<li><a href="#sec-4-1">4.1. Requirements</a>
+<li><a href="#sec-3-1">3.1. Requirements</a>
 <ul>
-<li><a href="#sec-4-1-1">4.1.1. Compilers</a></li>
-<li><a href="#sec-4-1-2">4.1.2. OS or C library support</a></li>
-<li><a href="#sec-4-1-3">4.1.3. The algorithm</a></li>
-<li><a href="#sec-4-1-4">4.1.4. Analysis</a></li>
+<li><a href="#sec-3-1-1">3.1.1. Compilers</a></li>
+<li><a href="#sec-3-1-2">3.1.2. OS or C library support</a></li>
+<li><a href="#sec-3-1-3">3.1.3. The algorithm</a></li>
+<li><a href="#sec-3-1-4">3.1.4. Analysis</a></li>
 </ul>
 </li>
-<li><a href="#sec-4-2">4.2. Caveats</a>
+<li><a href="#sec-3-2">3.2. Caveats</a>
 <ul>
-<li><a href="#sec-4-2-1">4.2.1. Symbol renaming</a></li>
-<li><a href="#sec-4-2-2">4.2.2. Support of 16 byte atomic instructions</a></li>
+<li><a href="#sec-3-2-1">3.2.1. Symbol renaming</a></li>
+<li><a href="#sec-3-2-2">3.2.2. Support of 16 byte atomic instructions</a></li>
 </ul>
 </li>
-<li><a href="#sec-4-3">4.3. Leftovers</a></li>
-<li><a href="#sec-4-4">4.4. Instrumentation and testing</a>
+<li><a href="#sec-3-3">3.3. Leftovers</a></li>
+<li><a href="#sec-3-4">3.4. Instrumentation and testing</a>
 <ul>
-<li><a href="#sec-4-4-1">4.4.1. Instrumentation</a></li>
-<li><a href="#sec-4-4-2">4.4.2. Code injection</a></li>
+<li><a href="#sec-3-4-1">3.4.1. Instrumentation</a></li>
+<li><a href="#sec-3-4-2">3.4.2. Code injection</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#sec-5">5. Benchmarks</a>
+<li><a href="#sec-4">4. Benchmarks</a>
 <ul>
-<li><a href="#sec-5-1">5.1. The framework</a></li>
-<li><a href="#sec-5-2">5.2. The test program</a></li>
-<li><a href="#sec-5-3">5.3. The test platform</a></li>
-<li><a href="#sec-5-4">5.4. Comparative performance of the different lock primitives</a>
+<li><a href="#sec-4-1">4.1. The framework</a></li>
+<li><a href="#sec-4-2">4.2. The test program</a></li>
+<li><a href="#sec-4-3">4.3. The test platform</a></li>
+<li><a href="#sec-4-4">4.4. Comparative performance of the different lock primitives</a>
 <ul>
-<li><a href="#sec-5-4-1">5.4.1. Lower range of thread numbers</a></li>
-<li><a href="#sec-5-4-2">5.4.2. Higher range of thread numbers</a></li>
+<li><a href="#sec-4-4-1">4.4.1. Lower range of thread numbers</a></li>
+<li><a href="#sec-4-4-2">4.4.2. Higher range of thread numbers</a></li>
 </ul>
 </li>
 </ul>
@@ -252,10 +251,7 @@ for the JavaScript code in this tag.
 </div>
 </div>
 <h1 align="center" >Jens Gustedt</h1>
-
-<div id="outline-container-sec-1" class="outline-2">
-<h2 id="sec-1"><span class="section-number-2">1</span> Short description</h2>
-<div class="outline-text-2" id="text-1">
+<div class="abstract">
 <p>
 The implementation of the C11 atomic interface typically sits
 between the implementation of the core language by the C compiler
@@ -280,12 +276,12 @@ atomics this provides a reduced but fully functional approach to
 atomic operations.
 </li>
 </ul>
-</div>
+
 </div>
 
-<div id="outline-container-sec-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> Implemented library features</h2>
-<div class="outline-text-2" id="text-2">
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Implemented library features</h2>
+<div class="outline-text-2" id="text-1">
 <p>
 We distinguish between the implementation of library functions and
 the <code>&lt;stdatomic.h&gt;</code> header file.
@@ -303,9 +299,9 @@ be compatible with the header files that gcc and clang may provide.
 </p>
 </div>
 
-<div id="outline-container-sec-2-1" class="outline-3">
-<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Type, constants and function interfaces</h3>
-<div class="outline-text-3" id="text-2-1">
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> Type, constants and function interfaces</h3>
+<div class="outline-text-3" id="text-1-1">
 <p>
 These are the types and proper functions that are foreseen by the
 standard:
@@ -331,9 +327,9 @@ clang.
 </div>
 </div>
 
-<div id="outline-container-sec-2-2" class="outline-3">
-<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Type generic functions</h3>
-<div class="outline-text-3" id="text-2-2">
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Type generic functions</h3>
+<div class="outline-text-3" id="text-1-2">
 <p>
 These are all implemented as macros, and should in many cases
 result in optimized inlined assembler instructions, and not in
@@ -386,9 +382,9 @@ All external functions that the gcc ABI's require are provided.
 </p>
 </div>
 
-<div id="outline-container-sec-2-2-1" class="outline-4">
-<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> The <code>__atomic_</code> ABI</h4>
-<div class="outline-text-4" id="text-2-2-1">
+<div id="outline-container-sec-1-2-1" class="outline-4">
+<h4 id="sec-1-2-1"><span class="section-number-4">1.2.1</span> The <code>__atomic_</code> ABI</h4>
+<div class="outline-text-4" id="text-1-2-1">
 <p>
 is already close to the C11 call interface. Relevant for C11 are 9
 operations
@@ -543,9 +539,9 @@ lock-free atomics for types of size 16.
 </div>
 </div>
 
-<div id="outline-container-sec-2-2-2" class="outline-4">
-<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> Clang's <code>__c11_atomic</code> built-ins</h4>
-<div class="outline-text-4" id="text-2-2-2">
+<div id="outline-container-sec-1-2-2" class="outline-4">
+<h4 id="sec-1-2-2"><span class="section-number-4">1.2.2</span> Clang's <code>__c11_atomic</code> built-ins</h4>
+<div class="outline-text-4" id="text-1-2-2">
 <p>
 Clang has gone a different path for the built-ins that implement
 C11 atomics, prefixed with <code>__c11_atomic</code>. These are a directly
@@ -562,9 +558,9 @@ clang falls back to the same external calls as described for gcc's
 </div>
 
 
-<div id="outline-container-sec-2-2-3" class="outline-4">
-<h4 id="sec-2-2-3"><span class="section-number-4">2.2.3</span> The <code>__sync</code> ABI</h4>
-<div class="outline-text-4" id="text-2-2-3">
+<div id="outline-container-sec-1-2-3" class="outline-4">
+<h4 id="sec-1-2-3"><span class="section-number-4">1.2.3</span> The <code>__sync</code> ABI</h4>
+<div class="outline-text-4" id="text-1-2-3">
 <p>
 It dates back long before the C11 atomic interface had been
 designed and thus cannot be directly conforming to it. It has
@@ -602,9 +598,9 @@ C11 atomics.
 </div>
 </div>
 
-<div id="outline-container-sec-2-2-4" class="outline-4">
-<h4 id="sec-2-2-4"><span class="section-number-4">2.2.4</span> The lock-full fallback functions</h4>
-<div class="outline-text-4" id="text-2-2-4">
+<div id="outline-container-sec-1-2-4" class="outline-4">
+<h4 id="sec-1-2-4"><span class="section-number-4">1.2.4</span> The lock-full fallback functions</h4>
+<div class="outline-text-4" id="text-1-2-4">
 <p>
 In absence of proper architecture support, all fallbacks (for
 the three built-in families) with <code>_X</code> suffix use the ones without
@@ -697,12 +693,12 @@ and small.
 </div>
 </div>
 
-<div id="outline-container-sec-3" class="outline-2">
-<h2 id="sec-3"><span class="section-number-2">3</span> The <code>&lt;stdatomic.h&gt;</code> header file</h2>
-<div class="outline-text-2" id="text-3">
-</div><div id="outline-container-sec-3-1" class="outline-3">
-<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Full C11 support</h3>
-<div class="outline-text-3" id="text-3-1">
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> The <code>&lt;stdatomic.h&gt;</code> header file</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Full C11 support</h3>
+<div class="outline-text-3" id="text-2-1">
 <p>
 Versions of gcc and clang that fully implement the C11 atomics
 interface will not need a special header file but can use their own
@@ -755,9 +751,9 @@ these operations to a minimum.
 </div>
 </div>
 
-<div id="outline-container-sec-3-2" class="outline-3">
-<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Partial C11 atomics support</h3>
-<div class="outline-text-3" id="text-3-2">
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Partial C11 atomics support</h3>
+<div class="outline-text-3" id="text-2-2">
 <p>
 A series of compiler versions offers partial atomics support that
 already implements most of the C11 semantic:
@@ -825,9 +821,9 @@ atomic objects, but the diagnostics may be a bit crude.
 </p>
 </div>
 
-<div id="outline-container-sec-3-2-1" class="outline-4">
-<h4 id="sec-3-2-1"><span class="section-number-4">3.2.1</span> Issues</h4>
-<div class="outline-text-4" id="text-3-2-1">
+<div id="outline-container-sec-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> Issues</h4>
+<div class="outline-text-4" id="text-2-2-1">
 <p>
 Since this approach may reinterpret data through pointer casts, it
 could potentially be dangerous. So let us discuss the possible
@@ -904,9 +900,9 @@ to atomics.
 </div>
 </div>
 
-<div id="outline-container-sec-3-3" class="outline-3">
-<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Basic atomics support</h3>
-<div class="outline-text-3" id="text-3-3">
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Basic atomics support</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 Even older versions of gcc and clang implement the <code>__sync</code> built-in
 functions and can thereby made to accept the same &lt;stdatomic.h&gt;
@@ -920,15 +916,15 @@ sequential consistency, only, is conforming to the C standard.
 </div>
 </div>
 
-<div id="outline-container-sec-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> The implementation</h2>
-<div class="outline-text-2" id="text-4">
-</div><div id="outline-container-sec-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Requirements</h3>
-<div class="outline-text-3" id="text-4-1">
-</div><div id="outline-container-sec-4-1-1" class="outline-4">
-<h4 id="sec-4-1-1"><span class="section-number-4">4.1.1</span> Compilers</h4>
-<div class="outline-text-4" id="text-4-1-1">
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> The implementation</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Requirements</h3>
+<div class="outline-text-3" id="text-3-1">
+</div><div id="outline-container-sec-3-1-1" class="outline-4">
+<h4 id="sec-3-1-1"><span class="section-number-4">3.1.1</span> Compilers</h4>
+<div class="outline-text-4" id="text-3-1-1">
 <p>
 You should be able to compile this implementation with any version
 of modern gcc and clang. (Versions are hard to tell, gcc should work
@@ -981,9 +977,9 @@ macros to detect the C11 versions of the built-ins.
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-2" class="outline-4">
-<h4 id="sec-4-1-2"><span class="section-number-4">4.1.2</span> OS or C library support</h4>
-<div class="outline-text-4" id="text-4-1-2">
+<div id="outline-container-sec-3-1-2" class="outline-4">
+<h4 id="sec-3-1-2"><span class="section-number-4">3.1.2</span> OS or C library support</h4>
+<div class="outline-text-4" id="text-3-1-2">
 <p>
 The library may work with different lock constructs, currently we
 implement one simple generic approach that only uses spinning, and
@@ -1033,9 +1029,9 @@ slot increases.
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-3" class="outline-4">
-<h4 id="sec-4-1-3"><span class="section-number-4">4.1.3</span> The algorithm</h4>
-<div class="outline-text-4" id="text-4-1-3">
+<div id="outline-container-sec-3-1-3" class="outline-4">
+<h4 id="sec-3-1-3"><span class="section-number-4">3.1.3</span> The algorithm</h4>
+<div class="outline-text-4" id="text-3-1-3">
 <p>
 We implement this strategy a bit differently than classical locks
 with wait-counters would do. We just have a single <code>unsigned</code> value
@@ -1077,9 +1073,9 @@ wakens one of them.
 </div>
 </div>
 
-<div id="outline-container-sec-4-1-4" class="outline-4">
-<h4 id="sec-4-1-4"><span class="section-number-4">4.1.4</span> Analysis</h4>
-<div class="outline-text-4" id="text-4-1-4">
+<div id="outline-container-sec-3-1-4" class="outline-4">
+<h4 id="sec-3-1-4"><span class="section-number-4">3.1.4</span> Analysis</h4>
+<div class="outline-text-4" id="text-3-1-4">
 <p>
 Let us assume a worst case scenario where a thread \(T_0\) is
 unscheduled while inside the critical section, and that there are
@@ -1325,12 +1321,12 @@ life. As a good heuristic value is
 
 
 
-<div id="outline-container-sec-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Caveats</h3>
-<div class="outline-text-3" id="text-4-2">
-</div><div id="outline-container-sec-4-2-1" class="outline-4">
-<h4 id="sec-4-2-1"><span class="section-number-4">4.2.1</span> Symbol renaming</h4>
-<div class="outline-text-4" id="text-4-2-1">
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Caveats</h3>
+<div class="outline-text-3" id="text-3-2">
+</div><div id="outline-container-sec-3-2-1" class="outline-4">
+<h4 id="sec-3-2-1"><span class="section-number-4">3.2.1</span> Symbol renaming</h4>
+<div class="outline-text-4" id="text-3-2-1">
 <p>
 There is one important difficulty when compiling this. The original
 <code>__atomic</code> library interface was developed with C++ in mind and not
@@ -1358,9 +1354,9 @@ external tool such as <code>objcopy</code> to achieve the same.
 </div>
 </div>
 
-<div id="outline-container-sec-4-2-2" class="outline-4">
-<h4 id="sec-4-2-2"><span class="section-number-4">4.2.2</span> Support of 16 byte atomic instructions</h4>
-<div class="outline-text-4" id="text-4-2-2">
+<div id="outline-container-sec-3-2-2" class="outline-4">
+<h4 id="sec-3-2-2"><span class="section-number-4">3.2.2</span> Support of 16 byte atomic instructions</h4>
+<div class="outline-text-4" id="text-3-2-2">
 <p>
 The main difference for modern processors that is relevant here is
 if it supports 16 byte atomic instructions or not. There is no
@@ -1400,9 +1396,9 @@ preliminary version.
 </div>
 
 
-<div id="outline-container-sec-4-3" class="outline-3">
-<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Leftovers</h3>
-<div class="outline-text-3" id="text-4-3">
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Leftovers</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 There are some leftovers that will hopefully disappear.
 </p>
@@ -1416,12 +1412,12 @@ yet to see what would be best, here.
 </div>
 </div>
 
-<div id="outline-container-sec-4-4" class="outline-3">
-<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Instrumentation and testing</h3>
-<div class="outline-text-3" id="text-4-4">
-</div><div id="outline-container-sec-4-4-1" class="outline-4">
-<h4 id="sec-4-4-1"><span class="section-number-4">4.4.1</span> Instrumentation</h4>
-<div class="outline-text-4" id="text-4-4-1">
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Instrumentation and testing</h3>
+<div class="outline-text-3" id="text-3-4">
+</div><div id="outline-container-sec-3-4-1" class="outline-4">
+<h4 id="sec-3-4-1"><span class="section-number-4">3.4.1</span> Instrumentation</h4>
+<div class="outline-text-4" id="text-3-4-1">
 <p>
 There is optional instrumentation for the lock
 functions. Switching it on changes overall performance
@@ -1443,9 +1439,9 @@ used at the end of all operations to print the collected data to
 </div>
 </div>
 
-<div id="outline-container-sec-4-4-2" class="outline-4">
-<h4 id="sec-4-4-2"><span class="section-number-4">4.4.2</span> Code injection</h4>
-<div class="outline-text-4" id="text-4-4-2">
+<div id="outline-container-sec-3-4-2" class="outline-4">
+<h4 id="sec-3-4-2"><span class="section-number-4">3.4.2</span> Code injection</h4>
+<div class="outline-text-4" id="text-3-4-2">
 <p>
 To test the behavior of the locking algorithm you may inject a
 function call just after the acquisition of the lock. Thereby you
@@ -1478,12 +1474,12 @@ probabilities of failure.
 </div>
 </div>
 
-<div id="outline-container-sec-5" class="outline-2">
-<h2 id="sec-5"><span class="section-number-2">5</span> Benchmarks</h2>
-<div class="outline-text-2" id="text-5">
-</div><div id="outline-container-sec-5-1" class="outline-3">
-<h3 id="sec-5-1"><span class="section-number-3">5.1</span> The framework</h3>
-<div class="outline-text-3" id="text-5-1">
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Benchmarks</h2>
+<div class="outline-text-2" id="text-4">
+</div><div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> The framework</h3>
+<div class="outline-text-3" id="text-4-1">
 <p>
 I have run a long series of benchmarks to validate the
 approach. The code for the benchmark is at the moment integrated in
@@ -1512,9 +1508,9 @@ pointers for the head to avoid the ABA problem.
 </div>
 </div>
 
-<div id="outline-container-sec-5-2" class="outline-3">
-<h3 id="sec-5-2"><span class="section-number-3">5.2</span> The test program</h3>
-<div class="outline-text-3" id="text-5-2">
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> The test program</h3>
+<div class="outline-text-3" id="text-4-2">
 <p>
 The test creates or deletes a random number of list elements in the
 lifo inside a loop. It understands the following command line arguments:
@@ -1578,9 +1574,9 @@ unlocking.
 </div>
 </div>
 
-<div id="outline-container-sec-5-3" class="outline-3">
-<h3 id="sec-5-3"><span class="section-number-3">5.3</span> The test platform</h3>
-<div class="outline-text-3" id="text-5-3">
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> The test platform</h3>
+<div class="outline-text-3" id="text-4-3">
 <p>
 For the moment I only have tested on a <code>x86_64</code> machine with 2x2
 hypethreaded cores. It has 16 byte atomic instructions (like most
@@ -1597,9 +1593,9 @@ corresponding function of the library.
 </div>
 </div>
 
-<div id="outline-container-sec-5-4" class="outline-3">
-<h3 id="sec-5-4"><span class="section-number-3">5.4</span> Comparative performance of the different lock primitives</h3>
-<div class="outline-text-3" id="text-5-4">
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Comparative performance of the different lock primitives</h3>
+<div class="outline-text-3" id="text-4-4">
 <p>
 I compared the different locks for 1 up to 256 threads. All runs
 are for 10 seconds, each point represents the mean value of 10
@@ -1664,9 +1660,9 @@ threads.
 </ul>
 </div>
 
-<div id="outline-container-sec-5-4-1" class="outline-4">
-<h4 id="sec-5-4-1"><span class="section-number-4">5.4.1</span> Lower range of thread numbers</h4>
-<div class="outline-text-4" id="text-5-4-1">
+<div id="outline-container-sec-4-4-1" class="outline-4">
+<h4 id="sec-4-4-1"><span class="section-number-4">4.4.1</span> Lower range of thread numbers</h4>
+<div class="outline-text-4" id="text-4-4-1">
 <p>
 For this application the performance in the lower range of is
 largely dominated by the fast path, that is by a very small number
@@ -1779,9 +1775,9 @@ returned to the CPU.
 </div>
 </div>
 
-<div id="outline-container-sec-5-4-2" class="outline-4">
-<h4 id="sec-5-4-2"><span class="section-number-4">5.4.2</span> Higher range of thread numbers</h4>
-<div class="outline-text-4" id="text-5-4-2">
+<div id="outline-container-sec-4-4-2" class="outline-4">
+<h4 id="sec-4-4-2"><span class="section-number-4">4.4.2</span> Higher range of thread numbers</h4>
+<div class="outline-text-4" id="text-4-4-2">
 <p>
 We see from the spinlock implementation, that spinning becomes
 expensive as soon as we exceed the number of cores (the machine
@@ -1828,7 +1824,7 @@ one currently distributed with musl.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Jens Gustedt</p>
-<p class="date">Created: 2015-09-08 Di 23:59</p>
+<p class="date">Created: 2015-09-17 Do 16:51</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

@@ -1,6 +1,11 @@
 #+TITLE:  An implementation of the C11 =<stdatomic.h>= interface
 #+AUTHOR: Jens Gustedt
 #+HTML: <h1 align="center" >Jens Gustedt</h1>
+#+LATEX_OPTIONS: toc:nil ^:nil
+#+LATEX_CLASS: sig-alternate-05-2015
+#+LATEX_HEADER: \pdfpagewidth=8.5truein
+#+LATEX_HEADER: \pdfpageheight=11truein
+#+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \lstset{
@@ -12,11 +17,22 @@
 #+LATEX_HEADER:         frame=single,
 #+LATEX_HEADER:         basewidth={0.4em,0.4em},
 #+LATEX_HEADER:         }
+#+LATEX_HEADER: %\setcopyright{acmcopyright}
+#+LATEX_HEADER: \doi{http://dx.doi.org/xx.xxxx/xxxxxxx.xxxxxxx}
+#+LATEX_HEADER: %\isbn{978-1-4503-3739-7/16/04}
+#+LATEX_HEADER: \isbn{---}
+#+LATEX_HEADER: %\conferenceinfo{PLDI '13}{June 16--19, 2013, Seattle, WA, USA}
+#+LATEX_HEADER: %\acmPrice{\$15.00}
+#+LATEX_HEADER: %\conferenceinfo{SAC'16,}{ April 4-8, 2016, Pisa, Italy}
+#+LATEX_HEADER: %\CopyrightYear{2016} % Allows default copyright year (20XX) to be ove
+#+LATEX_HEADER:
+#+LATEX_HEADER: % switch off the table of contents just for LaTeX export
+#+LATEX_HEADER: \let\tableofcontents=\relax
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./org-style.css" />
 #+HTML_MATHJAX: mathml:t path:"/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 
-* Short description
 
+#+BEGIN_ABSTRACT
   The implementation of the C11 atomic interface typically sits
   between the implementation of the core language by the C compiler
   and the implementation of the C library. It needs compiler support
@@ -34,6 +50,7 @@
   - For compilers that don't offer the direct language support for
     atomics this provides a reduced but fully functional approach to
     atomic operations.
+#+END_ABSTRACT
 
 * Implemented library features
 
