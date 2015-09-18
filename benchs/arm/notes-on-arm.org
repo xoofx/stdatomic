@@ -1,0 +1,33 @@
+These are tests on a 4 core arm7 machine with 2 GiB of RAM, running
+Alpine Linux, so with musl as C library.
+
+the different tests are
+
+** gcc-u32
+
+   This uses native atomic instructions. They have a tag type that is
+   =u32=, together with the pointer that makes 64. This fits for the
+   processor's atomics.
+
+   The =0xNN= indicates nailing the process to a cpuset. =0x1= is just
+   one core, =0x15= are all four cores.
+
+** gcc-u64
+
+   gcc-u64 uses =u64= as a tag type, so the whole data type is larger
+   than 64 bit and doesn't fit to processor atomics. The generic
+   =__atomic_= interfaces are chosen. We link the code with different
+   implementations of that.
+
+   - gcc-u64-pthread uses the =libatomic= library that comes with
+     gcc. Under the hood this uses the platforms =pthread_mutex_t=
+     implementation.
+
+   - gcc-u64-repl uses a simple spinning strategy as a lock
+
+   - gcc-u64-futex uses the futex strategy build upon the
+     capacities of musl
+
+   - gcc-u64-mtx uses a C11 =mtx_t= to lock the access
+
+   - gcc-u64-musl uses musl's own internal lock for the access
