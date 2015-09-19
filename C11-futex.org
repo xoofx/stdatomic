@@ -1,5 +1,5 @@
 #+TITLE:  Futex based locks for C11's generic atomics
-#+AUTHOR: 
+#+AUTHOR:
 #+HTML: <h1 align="center" >Jens Gustedt</h1>
 #+LATEX_OPTIONS: toc:nil ^:nil
 #+LATEX_CLASS: sig-alternate-05-2015
@@ -7,16 +7,32 @@
 #+LATEX_HEADER: \pdfpageheight=11truein
 #+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \usepackage{color}
+#+LATEX_HEADER: \usepackage[table]{xcolor}
+#+LATEX_HEADER: \definecolor{light-gray}{gray}{0.97}
 #+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: \usepackage{listings-C}
+#+LATEX_HEADER: \usepackage{listings-x86_64}
+#+LATEX_HEADER: \usepackage{listings-modernC}
+#+LATEX_HEADER: \lstloadlanguages{C11,C99}
 #+LATEX_HEADER: \lstset{
-#+LATEX_HEADER:         keywordstyle=\bf\color{blue},
-#+LATEX_HEADER:         commentstyle=\color{red},
-#+LATEX_HEADER:         stringstyle=\color{green},
-#+LATEX_HEADER:         basicstyle=\ttfamily\small,
-#+LATEX_HEADER:         columns=fullflexible,
-#+LATEX_HEADER:         frame=single,
-#+LATEX_HEADER:         basewidth={0.4em,0.4em},
-#+LATEX_HEADER:         }
+#+LATEX_HEADER:   language=[errnoPOSIX]{C},
+#+LATEX_HEADER:   language=[tgmath]{C},
+#+LATEX_HEADER:   language=[threads]{C},
+#+LATEX_HEADER:   language=[stdatomic]{C},
+#+LATEX_HEADER:   language=[boundschecking]{C},
+#+LATEX_HEADER:   language=[99]{C},
+#+LATEX_HEADER:   language={C11},
+#+LATEX_HEADER:   style=modernC,
+#+LATEX_HEADER:   basicstyle=\tt\footnotesize,
+#+LATEX_HEADER:   moreemph=[5]{
+#+LATEX_HEADER:     futex_wait,
+#+LATEX_HEADER:     futex_wake,
+#+LATEX_HEADER:     smpl,
+#+LATEX_HEADER:     },
+#+LATEX_HEADER: }
+#+LATEX_HEADER: \author{\framebox[1.5cm]{[\hfill]} \framebox[3cm]{[\hfill]}\\
+#+LATEX_HEADER:   \affaddr{\framebox[1.5cm]{[\hfill]} and \framebox[3cm]{[\hfill]}, \framebox[5cm]{[\hfill]}, \framebox[3cm]{[\hfill]}}}
+#+LATEX_HEADER: % \affaddr{INRIA and ICube, Universit\'{e} de Strasbourg, France}}
 #+LATEX_HEADER: %\setcopyright{acmcopyright}
 #+LATEX_HEADER: \doi{http://dx.doi.org/xx.xxxx/xxxxxxx.xxxxxxx}
 #+LATEX_HEADER: %\isbn{978-1-4503-3739-7/16/04}
@@ -28,6 +44,7 @@
 #+LATEX_HEADER:
 #+LATEX_HEADER: % switch off the table of contents just for LaTeX export
 #+LATEX_HEADER: \let\tableofcontents=\relax
+#+LATEX_HEADER: % ensure that in the LaTeX output links are visible as footnotes
 #+LATEX_HEADER: \let\oldHref=\href
 #+LATEX_HEADER: \def\href#1#2{\oldHref{#1}{#2}\footnote{\url{#1}}}
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./org-style.css" />
@@ -129,12 +146,113 @@
   for publication, we will provide links to the complete source in the
   de-anonymized version. In a later stage, we intent to integrate the
   whole project into the =musl= C library.
-  
+
+* Tools to deal with data races
+
+  Data races are the most difficult challenge for parallel
+  programming. They often lead to hard to trace sporadic errors:
+
+  - Writes to memory may be split by the hardware into several chunks
+    that are written separately. A reader may occasionally see
+    inconsistent values, for example a high and a low word of a wide
+    integer that originate from different writes.
+
+  - A read-modify-write operations such as a simple =i++= may be split
+    into several operations, e.g a read, an increment and a write. If
+    a first write of another threads falls sometime between the read
+    and the write, the new write will erase the value with one that is
+    outdated.
+
+  An operation that is guaranteed to avoid the first problem is called
+  /atomic/. Before the C11 revision C only had one data type,
+  =sig_atomic_t=, that is guaranteed to be read and written in one
+  chunk. It can be used to communicate state between a user program
+  and a signal handler.
+
+  For the second problem, divisibility, C had no standard tool, no
+  operation was guaranteed to be /indivisible/. The /indivisible/
+  operations that most computing hardware offer could not be accessed
+  through language features. Usually they had to be programmed through
+  extensions such as inline assembler or special compiler builtins.
+
+** C atomics and its library interfaces
 
 
-* Fast user space mutexes
 
-  Fast user space mutexes, =futex= for short, combine ... , see \cite{Hutton02fuss, hart09}.
+** Fast user space mutexes
+
+  Fast user space mutexes, =futex= for short, see
+  \cite{Hutton02fuss,hart09}, combine two levels of operations that
+  give guarantees about atomicity for locking data types into a
+  singular toolbox:
+
+  - User space atomic integers as they are supported by all modern
+    hardware are used to regulate access to the lock as long as it is
+    not congested.
+
+  - Wait and wakeup system calls when the lock is under congestion by
+    multiple threads or processes. They relate to such integers by
+    address (user space or kernel space addresses) and that are
+    guaranteed to be perceived as atomic by the caller.
+
+  In the beginning, when =futex= were first introduced they needed
+  non-standard features: assembly extensions for the hardware atomics,
+  and a system call interface into the Linux kernel. Fortunately with
+  the atomics interface of C11 we now have a standardized tool for the
+  first. For the second, in the following we will assume that we
+  dispose of two library calls =futex_wait= and =futex_wake=. With
+  these are simple but un-efficient lock structure =smpl= could look
+  as follows:
+
+#+BEGIN_SRC C11
+typedef _Atomic(int) smpl;
+void lock(smpl* lck) {
+  for (;;) {
+     int prev = atomic_exchange(lck, 1);
+     if (!prev) break;
+     futex_wait(lck, prev);
+  }
+}
+void unlock(smpl* lck) {
+  atomic_store(lck, 0);
+  futex_wake(lck, 1);
+}
+#+END_SRC
+
+  Here the second parameter to =futex_wait= guarantees that the thread
+  will only be set to sleep if the value of the atomic object =*lck=
+  still is =prev=. So the =lock= function will iterate until the
+  atomic exchange succeeds in modifying the value from a previous
+  value of =0= to the value of =1=.
+
+  The second parameter of =futex_wake= corresponds to the maximal
+  number of threads that are to be woken up. So here, the thread that
+  holds the lock restores the object =*lck= to the value =0= and wakes
+  up one possible waiter.
+
+  Both functions as described above are simplistic and not very
+  efficient. The first, =lock= is inefficient because each failed
+  attempt to acquire the lock will result in a call into the kernel,
+  even if the lock would be available almost instantly.  The second,
+  =unlock= tries to wake up another thread without any knowledge if
+  there even is such a thread that is waiting for it.
+
+  To avoid these two shortcomings, system libraries that implement
+  locks (such as e.g =glibc= and =musl=) usually implement two
+  strategies:
+
+  - A first spinning phase attempts the atomic operation several
+    times. Thereby applications with very short critical sections can
+    still mostly run without sending threads into sleep.
+
+  - They use at least two =_Atomic= objects, one for the lock itself
+    and a second one that counts the waiters. This allows to avoid
+    useless calls to =futex_wake=.
+
+  Even though these add enlarge the lock data structure and add more
+  costly atomic operations to the lock primitives these strategies
+  have proven to be much more efficient then our simplistic versions,
+  above.
 
 
 * A new generic atomic lock algorithm using =futex= system calls
