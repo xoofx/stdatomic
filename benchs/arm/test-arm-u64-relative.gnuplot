@@ -113,7 +113,7 @@ set cbtics border in scale 1,0.5 mirror norotate  offset character 0, 0, 0 autoj
 set cbtics autofreq  norangelimit
 set rtics axis in scale 1,0.5 nomirror norotate  offset character 0, 0, 0 autojustify
 set rtics autofreq  norangelimit
-set title "arm: stress test on lock primitives, different implementations for generic atomics" 
+set title "arm-musl: stress test on lock primitives, different implementations for generic atomics" 
 set title  offset character 0, 0, 0 font "" norotate
 set timestamp bottom 
 set timestamp "" 
@@ -128,7 +128,7 @@ set x2label ""
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set xrange [ * : 300 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
-set ylabel "locks/second" 
+set ylabel "relative performance against mutex" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
@@ -158,8 +158,8 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-base = "gcc-u64-pthread"
-files = "gcc-u64-pthread gcc-u64-futex gcc-u64-musl gcc-u64-mtx gcc-u64-repl"
+base = "gcc-u64-mutex"
+files = "gcc-u64-native gcc-u64-futex gcc-u64-musl gcc-u64-mutex gcc-u64-spin"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles

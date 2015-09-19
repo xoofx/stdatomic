@@ -52,7 +52,7 @@ set angles radians
 set grid x
 set raxis
 set key title ""
-set key inside top right vertical Right noreverse enhanced autotitles nobox
+set key inside bottom left vertical Right noreverse enhanced autotitles nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
@@ -161,7 +161,7 @@ set psdir
 set fit noerrorvariables
 base = "test-16b-shortcut"
 #files = "test-16b-shortcut test-16b-no-shortcut test-16b-spin0 test-mono-16b-spin0 test-mono-16b-no-shortcut test-ht2-16b-spin0 test-ht2-16b-no-shortcut test-c2-16b-spin0 test-c2-16b-no-shortcut"
-files = "test-mono-16b-no-shortcut test-ht2-16b-no-shortcut test-c2-16b-no-shortcut test-16b-no-shortcut"
+files = "test-mono-16b-no-shortcut test-ht2-16b-no-shortcut test-c2-16b-no-shortcut test-16b-no-shortcut test-glibc-16b test-glibc-16b-mono test-glibc-16b-h2 test-glibc-16b-c2"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles

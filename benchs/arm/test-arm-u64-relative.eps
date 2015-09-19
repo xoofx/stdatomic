@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0
 %%Title: test-arm-u64-relative.eps
 %%Creator: gnuplot 4.6 patchlevel 6
-%%CreationDate: Fri Sep 18 20:21:33 2015
+%%CreationDate: Sat Sep 19 11:23:56 2015
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 554 770
 %%Orientation: Landscape
@@ -435,7 +435,7 @@ SDict begin [
   /Author (gustedt)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Fri Sep 18 20:21:33 2015)
+  /CreationDate (Sat Sep 19 11:23:56 2015)
   /DOCINFO pdfmark
 end
 } ifelse
@@ -465,7 +465,7 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-686 1044 M
+686 1143 M
 63 0 V
 6128 0 R
 -63 0 V
@@ -474,7 +474,7 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-686 1640 M
+686 1838 M
 63 0 V
 6128 0 R
 -63 0 V
@@ -483,7 +483,7 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-686 2236 M
+686 2533 M
 63 0 V
 6128 0 R
 -63 0 V
@@ -492,7 +492,7 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-686 2831 M
+686 3229 M
 63 0 V
 6128 0 R
 -63 0 V
@@ -501,7 +501,7 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-686 3427 M
+686 3924 M
 63 0 V
 6128 0 R
 -63 0 V
@@ -510,21 +510,12 @@ LCb setrgbcolor
 1.000 UL
 LTb
 LCb setrgbcolor
-686 4023 M
-63 0 V
-6128 0 R
--63 0 V
--6212 0 R
-( 1.6) Rshow
-1.000 UL
-LTb
-LCb setrgbcolor
 686 4619 M
 63 0 V
 6128 0 R
 -63 0 V
 -6212 0 R
-( 1.8) Rshow
+( 1.6) Rshow
 1.000 UL
 LTb
 LCb setrgbcolor
@@ -905,7 +896,7 @@ Z stroke
 LCb setrgbcolor
 112 2533 M
 currentpoint gsave translate -270 rotate 0 0 M
-(locks/second) Cshow
+(relative performance against mutex) Cshow
 grestore
 LTb
 LCb setrgbcolor
@@ -919,7 +910,7 @@ LCb setrgbcolor
 (threads) Cshow
 LTb
 3781 4829 M
-(arm: stress test on lock primitives, different implementations for generic atomics) Cshow
+(arm-musl: stress test on lock primitives, different implementations for generic atomics) Cshow
 LCb setrgbcolor
 3781 4548 M
 () Cshow
@@ -936,23 +927,23 @@ LT0
 LC0 setrgbcolor
 LCb setrgbcolor
 6226 4486 M
-(pthread) Rshow
+(native) Rshow
 LT0
 6310 4486 M
 399 0 V
-686 2236 M
-752 0 V
-440 0 V
-313 0 V
-440 0 V
-312 0 V
-440 0 V
-312 0 V
-441 0 V
-312 0 V
-752 0 V
-752 0 V
-753 0 V
+686 1964 M
+752 28 V
+440 69 V
+313 438 V
+440 -290 V
+312 -40 V
+440 28 V
+312 -48 V
+441 -91 V
+312 31 V
+752 66 V
+752 -42 V
+753 10 V
 % End plot #1
 % Begin plot #2
 stroke
@@ -964,19 +955,19 @@ LCb setrgbcolor
 LT1
 6310 4346 M
 399 0 V
-686 4018 M
-752 -142 V
-440 157 V
-313 -696 V
-242 514 V
-198 43 V
-312 14 V
-440 -120 V
-312 -41 V
-753 -400 V
-752 -219 V
-752 -67 V
-753 -19 V
+686 3703 M
+752 -96 V
+440 266 V
+313 -102 V
+242 146 V
+198 -16 V
+312 59 V
+440 -201 V
+312 -178 V
+753 -360 V
+752 -138 V
+752 -124 V
+753 -6 V
 % End plot #2
 % Begin plot #3
 stroke
@@ -988,19 +979,19 @@ LCb setrgbcolor
 LT2
 6310 4206 M
 399 0 V
-686 3029 M
-752 -211 V
-440 106 V
-313 -259 V
-242 -374 V
-198 -720 V
-312 -558 V
-440 -43 V
-312 76 V
-753 -73 V
-752 123 V
-752 248 V
-753 217 V
+686 2738 M
+752 -173 V
+440 190 V
+313 240 V
+242 -727 V
+198 -792 V
+2943 909 L
+440 -73 V
+312 24 V
+753 -55 V
+752 166 V
+752 228 V
+753 230 V
 % End plot #3
 % Begin plot #4
 stroke
@@ -1008,23 +999,23 @@ LT3
 LC3 setrgbcolor
 LCb setrgbcolor
 6226 4066 M
-(mtx) Rshow
+(mutex) Rshow
 LT3
 6310 4066 M
 399 0 V
-686 2819 M
-752 -33 V
-440 -82 V
-313 -439 V
-242 278 V
-198 41 V
-312 -29 V
-440 51 V
-312 102 V
-753 -36 V
-752 -72 V
-752 46 V
-753 -11 V
+686 2533 M
+752 0 V
+440 0 V
+313 0 V
+242 0 V
+198 0 V
+312 0 V
+440 0 V
+312 0 V
+753 0 V
+752 0 V
+752 0 V
+753 0 V
 % End plot #4
 % Begin plot #5
 stroke
@@ -1032,20 +1023,20 @@ LT4
 LC4 setrgbcolor
 LCb setrgbcolor
 6226 3926 M
-(repl) Rshow
+(spin) Rshow
 LT4
 6310 3926 M
 399 0 V
--6023 4 R
-752 -59 V
-440 182 V
-313 -529 V
-242 -55 V
-198 -418 V
-312 -606 V
-440 -596 V
-312 -597 V
-4383 448 L
+686 3617 M
+752 -15 V
+440 292 V
+313 94 V
+242 -475 V
+198 -492 V
+312 -603 V
+440 -671 V
+312 -680 V
+4228 448 L
 % End plot #5
 stroke
 1.000 UL

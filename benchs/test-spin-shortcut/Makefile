@@ -12,6 +12,9 @@ DATA = ${SOURCES:.txt=.dat}
 %.dat : %.csv
 	../summarize.pl < $< > $@
 
+%.eps : %.gnuplot
+	gnuplot -e "set output '$@'" $<
+
 test-spin-shortcut-all.eps : test-spin-shortcut-all.gnuplot test-*.dat
 	gnuplot test-spin-shortcut-all.gnuplot
 

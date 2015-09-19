@@ -19,15 +19,15 @@ the different tests are
    =__atomic_= interfaces are chosen. We link the code with different
    implementations of that.
 
-   - gcc-u64-pthread uses the =libatomic= library that comes with
+   - gcc-u64-native uses the =libatomic= library that comes with
      gcc. Under the hood this uses the platforms =pthread_mutex_t=
      implementation.
 
-   - gcc-u64-repl uses a simple spinning strategy as a lock
+   - gcc-u64-spinning uses a simple spinning strategy as a lock
 
    - gcc-u64-futex uses the futex strategy build upon the
      capacities of musl
 
-   - gcc-u64-mtx uses a C11 =mtx_t= to lock the access
+   - gcc-u64-mutex uses a C11 =mtx_t= to lock the access
 
    - gcc-u64-musl uses musl's own internal lock for the access
