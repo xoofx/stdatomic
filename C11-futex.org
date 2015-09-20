@@ -116,11 +116,11 @@
   Our algorithm uses all possibilities that the =futex= interfaces
   offers. In particular we use just one =unsigned= integer to
   implement the lock and a waiter count at the same time. Not only is
-  the resulting data type of minimal size (usually just 32 bit) but
-  the algorithm can take advantage of that property by minimizing the
-  number of CPU to memory transfers. In most cases one such transfer
-  is sufficient, where other algorithms have to update a lock and a
-  waiter counter separately.
+  the resulting data type of minimal size (32 bit on all
+  architectures) but the algorithm can take advantage of that property
+  by minimizing the number of CPU to memory transfers. In most cases
+  one such transfer is sufficient, where other algorithms have to
+  update a lock and a waiter counter separately.
 
   To our knowledge pursuing this approach to a complete solution is
   new. Previously urban myth had it that such approaches would risk
@@ -147,7 +147,7 @@
   de-anonymized version. In a later stage, we intent to integrate the
   whole project into the =musl= C library.
 
-* Tools to deal with data races
+* Tools to deal with data consistency and races
 
   Data races are the most difficult challenge for parallel
   programming. They often lead to hard to trace sporadic errors. The
@@ -161,16 +161,16 @@
                   writes.
 
   - divisibility: :: A read-modify-write operations such as a simple
-                     =i++= may be split into several operations, e.g a
-                     read, an increment and a write. If a first write
-                     of another threads falls sometime between the
-                     read and the write, the new write will erase the
-                     value with one that is outdated.
+                     =i++= may be split into several CPU instructions,
+                     e.g a read, an increment and a write. If a first
+                     write of another threads falls sometime between
+                     the read and the write, the new write will erase
+                     the value with one that is outdated.
 
   - memory ordering: :: The results of read and writes to different
        objects in memory might be perceived by different threads in
-       different order. Reordering of instructions may originate by
-       optimization (compiler) or at run time (processor).
+       different order. Reordering of instructions may originate from
+       optimization (compiler) or occur at run time (processor).
 
   A data type that is guaranteed to avoid the first problem is called
   /atomic/. Before the C11 revision C only had one data type,
@@ -223,32 +223,112 @@
    operations. This forces all atomic operations to appear totally
    ordered between all threads.
 
+   We will use the following atomic operations:
+
+| =atomic_store=                 | store a new value         |
+| =atomic_exchange=              | store a new value and     |
+|                                | return the previous       |
+| =atomic_fetch_and_add=         | add to an object and      |
+|                                | return the previous       |
+| =atomic_compare_exchange_weak= | compare to desired value, |
+|                                | then exchange, may fail   |
+
+
+
+
 ** Atomic instructions on modern hardware
+
+   Almost since the beginning of modern computing, parallelism was
+   implemented in hardware and the consistency problems that we
+   introduced above became apparent. Modern hardware (which almost
+   always is inherently parallel) deals with this by providing special
+   instructions, usually referred to as /atomic instructions/. It is
+   important to note that these are not the same as the atomic
+   operations on the level of the C language.
+
+   - word size: :: Usually atomic instructions are limited to word
+                   sized data types. Available on most platforms are
+                   instructions for 8, 16, 32 and 64 bit
+                   datatypes. Some also extend to 128 bit.
+   - primitives: :: The instructions that are implemented may or may
+                    not directly correspond to atomic operations. E.g
+                    some CPU may have a proper instruction for the
+                    increment operator =++=, e.g =x86_64=, on others,
+                    e.g =arm=, such an operation will have to be
+                    composed from primitives.
+   - boundedness: :: Atomic instructions may give a guarantee to
+                     succeed within a bounded time (usually some
+                     memory cycles) or just return success or
+                     failure. For the latter, this may result in C
+                     level operations that have an /unbounded/
+                     response time.
+   - state: :: Atomic instructions may operate on an internal state of
+               the platform. E.g =arm= CPU work with a feature called
+               /monitors/ that memorize state of previous atomic
+               access to memory.
+
+   Due to all these differences, programming with atomic instructions
+   directly on assembly level is a mess, and in general it is very
+   tedious to provide portability between different
+   architectures. Such code has to ensure
+
+   - the correct composition of atomic primitives to obtain sensible
+     semantics of the operations,
+   - the correct alignment of all atomic object such that they don't
+     cross cache line boundaries,
+   - the correct ordering of instructions, e.g it has to ensure that
+     neighboring store instructions can't be reordered by the CPU,
+   - that the unboundedness of some operation may not result in
+     application deadlocks,
+   - and that the OS correctly restores processor state when the
+     execution context switches from one thread to another or to a
+     signal handler.
+
+   Luckily, C now sorts out this mess once and for all, such that only
+   C compiler and C library implementors have to consider all the
+   glorious details of a specific architecture.
+
+   One problem remains though, and this is what this paper is all
+   about. Because of the limited word size for atomic instructions,
+   the implemented compiler operations can't just resort to a
+   composition of atomic primitives on the atomic object itself. If an
+   object is large, say 128 bit wide, or has a size that is not a
+   power of 2, they must rely on external or internal /locks/, that is
+   to an auxiliary object that protects the data object by means of
+   some /lock primitives/ and by memorizing a /state/ of the
+   application.
+
+   Typically such locks can be made invisible between different
+   threads, but remain visible between a thread and its signal
+   handler. So the access to an object that is qualified with
+   =_Atomic= but that needs a lock for operation may be divisible with
+   respect to a signal handler, and this property is what coined C's
+   terminology of /lockfree/ that we already mentioned above.
+
 
 ** Fast user space mutexes
 
-  Fast user space mutexes, =futex= for short, see
-  \cite{Hutton02fuss,hart09}, combine two levels of operations that
-  give guarantees about atomicity for locking data types into a
-  singular toolbox:
+    In a singular toolbox Fast User space muTEXes, =futex= for short,
+    see \cite{Hutton02fuss,hart09}, combine two levels of operations
+    for the implementation of lock primitives:
 
-  1. User space atomic integers as they are supported by all modern
-     hardware are used to regulate access to the lock as long as it is
-     not congested.
+    1. User space atomic integers with lockfree operations are used to
+       regulate access to the lock as long as it is not congested.
 
-  2. Wait and wakeup system calls when the lock is under congestion by
-     multiple threads or processes. They relate to such integers by
-     address (user space or kernel space addresses) and that are
-     guaranteed to be perceived as atomic by the caller.
+    2. Wait and wakeup system calls resolve conflicts when the lock is
+       under congestion by multiple threads or processes. They relate
+       to such integers by address (user space or kernel space
+       addresses) and are guaranteed to be perceived as indivisible by
+       the caller.
 
-  In the beginning, when =futex= were first introduced they needed
-  non-standard features: assembly extensions for the hardware atomics,
-  and a system call interface into the Linux kernel. Fortunately with
-  the atomics interface of C11 we now have a standardized tool for the
-  first. For the second, in the following we will assume that we
-  dispose of two library calls =futex_wait= and =futex_wake=. With
-  these are simple but un-efficient lock structure =smpl= could look
-  as follows:
+    In the beginning, when =futex= were first introduced they needed
+    non-standard features: assembly extensions for the hardware atomics,
+    and a system call interface into the Linux kernel. Fortunately with
+    the atomics interface of C11 we now have a standardized tool for the
+    first. For the second, in the following we will assume that we
+    dispose of two library calls =futex_wait= and =futex_wake=. With
+    these are simple but un-efficient lock structure =smpl= could look
+    as follows:
 
 #+BEGIN_SRC C11
 typedef _Atomic(int) smpl;
@@ -277,14 +357,14 @@ void unlock(smpl* lck) {
   up one possible waiter.
 
   Both functions as described above are simplistic and not very
-  efficient. The first, =lock= is inefficient because each failed
-  attempt to acquire the lock will result in a call into the kernel,
-  even if the lock would be available almost instantly.  The second,
-  =unlock= tries to wake up another thread without any knowledge if
-  there even is such a thread that is waiting for it.
+  efficient. The first, =lock=, is inefficient because each failed
+  attempt to acquire the lock will result in a call into the OS
+  kernel, even if the lock would be available almost instantly.  The
+  second, =unlock=, tries to wake up another thread without any
+  knowledge if there even is such a thread that is waiting for it.
 
   To avoid these two shortcomings, system libraries that implement
-  locks (such as e.g =glibc= and =musl=) usually implement two
+  locks (such as e.g =glibc= and =musl=) usually combine two
   strategies:
 
   - A first spinning phase attempts the atomic operation several
@@ -295,10 +375,10 @@ void unlock(smpl* lck) {
     and a second one that counts the waiters. This allows to avoid
     useless calls to =futex_wake=.
 
-  Even though these add enlarge the lock data structure and add more
-  costly atomic operations to the lock primitives these strategies
-  have proven to be much more efficient then our simplistic versions,
-  above.
+  Even though these additions enlarge the lock data structure and add
+  more costly atomic operations to the lock primitives these
+  strategies have proven to be much more efficient then our simplistic
+  versions, above.
 
 
 * A new generic atomic lock algorithm using =futex= system calls
@@ -308,10 +388,11 @@ void unlock(smpl* lck) {
 
    We implement this strategy a bit differently than classical locks
    with wait-counters would do. We just have a single =unsigned= value
-   that at the same time holds the lock bit (HO bit) and a
-   counter. That counter is not viewed as a counter of the threads
-   that are in a kernel wait, but just counts the number of threads
-   inside the critical section. This has the following advantages:
+   that at the same time holds the lock bit (HO bit) and a 31 bit
+   counter.[fn:2] That counter is not viewed as a counter of the
+   threads that are in a kernel wait, but just counts the number of
+   threads inside the critical section. This has the following
+   advantages:
 
    - An update to the counter part is relatively rare. So we save
      memory bandwidth, and we also avoid too much interaction between
@@ -319,7 +400,8 @@ void unlock(smpl* lck) {
 
    - The fast path occurs when the value is =0=, initially. It sets
      the HO bit (the lock bit) and the LO bit (for a counter of value
-     =1=) in one go. The resulting value is =UINT_MAX/2u+2u=.
+     =1=) in one go. The resulting value is =UINT_MAX/2u+2u= which is
+     $2^{31}+2 = 2147483650$
 
    - If the fast path fails, the counter is atomically incremented by
      one, and we enter a spin lock to set the HO bit as well.
@@ -795,4 +877,6 @@ file:benchs/benchs-comparison/test-benchs-relative.png
 
 [fn:1] The version shown here is actually an improved version of the
 one currently distributed with musl.
+
+[fn:2] On Linux, =unsigned= is always 32 bit wide.
  
