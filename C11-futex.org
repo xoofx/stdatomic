@@ -150,34 +150,80 @@
 * Tools to deal with data races
 
   Data races are the most difficult challenge for parallel
-  programming. They often lead to hard to trace sporadic errors:
+  programming. They often lead to hard to trace sporadic errors. The
+  main problems are:
 
-  - Writes to memory may be split by the hardware into several chunks
-    that are written separately. A reader may occasionally see
-    inconsistent values, for example a high and a low word of a wide
-    integer that originate from different writes.
+  - atomicity: :: Writes to memory may or may be not split by the
+                  hardware into several chunks that are written
+                  separately. A reader may occasionally see
+                  inconsistent values, for example a high and a low
+                  word of a wide integer that originate from different
+                  writes.
 
-  - A read-modify-write operations such as a simple =i++= may be split
-    into several operations, e.g a read, an increment and a write. If
-    a first write of another threads falls sometime between the read
-    and the write, the new write will erase the value with one that is
-    outdated.
+  - divisibility: :: A read-modify-write operations such as a simple
+                     =i++= may be split into several operations, e.g a
+                     read, an increment and a write. If a first write
+                     of another threads falls sometime between the
+                     read and the write, the new write will erase the
+                     value with one that is outdated.
 
-  An operation that is guaranteed to avoid the first problem is called
+  - memory ordering: :: The results of read and writes to different
+       objects in memory might be perceived by different threads in
+       different order. Reordering of instructions may originate by
+       optimization (compiler) or at run time (processor).
+
+  A data type that is guaranteed to avoid the first problem is called
   /atomic/. Before the C11 revision C only had one data type,
-  =sig_atomic_t=, that is guaranteed to be read and written in one
+  =sig_atomic_t=, that had this guaranty to be read and written in one
   chunk. It can be used to communicate state between a user program
   and a signal handler.
 
-  For the second problem, divisibility, C had no standard tool, no
-  operation was guaranteed to be /indivisible/. The /indivisible/
-  operations that most computing hardware offer could not be accessed
-  through language features. Usually they had to be programmed through
-  extensions such as inline assembler or special compiler builtins.
+  For the second problem, divisibility, C had no standard tool. No
+  other operation than read or write of =sig_atomic_t= was guaranteed
+  to be /indivisible/.  The /indivisible/ operations that most
+  computing hardware offer could not be accessed through language
+  features. Usually they had to be programmed through extensions such
+  as inline assembler or special compiler builtins.
+
+  Before C11, C also had no thread concept, so the memory ordering
+  problem could not even be formalized within the vocabulary of the C
+  standard. Obviously, it also could not provide tools to deal with
+  it.
 
 ** C atomics and its library interfaces
 
+   With modern multi-processor and multi-core hardware, parallel
+   programming is an imperative for many if not most user applications
+   that are used on a larger scale. Therefore it was crucial for C11
+   to introduce the concepts and tools that are necessary to deal with
+   it. So C11 introduces two optional features, threads through the
+   =<threads.h>= interface, and atomics trough the =<stdatomic.h>=
+   interface. Evidently here we are more interested in the latter, but
+   it is important to note that both features need each other to
+   unfold all of their potential.
 
+   C11 introduced a new qualifier, =_Atomic=. A such qualified object
+   guarantees that any read or write access to it is /atomic/ in the
+   sense we have defined above. This qualification also guarantees
+   that between different threads all standard operations (defined
+   through operators such as =+== or functional such as
+   =atomic_exchange=) are perceived as /indivisible/. Note well that
+   this guarantee is only given /between threads/ and /in perception/:
+   in reality an operation can well be divided into several processor
+   instructions and the perception guarantee doesn't extend to
+   visibility between the main program and signal handlers. An
+   operation that extends perception of indivisibility to signal
+   handlers is called /lockfree/ in the jargon of the C
+   standard. Below we will see where this choice of words originates.
+
+   C11 also introduces different concepts of =memory_order= for atomic
+   operations. The whole of that specification is much too complex to
+   unfold, here. In the following we will assume /sequential
+   consistency/ (=memory_order_seq_cst=) for all atomic
+   operations. This forces all atomic operations to appear totally
+   ordered between all threads.
+
+** Atomic instructions on modern hardware
 
 ** Fast user space mutexes
 
@@ -186,14 +232,14 @@
   give guarantees about atomicity for locking data types into a
   singular toolbox:
 
-  - User space atomic integers as they are supported by all modern
-    hardware are used to regulate access to the lock as long as it is
-    not congested.
+  1. User space atomic integers as they are supported by all modern
+     hardware are used to regulate access to the lock as long as it is
+     not congested.
 
-  - Wait and wakeup system calls when the lock is under congestion by
-    multiple threads or processes. They relate to such integers by
-    address (user space or kernel space addresses) and that are
-    guaranteed to be perceived as atomic by the caller.
+  2. Wait and wakeup system calls when the lock is under congestion by
+     multiple threads or processes. They relate to such integers by
+     address (user space or kernel space addresses) and that are
+     guaranteed to be perceived as atomic by the caller.
 
   In the beginning, when =futex= were first introduced they needed
   non-standard features: assembly extensions for the hardware atomics,
