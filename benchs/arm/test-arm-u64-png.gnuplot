@@ -11,12 +11,7 @@
 #    	gnuplot home:     http://www.gnuplot.info
 #    	faq, bugs, etc:   type "help FAQ"
 #    	immediate help:   type "help"  (plot window: hit 'h')
-# set terminal postscript landscape noenhanced defaultplex \
-#    leveldefault color colortext \
-#    dashed dashlength 1.0 linewidth 1.0 butt noclip \
-#    nobackground \
-#    palfuncparam 2000,0.003 \
-#    "Helvetica" 14  fontscale 1.0 
+set terminal png size 1280,960 fontscale 1.7
 unset clip points
 set clip one
 unset clip two
@@ -132,7 +127,7 @@ set ylabel "locks/second"
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ 0.6 : * ] noreverse nowriteback
+set yrange [ 200000 : * ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -159,7 +154,7 @@ set fontpath
 set psdir
 set fit noerrorvariables
 base = "gcc-u64-native"
-files = "gcc-u64-native gcc-u64-futex gcc-u64-musl gcc-u64-mutex gcc-u64-spin"
+files = "gcc-u64-futex gcc-u64-spin gcc-u64-musl gcc-u64-mutex gcc-u64-native"
 set for [i = 1:10] style line i lw 4
 set style line 6 lc rgb "red"
 set style increment userstyles

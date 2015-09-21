@@ -15,8 +15,10 @@ DATA = ${SOURCES:.txt=.dat}
 %.eps : %.gnuplot
 	gnuplot -e "set output '$@'" $<
 
-test-arm-all.eps : test-arm-all.gnuplot test-*.dat
-	gnuplot test-arm-all.gnuplot
+%.png : %.gnuplot
+	gnuplot -e "set output '$@'" -e "set terminal png size 1280,960" $<
 
-test-arm-relative.eps : test-arm-relative.gnuplot test-*.dat
+test-arm-u64.eps test-arm-u64.png : test-arm-u64.gnuplot test-*.dat
+
+test-arm-relative.eps test-arm-relative.png : test-arm-relative.gnuplot test-*.dat
 	gnuplot test-arm-relative.gnuplot

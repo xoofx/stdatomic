@@ -639,120 +639,59 @@ void unlock(ftx* lck) {
     factor of 0.9 always guarantees liveness of the application and
     shows good performance on average.
 
-** Instrumentation and testing
-
-*** Instrumentation
-
-    There is optional instrumentation for the lock
-    functions. Switching it on changes overall performance
-    substantially, and thus I'd expect a noticeable Heisenberg
-    effect. So these counter can give qualitative information about
-    what happens, you shouldn't take the figures verbally. Also these
-    counters are only protected if you test the library with only one
-    lock, using atomics for these counters themselves would have a
-    strong performance impact and the resulting statistics would
-    basically be worthless.
-
-    You can switch the instrumentation of the code on by defining the
-    symbol =BENCH= at compile time. A function =atomic_summary= can be
-    used at the end of all operations to print the collected data to
-    =stderr=.
-
-*** Code injection
-
-    To test the behavior of the locking algorithm you may inject a
-    function call just after the acquisition of the lock. Thereby you
-    can e.g force the thread that obtains the lock to be unscheduled,
-    and test the worst-case behavior of the locking algorithm.
-
-    This feature is switched on by defining the macro =ATOMIC_INJECT=
-    at compile time. The you have a thread local variable
-    =atomic_faulty= and a function interface =atomic_inject= at your
-    disposal, namely =atomic_inject= is called iff =atomic_faulty= is
-    true for the calling thread.
-
-    There is a "weak" version of =atomic_inject= that does nothing. It
-    can be overwritten by a specific version that you provide
-    yourself. E.g in Modular C the slow path of the algorithm is
-    stressed by simply calling =thrd_yield=.
-
-    The variable =atomic_faulty= can be used to switch the code
-    injection on and off, such that you may experiment with different
-    probabilities of failure.
-
 * Benchmarks
 
 ** The framework
 
-   I have run a long series of benchmarks to validate the
-   approach. The code for the benchmark is at the moment integrated in
-   /p11/ with comes with /Modular C/, see [[cmod.gforge.inria.fr][Cmod]]. To compile it you'd
-   need
-
-   - a C11 compliant library, that has C11 threads. I only know of [[www.muls-libc.org][musl]].
-   - a C11 compiler that also has gcc extension. I tested with gcc and
-     clang.
-   - Cmod
-   - [[p99.gforge.inria.fr][P99]], a macro library that is needed for
-     some parts of p11.
+   We have run a long series of benchmarks to validate the
+   approach. The code for the benchmark is integrated in /p11/ with
+   comes with /Modular C/, see
+   [[http://cmod.gforge.inria.fr][Cmod]]. For compilation of that
+   benchmark we also need a C11 compliant library, that has C11
+   threads, and a C11 compiler that also has gcc extension. We used
+   =musl= for the first and gcc and clang for the latter.
 
    The test in p11 is called p11#test#lifo. It is based on a stack
    implementation (Last In First Out) that uses an atomic pair of
-   pointers for the head to avoid the ABA problem.
+   pointers for the head to avoid the ABA problem, \cite{IBM370,michael04:aba}.
 
 ** The test program
 
-   The test creates or deletes a random number of list elements in the
-   lifo inside a loop. It understands the following command line arguments:
+   The idea of this benchmark is to have a application that runs under
+   full load, stresses the platform with a lot of allocations and
+   deallocations and in the middle of that does a lot of locking and
+   unlocking. It works as follows:
 
-   -t the number of threads to use for the run
+   It creates or deletes a random number of list elements for the lifo
+   inside a loop. All test runs last =10s= and were repeated at least
+   10 times. The measure that is reported is the number of list
+   elements that have been handled per second on average.
 
-   -s the number of seconds to run all the threads in parallel
-
-   -f to force unscheduling of threads with a given probability. If
-   you provide a value $N$, here, the probability will be $1/N$.
-
-   -l a file to use for logging
-
-   At compile time, you may chose between different lock primitives to
-   protect the atomic pair:
+   The parameters of the runs are the number of threads that run in
+   parallel, values ranging from =1= up to =256=.  Different lock
+   primitives can be chosen at compile time to protect the head of the
+   LIFO:
 
    - the futex based algorithm described here
-
-   - a spin lock implemented with =atomic_flag=, itself based on a
-     =test_and_set= instruction/builtin.
-
-   - =pthread_mutex_t=
-
-   - =mtx_t=
-
+   - a mutex
    - musl's lowlevel =lock/unlock= functions
-
-   - a spin lock implemented directly with
-     =atomic_compare_exchange_strong_explicit=
-
-   This is done by defining a macro =ATOMIC_GENERIC_LOCK= to some
-   value when compiling =atomic_generic.c=.
-
-   The idea of this benchmark is to have a application that runs on
-   full load, stress tests the platform with a lot of allocations and
-   deallocations and in the middle of that does a lot of locking and
-   unlocking.
+   - a spin lock using =atomic_compare_exchange_strong=
+   - the compilers "native" generic lock, also a mutex
 
 ** The test platforms
 
+*** An =arm7= machine with 4 cores
+
+    This machine has 4 symmetric =arm7= cores at a =1.3 GHz= with =2
+    GiB= of RAM. This system is equipped with Alpine Linux, so it has
+    =musl= as a native C library. The processor has atomic
+    instructions for word sizes up to 64 bit.
+
 *** A =x86_64= machine with 2x2 hypethreaded cores
 
-    It has 16 byte atomic instructions (like most such machines have
-    now) and uses them if you compile with =-march=native=. Thereby we
-    obtain the first test to obtain the performance when the atomic is
-    done on instruction level.
-
-    All other test are compiled without that option and thus the
-    compiler replaces the atomic operation by a call to the
-    corresponding function of the library.
-
-*** An =arm7= machine with 4 cores
+    This is a i7-4600U CPU at =2.10GHz= and with =8 GiB= of RAM. The
+    OS is Debian Linux, with =glibc= as native library.  The processor
+    has atomic instructions for word sizes up to 128 bit.
 
 ** Comparative performance of the different lock primitives
 
@@ -765,7 +704,7 @@ void unlock(ftx* lck) {
 #+LABEL:fig:all
 #+ATTR_LaTeX: :width 0.95\linewidth
 #+ATTR_HTML:  :width 95%
-[[file:benchs/benchs-comparison/test-benchs-all.png]]
+[[file:benchs/arm/test-arm-u64.png]]
 #+END_CENTER
 
    First, we see that using the instruction if it is available is a
@@ -785,7 +724,14 @@ void unlock(ftx* lck) {
 #+LABEL:fig:all
 #+ATTR_LaTeX: :width 0.95\linewidth
 #+ATTR_HTML:  :width 95%
-file:benchs/benchs-comparison/test-benchs-relative.png
+[[file:benchs/arm/test-arm-u64-relative.png]]
+#+END_CENTER
+
+#+BEGIN_CENTER
+#+LABEL:fig:all
+#+ATTR_LaTeX: :width 0.95\linewidth
+#+ATTR_HTML:  :width 95%
+[[file:benchs/x86_64/test-x86_64-musl-relative.png]]
 #+END_CENTER
 
    - The spinlock based on =atomic_compare_exchange_strong_explicit=
@@ -887,7 +833,7 @@ file:benchs/benchs-comparison/test-benchs-relative.png
     everybody going into the =futex_wait=.
 
 
-
+#+LATEX: \clearpage
 #+LATEX: \bibliographystyle{ACM-Reference-Format-Journals}
 #+LATEX: \bibliography{modernC}
 
