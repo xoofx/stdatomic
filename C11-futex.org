@@ -5,6 +5,7 @@
 #+LATEX_CLASS: sig-alternate-05-2015
 #+LATEX_HEADER: \pdfpagewidth=8.5truein
 #+LATEX_HEADER: \pdfpageheight=11truein
+#+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \usepackage[table]{xcolor}
@@ -27,7 +28,7 @@
 #+LATEX_HEADER:   moreemph=[5]{
 #+LATEX_HEADER:     futex_wait,
 #+LATEX_HEADER:     futex_wake,
-#+LATEX_HEADER:     smpl,
+#+LATEX_HEADER:     smpl, ftx,
 #+LATEX_HEADER:     },
 #+LATEX_HEADER: }
 #+LATEX_HEADER: \author{\framebox[1.5cm]{[\hfill]} \framebox[3cm]{[\hfill]}\\
@@ -47,6 +48,9 @@
 #+LATEX_HEADER: % ensure that in the LaTeX output links are visible as footnotes
 #+LATEX_HEADER: \let\oldHref=\href
 #+LATEX_HEADER: \def\href#1#2{\oldHref{#1}{#2}\footnote{\url{#1}}}
+#+LATEX_HEADER: \newtheorem{remark}{Remark}[section]
+#+LATEX_HEADER: \newtheorem{lemma}[remark]{Lemma}
+#+LATEX_HEADER: \newtheorem{theorem}[remark]{Theorem}
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./org-style.css" />
 #+HTML_MATHJAX: mathml:t path:"/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 
@@ -229,7 +233,7 @@
 | =atomic_exchange=              | store a new value and     |
 |                                | return the previous       |
 | =atomic_fetch_and_add=         | add to an object and      |
-|                                | return the previous       |
+|                                | return the previous value |
 | =atomic_compare_exchange_weak= | compare to desired value, |
 |                                | then exchange, may fail   |
 
@@ -302,7 +306,7 @@
    threads, but remain visible between a thread and its signal
    handler. So the access to an object that is qualified with
    =_Atomic= but that needs a lock for operation may be divisible with
-   respect to a signal handler, and this property is what coined C's
+   respect to a signal handler. This property is what coined C's
    terminology of /lockfree/ that we already mentioned above.
 
 
@@ -322,13 +326,13 @@
        the caller.
 
     In the beginning, when =futex= were first introduced they needed
-    non-standard features: assembly extensions for the hardware atomics,
-    and a system call interface into the Linux kernel. Fortunately with
-    the atomics interface of C11 we now have a standardized tool for the
-    first. For the second, in the following we will assume that we
-    dispose of two library calls =futex_wait= and =futex_wake=. With
-    these are simple but un-efficient lock structure =smpl= could look
-    as follows:
+    non-standard features: assembly extensions for the atomic
+    instructions, and a system call interface into the Linux
+    kernel. Fortunately with the atomics interface of C11 we now have
+    a standardized tool for the first. For the second, in the
+    following we will assume that we dispose of two library calls
+    =futex_wait= and =futex_wake=. With these a simple but
+    un-efficient lock structure =smpl= could look as follows:
 
 #+BEGIN_SRC C11
 typedef _Atomic(int) smpl;
@@ -372,254 +376,264 @@ void unlock(smpl* lck) {
     still mostly run without sending threads into sleep.
 
   - They use at least two =_Atomic= objects, one for the lock itself
-    and a second one that counts the waiters. This allows to avoid
-    useless calls to =futex_wake=.
+    and a second one that counts the waiters. By checking if the
+    counter is 0, this allows to avoid useless calls to =futex_wake=.
 
   Even though these additions enlarge the lock data structure and add
-  more costly atomic operations to the lock primitives these
-  strategies have proven to be much more efficient then our simplistic
-  versions, above.
-
+  one atomic operation to the =unlock= function these strategies have
+  proven to be much more efficient then our simplistic versions,
+  above.
 
 * A new generic atomic lock algorithm using =futex= system calls
 
+  To construct an adapted lock data structure for our situation, we
+  want to have the following properties:
+
+  - The size of the data structure should be minimal, that is use just
+    one 32 bit machine word as it is needed by the =futex= calls.
+
+  - For then non-contended case the number of atomic operations should
+    be minimal. That is one such operation for each, =lock= and
+    =unlock=, should suffice in that case.
+
+  - The procedure should be efficient, that is it should not
+    unnecessarily waste resources. In particular, threads that have no
+    chance to acquire the lock should be put into an OS sleep state.
+
+  - If the number of threads is bounded, the procedure should be
+    deadlock free.
 
 ** The algorithm
 
-   We implement this strategy a bit differently than classical locks
-   with wait-counters would do. We just have a single =unsigned= value
-   that at the same time holds the lock bit (HO bit) and a 31 bit
-   counter.[fn:2] That counter is not viewed as a counter of the
-   threads that are in a kernel wait, but just counts the number of
-   threads inside the critical section. This has the following
-   advantages:
+   For our strategy we use a single =unsigned= value that at the same
+   time holds the lock bit (HO bit) and a 31 bit counter.[fn:2]
 
-   - An update to the counter part is relatively rare. So we save
-     memory bandwidth, and we also avoid too much interaction between
-     the different threads that compete for the lock.
+#+BEGIN_SRC C11
+typedef _Atomic(unsigned) ftx;
+#define ftx_mask        0x7FFFFFFFU
+#define ftx_count(FTX)  (FTX & ftx_mask)
+#define ftx_locked(FTX) (FTX > ftx_mask)
+// highest and lowest bit to 1
+#define ftx_contrib     0x80000001U
+#+END_SRC
 
-   - The fast path occurs when the value is =0=, initially. It sets
-     the HO bit (the lock bit) and the LO bit (for a counter of value
-     =1=) in one go. The resulting value is =UINT_MAX/2u+2u= which is
-     $2^{31}+2 = 2147483650$
+   That counter is not viewed as a counter of the threads that are in
+   a kernel wait, but counts the number of threads inside the critical
+   section.  So an update of the counter part is done once when a
+   thread enters the critical section. Compared to the number of times
+   the counter is accessed under congestion such events are relatively
+   rare. Thereby we save memory bandwidth for the update, and we also
+   avoid too much interaction between the different threads that
+   compete for the lock.
 
-   - If the fast path fails, the counter is atomically incremented by
-     one, and we enter a spin lock to set the HO bit as well.
+   1. A thread is on the fast path for the lock when the overall value
+      is =0=. The lock can be acquired with one atomic operation.  If
+      this returns successfully, it has set the HO bit (the lock bit)
+      and the LO bit (for a counter of value =1=) in one go.
 
-   - After having spun for sometime, we suppose that we are in the bad
-     situation and go into a =futex_wait=. Going into the =futex_wait=
-     may fail if the value changes. Since additional threads only
-     change the counter when they arrive, this can't happen too often
-     and the thread goes to sleep, eventually.
+#+BEGIN_SRC C11
+void lock(ftx* lck) {
+  unsigned curr = 0;
+  if (!atomic_compare_exchage_weak(
+         lck, &curr, ftx_contrib)) {
+     curr = atomic_fetch_add(lck, 1) + 1;
+     for (;;) {
+        while (curr <= ftx_mask) {
+          // here: spin for some time
+          if (acquired) return;
+        }
+        while (curr > ftx_mask) {
+           futex_wait(lck, curr);
+           curr = atomic_load(lck);
+        }
+     }
+  }
+}
+#+END_SRC
 
-   - Unlocking is a very simple operation. The locker has contributed
-     =UINT_MAX/2u+2u= to the value, and so just has to decrement the
-     value atomically by that amount. By doing so, the thread also
-     notices if other threads still are in the critical section and
-     wakens one of them.
+   2. [@2] Otherwise, if the fast path fails, we increment the lock
+      value atomically, and then we enter a spin lock to set the HO
+      bit as well.
+
+   3. After having spun for sometime, we suppose that the lock is
+      under congestion and we go into a =futex_wait=. Going into the
+      =futex_wait= may fail if the value changes, but since additional
+      threads only change the counter when they arrive, this can't
+      happen too often and the thread goes to sleep, eventually.
+
+   Unlocking is a very simple operation. The locker has contributed
+   =ftx_contrib= to the value, and just has to decrement the value
+   atomically by that amount.  The return value of the operation
+   reveals if other threads still are in the critical section, and a
+   =futex_wake= call can be placed accordingly.
+
+#+BEGIN_SRC C11
+void unlock(ftx* lck) {
+  unsigned prev
+    = atomic_fetch_sub(lck, ftx_contrib);
+  if (prev != ftx_contrib)
+    futex_wake(lck, 1);
+}
+#+END_SRC
+
 
 ** Analysis
 
-    Let us assume a worst case scenario where a thread $T_0$ is
-    unscheduled while inside the critical section, and that there are
-    $N$ threads that are ready to be scheduled, and that once
-    scheduled start to compete for the lock.
+   It is easy to see that this new strategy provides a functional lock
+   primitive using just a 32 bit data structure and one atomic
+   operation for =lock= and =unlock=. It remains to show that it
+   cannot deadlock.
 
-    Different quantities are interesting for an analysis of the
-    runtime behavior of the algorithm.
+   The worst case scenario for our use of our lock primitive is that
+   the thread, say $T_0$, that holds the lock is unscheduled while
+   inside the critical section. Suppose further that there are $N$
+   other threads that are ready to be scheduled, and that once
+   scheduled start to compete for the lock.
 
-    - $t_{slice}$ is the length of a scheduling time slice.
+   Different quantities are interesting for an analysis of the runtime
+   behavior of the algorithm. We can control one of them, namely the
+   time $t_{\textrm{mono}}$ that a scheduled thread spends spinning
+   before trying to switch to =futex_wait=.  Three are platform
+   dependent:
 
-    - $P$ is the /number of processor cores/, which is viewed to be
-      equal to the maximum number of threads that are scheduled
-      simultaneously.
+    - $t_{\textrm{fail}}$ :: is the maximum of two system specific
+         times: the time a thread $T_1$ may either spend in a failed
+         attempt to =futex_wait= or that the system needs to put $T_1$
+         to sleep and start another thread $T_2$.
 
-    - $t_{spin}$ is the time that a scheduled thread spends spinning
-      before trying to switch to =futex_wait=.
+    - $P$ :: is the /number of processor cores/, which is viewed to be
+             equal to the maximum number of threads that are scheduled
+             simultaneously.
 
-    - $1 \leq S \leq P$ is the /slowdown/ of the platform.  We suppose
-      that $P$ threads can spin concurrently and the time for them
-      spinning exactly in parallel is $S \cdot t_{spin}$.
+    - $t_{\textrm{para}}$ :: is the time that $P$ threads need for a
+         spinning phase that they perform in parallel.
 
-    - $\frac{1}{P} \leq E = \frac{1}{S} \leq 1$ is the /efficiency/ of
-      the platform.  This will in general be less than $1$, e.g
-      because of memory contention or contention on other shared
-      resources (execution pipelines, caches). On a typical
-      hyperthreaded machine of today with $4$ cores in total, this
-      would be between $0.625$ and $0.75$. On an ideal SMP machine
-      without resource sharing this would be $1$.
+    A value $t_{\textrm{para}}$ close to $t_{\textrm{mono}}$ indicates
+    a perfect parallelism, a value of $P \cdot t_{\textrm{mono}}$
+    means that there is none at all. Usually it will be greater than
+    $t_{\textrm{mono}}$, e.g because of memory contention or
+    contention on other shared resources (execution pipelines,
+    caches). We derive some other quantities from the above:
 
-    - $1 \leq \hat{P}=E\cdot P \leq P$ is the /parallelism/ of the
-      platform. For the example of the hyperthreaded machine with $4$
-      cores in total, $\hat{P}$ could be between $2.5$ and $3$.
+    - $\widehat{P}$ :: given as $\frac{P\cdot
+                       t_{\textrm{mono}}}{t_{\textrm{para}}}$ is the
+                       /parallelism/ of the platform.
 
-    - $t_{fail}$ is the maximum of two system specific times: the time
-      a thread $T_1$ may either spend in a failed attempt to
-      =futex_wait= or that the system needs to put $T_1$ to sleep and
-      start another thread $T_2$.
+    - $E$ :: given as $\frac{t_\textrm{mono}}{t_{\textrm{para}}} =
+             \frac{\widehat{P}}{P}$ is the /efficiency/ of the
+             platform.
 
-    As a first observation let us state:
-#+BEGIN_EM
-#+BEGIN_CENTER
-On a platform where $\hat{P}$ is close to one, the spinning phase of
-the algorithm should entirely be skipped.
-#+END_CENTER
-#+END_EM
+    For example, on a modern hyperthreaded machine with $4$ cores in
+    total, $\widehat{P}$ is typically be between $2.5$ and $3$ and $E$
+    is between $0.625$ and $0.75$.
+
+#+LATEX: \begin{remark}
+#+HTML: <em>
+#+HTML: <center>
+    On a platform where $\widehat{P}$ is close to one, the spinning
+    phase of the algorithm should entirely be skipped.
+#+HTML: </center>
+#+HTML: </em>
+#+LATEX: \end{remark}
 
     This is simply because there no other thread can make progress
     while a thread is spinning. Thus spinning would just waste
     resources and the state of the application would not progress.  So
-    from now on we can assume that $\hat{P} \geq 1+\epsilon$ for some
+    from now on we can assume that $\widehat{P} \geq 1+\epsilon$ for some
     reasonable value of $\epsilon > 0$.
 
+#+LATEX: \begin{lemma}
+#+HTML: <em>
+#+HTML: <center>
+    Provided that no other threads are descheduled, after at most
+    $$t_{\textrm{para}} + (P-1)\cdot t_{\textrm{fail}}$$
+    seconds a first thread successfully calls =futex_wait=.
+#+HTML: </center>
+#+HTML: </em>
+#+LATEX: \end{lemma}
 
-    Let $T_0$ be the thread that holds the lock and suppose that $T_0$
-    is unscheduled by the OS in the middle of its critical
-    section. Now, the only interaction that other threads can have
-    over the lock, is the time they spend inside the lock function
-    itself. Since they will not reach the applicative part of the
-    critical section before $T_0$ releases the lock, that part is
-    neglected for the rest of the discussion.
+#+LATEX: \begin{proof}
+    For the first term, observe that after $t_{\textrm{para}}$ time,
+    at least one thread has finished the spinning phase, and attempts
+    =futex_wait=.
 
-    Any individual thread needs at least time $t_{spin}$ to reach the
-    call to =futex_wait=, all $P$ threads together may need $S \cdot
-    t_{spin}$ time.
+    While no thread is descheduled at most $P$ scheduled threads can
+    enter the critical section. There are at most $P-1$ atomic
+    increments that change the futex value. Thus the first thread that
+    enters the critical section will need at most $t_{\textrm{para}}$
+    time for spinning and then =futex_wait= may fail at most $P-1$
+    times in a row.
+#+LATEX: \end{proof}
 
-    Also, in that situation not more than $P$ scheduled threads can enter
-    the critical section. There are $P-1$ atomic events that change
-    the futex value in this case and thus =futex_wait= may have been
-    forced to fail at most $P-1$ times.
-
-#+BEGIN_EM
-#+BEGIN_CENTER
-Provided that no other threads are descheduled, after at most
-$$\max \{ S\cdot t_{spin} + t_{fail}, t_{spin} + (P-1)\cdot t_{fail}\}$$
-seconds a first thread successfully calls =futex_wait=.
-#+END_CENTER
-#+END_EM
-
-    This already shows that, provided no descheduling takes place, our
-    algorithm is deadlock-free.
+    This already shows that, provided no other descheduling takes
+    place, our algorithm is deadlock-free.
 
     Now, once a thread successfully goes into =futex_wait= a new
-    thread $T_P$ is scheduled, competes for the lock and changes the
-    =futex= value. It will perturb all other threads that are trying
-    to go into =futex_wait=, forcing them to restart their attempt.
+    thread $T_P$ can be scheduled, compete for the lock and change the
+    =futex= value. It may disturb all other threads that are trying to
+    go into =futex_wait=, forcing them to restart their attempt.
 
-#+BEGIN_EM
-#+BEGIN_CENTER
-After a thread successfully enters =futex_wait= and the newly
-scheduled thread enters immediately into the critical section, the
-time for next thread to succeed a call to =futex_wait= is $t_{fail}$
-#+END_CENTER
-#+END_EM
+#+LATEX: \begin{remark}
+#+HTML: <em>
+#+HTML: <center>
+    Provided that no threads are descheduled otherwise, that there are
+    always $P$ threads inside the CS and that at least one of them has
+    finished spinning, after a time of $t_{\textrm{fail}}$ another
+    threads succeeds his call to =futex_wait=.
+#+HTML: </center>
+#+HTML: </em>
+#+LATEX: \end{remark}
 
-    But, under some premises this value is also an upper bound:
+    That is, under these circumstances we have a stable regime where each
+    $t_{fail}$ seconds a thread enters =futex_wait=.
 
+    To be able to ensure that there is always at least one thread that
+    has finished spinning, we observe that if $t_{\textrm{para}} \leq
+    t_{\textrm{fail}}$ (or equivalently $t_{\textrm{mono}} \leq E\cdot
+    t_{\textrm{fail}}$) a newly scheduled thread has finished spinning
+    when the next thread successfully goes into =futex_wait=.
 
-#+BEGIN_EM
-#+BEGIN_CENTER
-Provided that no threads are descheduled otherwise, that there are
-always $P$ threads inside the CS and that at least one of them has
-finished spinning, after a time of $t_{fail}$ another threads succeeds
-his call to =futex_wait=.
-#+END_CENTER
-#+END_EM
+#+LATEX: \begin{lemma}
+#+HTML: <em>
+#+HTML: <center>
+    Provided that no threads are descheduled otherwise, that there are
+    always $P$ threads inside the CS and that $S\cdot t_{\textrm{mono}} \leq
+    t_{\textrm{fail}}$, threads succeed calls to =futex_wait= at a rate of
+    $1/t_{\textrm{fail}}$ per second.
+#+HTML: </center>
+#+HTML: </em>
+#+LATEX: \end{lemma}
 
-That is, under these circumstances we have a stable regime where each
-$t_{fail}$ seconds a thread enters =futex_wait=.
+    Or, roughly if $P \ll N$ the time for all threads to calm down and
+    successfully call =futex_wait= is $N\cdot t_{\textrm{fail}}$.
 
-To be able to ensure that there is always at least one thread that has
-finished spinning, we observe that if
+#+LATEX: \begin{theorem}
+#+HTML: <em>
+#+HTML: <center>
+    Let be $T_0$ a thread out of $N \gg P$ that is descheduled when
+    holding the lock.  Provided that none of the threads is
+    descheduled by other means and that $t_{\textrm{para}} \leq
+    t_{\textrm{fail}}$, after a time of $N\cdot t_{\textrm{fail}}$ the
+    application makes progress.
+#+HTML: </center>
+#+HTML: </em>
+#+LATEX: \end{theorem}
 
-$$S\cdot t_{spin} \leq t_{fail}$$
+#+LATEX: \begin{proof}
+    This progress can be of two forms.  Either there is another thread
+    than $T_{0}$ that doesn't enter the the critical section and thus
+    progresses the application, or $T_0$ will be rescheduled and
+    finishes its critical section.
+#+LATEX: \end{proof}
 
-or equivalently
-
-$$t_{spin} \leq E\cdot t_{fail}$$
-
-a newly scheduled thread $T_P$ has finished spinning when the next
-thread successfully goes into =futex_wait=.
-
-#+BEGIN_EM
-#+BEGIN_CENTER
-Provided that no threads are descheduled otherwise, that there are
-always $P$ threads inside the CS and that $S\cdot t_{spin} \leq
-t_{fail}$, threads succeed calls to =futex_wait= at a rate of
-$1/t_{fail}$ per second.
-#+END_CENTER
-#+END_EM
-
-Or, roughly the time for all threads to calm down and successfully
-call =futex_wait= is $N\cdot t_{fail}$.
-
-#+BEGIN_EM
-#+BEGIN_CENTER
-Provided that no threads are descheduled otherwise, that there are
-always $P$ threads inside the CS and that $S\cdot t_{spin} \leq
-t_{fail}$, after a time of $N\cdot t_{fail}$ the application can start
-to make progress, again.
-#+END_CENTER
-#+END_EM
-
-This progress can either be that there are other threads that do some
-work for the application, or, if there are no such threads, $T_0$ will
-be rescheduled and finish its CS.
-
-The time $t_{spin}$ has not only an influence for this worst case, but
-is also responsible for the response time in the non-congested
-situation. Here the longer we spin, the higher the probability to get
-away without going into =futex_wait=. So the best compromise would be
-to choose
-
-$$t_{spin} = E\cdot t_{fail}.$$
-
-Observe that as soon that $P > 1 + \epsilon$ this formula is otherwise
-independent of $P$ itself.
-
-The exact value for $E$ is not so easy to measure or guess in real
-life. As a good heuristic value is
-
-\begin{equation}
-\frac{t_{spin}}{t_{fail}} =
-\begin{cases}
-0 & \textrm{if $\hat{P} \leq 1+\epsilon$}\\
-0.5 + \frac{\epsilon}{2} & \textrm{if $\hat{P} \leq 2$}\\
-0.9 & \textrm{otherwise.}
-\end{cases}
-\end{equation}
-
-
-
-** Caveats
-
-
-*** Support of 16 byte atomic instructions
-
-    The main difference for modern processors that is relevant here is
-    if it supports 16 byte atomic instructions or not. There is no
-    difficulty to detect this at compile time, but if the library is
-    used with code that is compiled with a different compiler or just
-    different compiler options, incompatible binary code may be
-    produced.
-
-    My plan is to freeze that feature at compile time of the library
-    and reflect the capacity in the =<stdatomic.h>= that is
-    provided. This then may result in code that is a bit less
-    optimized than it could, but that is compatible.
-
-    - If the library is *not* compiled with direct 16 byte support the
-      application may not use it, and thus use a memory implementation
-      for such operations.
-
-    - If the library *is* compiled with direct 16 byte support but the
-      application compiler doesn't support it, the user code should
-      fallback to library calls, but which in turn use the atomic
-      instructions. So such a variant would have a call overhead and
-      would not be able to inline the atomics in the user binary.
-
-    All of this is not yet, done, though. Be careful when using this
-    preliminary version.
+    The time $t_{\textrm{mono}}$ has not only an influence for this
+    worst case, but is also responsible for the response time in the
+    non-congested situation. The longer we spin, the higher the
+    probability to acquire the lock without going into
+    =futex_wait=. So the best compromise would be to choose
+    $t_{\textrm{mono}} = E\cdot t_{\textrm{fail}}$. Practically a
+    factor of 0.9 always guarantees liveness of the application and
+    shows good performance on average.
 
 ** Instrumentation and testing
 
