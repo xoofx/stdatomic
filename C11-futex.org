@@ -66,7 +66,7 @@
   the =futex= system calls. It allows us to assemble compiler support
   for atomics and OS support for inactive thread sleeps into an
   efficient tool that is able to outperform the compiler's /native/
-  library by around 50%.
+  library by around 60%.
 #+END_ABSTRACT
 
 * Introduction
@@ -74,7 +74,7 @@
   Only very recently (with C11, see \cite{C11}) the C language has
   integrated threads and atomic operations into the core of the
   language.  Support for these features is still partial: where the
-  main opensource compilers [[https://gcc.gnu.org/][=gcc=]] and
+  main open source compilers [[https://gcc.gnu.org/][=gcc=]] and
   [[http://clang.llvm.org/][=clang=]]p now offer atomics, most Linux
   platforms still use [[https://www.gnu.org/software/libc/][=glibc=]]
   as their C library which doesn't implement C11 threads. Only
@@ -250,7 +250,7 @@
    - word size: :: Usually atomic instructions are limited to word
                    sized data types. Available on most platforms are
                    instructions for 8, 16, 32 and 64 bit
-                   datatypes. Some also extend to 128 bit.\vspace*{-2ex}
+                   data types. Some also extend to 128 bit.\vspace*{-2ex}
    - primitives: :: The instructions that are implemented may or may
                     not directly correspond to atomic operations. E.g
                     some CPU may have a proper instruction for the
@@ -285,7 +285,7 @@
      signal handler.
 
    Luckily, C11 now ensures that only C compiler and C library
-   implementors have to consider all the glorious details of a
+   Implementers have to consider all the glorious details of a
    specific architecture. One problem remains though, and this is what
    this paper is all about. Because of the limited word size for
    atomic instructions, the implemented compiler operations can't just
@@ -313,7 +313,7 @@
     1. User space atomic integers with lockfree operations are used to
        regulate access to the lock as long as it is not congested.\vspace*{-2ex}
 
-    2. Wait and wakeup system calls resolve conflicts when the lock is
+    2. Wait and wake-up system calls resolve conflicts when the lock is
        under congestion by multiple threads or processes. They relate
        to such integers by address (user space or kernel space
        addresses) and are guaranteed to be perceived as indivisible by
@@ -326,7 +326,7 @@
     a standardized tool for the first. For the second, in the
     following we will assume that we dispose of two library calls
     =futex_wait= and =futex_wake=. With these a simple but
-    un-efficient lock structure =smpl= could look as follows:
+    inefficient lock structure =smpl= could look as follows:
 
 #+BEGIN_SRC C11
 typedef _Atomic(int) smpl;
@@ -659,7 +659,7 @@ void unlock(ftx* lck) {
    The test in p11 is called p11#test#lifo. It is based on a stack
    implementation (Last In First Out) that uses an atomic pair of
    pointers for the head to avoid the ABA problem,
-   \cite{IBM370,michael04:aba}. For the benchs, the size of the atomic
+   \cite{IBM370,michael04:aba}. For the benchmarks, the size of the atomic
    data structure has been chosen in such a way that the generic
    atomic functions based on locks are chosen.
 
@@ -697,7 +697,7 @@ void unlock(ftx* lck) {
     instructions for word sizes up to 64 bit. The compiler is =gcc=
     version =4.9=.
 
-*** A =x86_64= machine with 2x2 hypethreaded cores
+*** A =x86_64= machine with 2x2 hyperthreaded cores
 
     This is a i7-4600U CPU at =2.10GHz= and with =8 GiB= of RAM. The
     OS is Debian Linux, with =glibc= as native library.  The processor
@@ -706,7 +706,9 @@ void unlock(ftx* lck) {
 
 ** Performance comparison
 
-   The following figure shows the results on the =arm= platform.
+   The following figure shows the results on the =arm=
+   platform.\vspace*{-2ex}
+
 
 #+BEGIN_CENTER
 #+LABEL:fig:all
@@ -715,6 +717,7 @@ void unlock(ftx* lck) {
 [[file:benchs/arm/test-arm-u64.png]]
 #+END_CENTER
 
+   \vspace*{-2ex}
    We see that all lock implementations allow for an acceleration of
    the application when a small number of threads is used. But what is
    also clear that the "native" lock performs worst for the case that
@@ -722,7 +725,7 @@ void unlock(ftx* lck) {
    its own CPU core. Even the "mutex" lock performs better.
 
    We also see that musl's internal lock structure shows a drastic
-   performance loss when it comes to congestions. This is due to a
+   performance loss when it comes to congestion. This is due to a
    switch of the spinning strategy: as soon as congestion is detected,
    spinning is abandoned and threads directly attempt
    =futex_wait=. This is meant to ensure fairness of lock acquisition,
@@ -773,7 +776,8 @@ When compared to other lock implementations it shows better
 performance. This is not surprising, an implementation that is tuned
 for the purpose (very short CS) and that may avoid stacked calls into
 the C library should always perform better than a generic one.
-Surprising to us was the wide gap between the implementations.
+Surprising to us was the wide performance gap between the
+implementations.
 
 By pursuing this research we also learned to mistrust some of the
 urban legends that turn around atomics, futexes and lock structures in
@@ -786,8 +790,8 @@ atomic access. The performance factor between the two is only about
 cases.
 
 In the future we plan to make this whole support library available as
-open source project. Ideally it will be integrated into a C library,
-e.g =musl=.
+open source project. We hope to integrat it into the C library that we
+used for most of our experiments, =musl=.
 
 
 
