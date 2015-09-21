@@ -3,8 +3,8 @@
 #+HTML: <h1 align="center" >Jens Gustedt</h1>
 #+LATEX_OPTIONS: toc:nil ^:nil
 #+LATEX_CLASS: sig-alternate-05-2015
-#+LATEX_HEADER: \pdfpagewidth=8.5truein
-#+LATEX_HEADER: \pdfpageheight=11truein
+#+LATEX_HEADER: %\pdfpagewidth=8.5truein
+#+LATEX_HEADER: %\pdfpageheight=11truein
 #+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \usepackage{color}
@@ -24,7 +24,7 @@
 #+LATEX_HEADER:   language=[99]{C},
 #+LATEX_HEADER:   language={C11},
 #+LATEX_HEADER:   style=modernC,
-#+LATEX_HEADER:   basicstyle=\tt\footnotesize,
+#+LATEX_HEADER:   basicstyle=\tt\small,
 #+LATEX_HEADER:   moreemph=[5]{
 #+LATEX_HEADER:     futex_wait,
 #+LATEX_HEADER:     futex_wake,
@@ -198,13 +198,13 @@
 
    With modern multi-processor and multi-core hardware, parallel
    programming is an imperative for many if not most user applications
-   that are used on a larger scale. Therefore it was crucial for C11
-   to introduce the concepts and tools that are necessary to deal with
-   it. So C11 introduces two optional features, threads through the
-   =<threads.h>= interface, and atomics trough the =<stdatomic.h>=
-   interface. Evidently here we are more interested in the latter, but
-   it is important to note that both features need each other to
-   unfold all of their potential.
+   that are used on a larger scale. Therefore it was crucial for C to
+   provide the concepts and tools that are necessary to deal with
+   it. So C11 introduces a lot of vocabulary and two optional
+   features: threads through the =<threads.h>= interface, and atomics
+   trough the =<stdatomic.h>= interface. Evidently here we are more
+   interested in the latter, but it is important to note that both
+   features need each other to unfold all of their potential.
 
    C11 introduced a new qualifier, =_Atomic=. A such qualified object
    guarantees that any read or write access to it is /atomic/ in the
@@ -297,10 +297,10 @@
    the implemented compiler operations can't just resort to a
    composition of atomic primitives on the atomic object itself. If an
    object is large, say 128 bit wide, or has a size that is not a
-   power of 2, they must rely on external or internal /locks/, that is
-   to an auxiliary object that protects the data object by means of
-   some /lock primitives/ and by memorizing a /state/ of the
-   application.
+   power of 2, they must rely on external or internal /locks/ that
+   protect a /critical section/, CS. That is they need an auxiliary
+   object that protects the data object by means of some /lock
+   primitives/ and by memorizing a /state/ of the application.
 
    Typically such locks can be made invisible between different
    threads, but remain visible between a thread and its signal
@@ -351,7 +351,7 @@ void unlock(smpl* lck) {
 
   Here the second parameter to =futex_wait= guarantees that the thread
   will only be set to sleep if the value of the atomic object =*lck=
-  still is =prev=. So the =lock= function will iterate until the
+  still is =prev=. As a consequence the =lock= function will iterate until the
   atomic exchange succeeds in modifying the value from a previous
   value of =0= to the value of =1=.
 
@@ -372,8 +372,8 @@ void unlock(smpl* lck) {
   strategies:
 
   - A first spinning phase attempts the atomic operation several
-    times. Thereby applications with very short critical sections can
-    still mostly run without sending threads into sleep.
+    times. Thereby an application with a very short CS can mostly
+    avoid sending threads into sleep.
 
   - They use at least two =_Atomic= objects, one for the lock itself
     and a second one that counts the waiters. By checking if the
@@ -384,15 +384,15 @@ void unlock(smpl* lck) {
   proven to be much more efficient then our simplistic versions,
   above.
 
-* A new generic atomic lock algorithm using =futex= system calls
+* A new generic lock algorithm using futex system calls
 
-  To construct an adapted lock data structure for our situation, we
+  To construct and adapted lock data structure for our situation, we
   want to have the following properties:
 
   - The size of the data structure should be minimal, that is use just
     one 32 bit machine word as it is needed by the =futex= calls.
 
-  - For then non-contended case the number of atomic operations should
+  - When there is no contention, the number of atomic operations should
     be minimal. That is one such operation for each, =lock= and
     =unlock=, should suffice in that case.
 
@@ -420,16 +420,11 @@ typedef _Atomic(unsigned) ftx;
    That counter is not viewed as a counter of the threads that are in
    a kernel wait, but counts the number of threads inside the critical
    section.  So an update of the counter part is done once when a
-   thread enters the critical section. Compared to the number of times
+   thread enters the CS. Compared to the number of times
    the counter is accessed under congestion such events are relatively
    rare. Thereby we save memory bandwidth for the update, and we also
    avoid too much interaction between the different threads that
    compete for the lock.
-
-   1. A thread is on the fast path for the lock when the overall value
-      is =0=. The lock can be acquired with one atomic operation.  If
-      this returns successfully, it has set the HO bit (the lock bit)
-      and the LO bit (for a counter of value =1=) in one go.
 
 #+BEGIN_SRC C11
 void lock(ftx* lck) {
@@ -451,20 +446,29 @@ void lock(ftx* lck) {
 }
 #+END_SRC
 
-   2. [@2] Otherwise, if the fast path fails, we increment the lock
-      value atomically, and then we enter a spin lock to set the HO
-      bit as well.
+   1. A thread is on the fast path for the lock when the overall value
+      is =0=. The lock can be acquired with one atomic operation.  If
+      this returns successfully, it has set the HO bit (the lock bit)
+      and the LO bit (for a counter of value =1=) in one go. If the
+      fast path fails, we increment the lock value atomically.
 
-   3. After having spun for sometime, we suppose that the lock is
-      under congestion and we go into a =futex_wait=. Going into the
-      =futex_wait= may fail if the value changes, but since additional
-      threads only change the counter when they arrive, this can't
-      happen too often and the thread goes to sleep, eventually.
+   2. Otherwise, we enter an acquisition loop.
+
+      1. First, we spin for a while (determined below) to set the HO
+         bit as well, and thus acquire the lock.
+
+      2. If that times out, we suppose that the lock is
+         under congestion and we go into a =futex_wait=.
+
+   Going into the =futex_wait= may fail if the value changes, but
+   since additional threads only change the counter when they arrive,
+   this can't happen too often and the thread goes to sleep,
+   eventually.
 
    Unlocking is a very simple operation. The locker has contributed
    =ftx_contrib= to the value, and just has to decrement the value
    atomically by that amount.  The return value of the operation
-   reveals if other threads still are in the critical section, and a
+   reveals if other threads still are in the CS, and a
    =futex_wake= call can be placed accordingly.
 
 #+BEGIN_SRC C11
@@ -481,14 +485,14 @@ void unlock(ftx* lck) {
 
    It is easy to see that this new strategy provides a functional lock
    primitive using just a 32 bit data structure and one atomic
-   operation for =lock= and =unlock=. It remains to show that it
+   operation for fast =lock= and =unlock=. It remains to show that it
    cannot deadlock.
 
    The worst case scenario for our use of our lock primitive is that
-   the thread, say $T_0$, that holds the lock is unscheduled while
-   inside the critical section. Suppose further that there are $N$
-   other threads that are ready to be scheduled, and that once
-   scheduled start to compete for the lock.
+   the thread that holds the lock, say $T_0$, is unscheduled while
+   inside the CS. Suppose further that there are $N$ other threads
+   that are ready to be scheduled, and that once they are scheduled
+   they start to compete for the lock.
 
    Different quantities are interesting for an analysis of the runtime
    behavior of the algorithm. We can control one of them, namely the
@@ -524,8 +528,8 @@ void unlock(ftx* lck) {
              platform.
 
     For example, on a modern hyperthreaded machine with $4$ cores in
-    total, $\widehat{P}$ is typically be between $2.5$ and $3$ and $E$
-    is between $0.625$ and $0.75$.
+    total, $\widehat{P}$ is typically between $2.5$ and $3$, $E$ is
+    between $0.625$ and $0.75$.
 
 #+LATEX: \begin{remark}
 #+HTML: <em>
@@ -539,13 +543,13 @@ void unlock(ftx* lck) {
     This is simply because there no other thread can make progress
     while a thread is spinning. Thus spinning would just waste
     resources and the state of the application would not progress.  So
-    from now on we can assume that $\widehat{P} \geq 1+\epsilon$ for some
+    from now on we may assume that $\widehat{P} \geq 1+\epsilon$ for some
     reasonable value of $\epsilon > 0$.
 
 #+LATEX: \begin{lemma}
 #+HTML: <em>
 #+HTML: <center>
-    Provided that no other threads are descheduled, after at most
+    Provided that no other threads are unscheduled, after at most
     $$t_{\textrm{para}} + (P-1)\cdot t_{\textrm{fail}}$$
     seconds a first thread successfully calls =futex_wait=.
 #+HTML: </center>
@@ -557,15 +561,15 @@ void unlock(ftx* lck) {
     at least one thread has finished the spinning phase, and attempts
     =futex_wait=.
 
-    While no thread is descheduled at most $P$ scheduled threads can
-    enter the critical section. There are at most $P-1$ atomic
+    While no thread is unscheduled at most $P$ scheduled threads can
+    enter the CS. There are at most $P-1$ atomic
     increments that change the futex value. Thus the first thread that
-    enters the critical section will need at most $t_{\textrm{para}}$
+    enters the CS will need at most $t_{\textrm{para}}$
     time for spinning and then =futex_wait= may fail at most $P-1$
     times in a row.
 #+LATEX: \end{proof}
 
-    This already shows that, provided no other descheduling takes
+    This already shows that, provided no other unscheduling takes
     place, our algorithm is deadlock-free.
 
     Now, once a thread successfully goes into =futex_wait= a new
@@ -576,7 +580,7 @@ void unlock(ftx* lck) {
 #+LATEX: \begin{remark}
 #+HTML: <em>
 #+HTML: <center>
-    Provided that no threads are descheduled otherwise, that there are
+    Provided that no threads are unscheduled otherwise, that there are
     always $P$ threads inside the CS and that at least one of them has
     finished spinning, after a time of $t_{\textrm{fail}}$ another
     threads succeeds his call to =futex_wait=.
@@ -596,8 +600,8 @@ void unlock(ftx* lck) {
 #+LATEX: \begin{lemma}
 #+HTML: <em>
 #+HTML: <center>
-    Provided that no threads are descheduled otherwise, that there are
-    always $P$ threads inside the CS and that $S\cdot t_{\textrm{mono}} \leq
+    Provided that no threads are unscheduled otherwise, that there are
+    always $P$ threads inside the CS and that $t_{\textrm{para}} \leq
     t_{\textrm{fail}}$, threads succeed calls to =futex_wait= at a rate of
     $1/t_{\textrm{fail}}$ per second.
 #+HTML: </center>
@@ -610,9 +614,9 @@ void unlock(ftx* lck) {
 #+LATEX: \begin{theorem}
 #+HTML: <em>
 #+HTML: <center>
-    Let be $T_0$ a thread out of $N \gg P$ that is descheduled when
+    Let be $T_0$ a thread out of $N \gg P$ that is unscheduled when
     holding the lock.  Provided that none of the threads is
-    descheduled by other means and that $t_{\textrm{para}} \leq
+    unscheduled by other means and that $t_{\textrm{para}} \leq
     t_{\textrm{fail}}$, after a time of $N\cdot t_{\textrm{fail}}$ the
     application makes progress.
 #+HTML: </center>
@@ -621,9 +625,9 @@ void unlock(ftx* lck) {
 
 #+LATEX: \begin{proof}
     This progress can be of two forms.  Either there is another thread
-    than $T_{0}$ that doesn't enter the the critical section and thus
+    than $T_{0}$ that doesn't enter the the CS and thus
     progresses the application, or $T_0$ will be rescheduled and
-    finishes its critical section.
+    finishes its CS.
 #+LATEX: \end{proof}
 
     The time $t_{\textrm{mono}}$ has not only an influence for this
@@ -658,7 +662,7 @@ void unlock(ftx* lck) {
 
     To test the behavior of the locking algorithm you may inject a
     function call just after the acquisition of the lock. Thereby you
-    can e.g force the thread that obtains the lock to be descheduled,
+    can e.g force the thread that obtains the lock to be unscheduled,
     and test the worst-case behavior of the locking algorithm.
 
     This feature is switched on by defining the macro =ATOMIC_INJECT=
@@ -705,7 +709,7 @@ void unlock(ftx* lck) {
 
    -s the number of seconds to run all the threads in parallel
 
-   -f to force descheduling of threads with a given probability. If
+   -f to force unscheduling of threads with a given probability. If
    you provide a value $N$, here, the probability will be $1/N$.
 
    -l a file to use for logging
