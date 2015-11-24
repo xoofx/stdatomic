@@ -661,15 +661,13 @@ is \texttt{gcc} version \texttt{5.2}.
 \subsection{Performance comparison}
 \label{sec-4-4}
 
-The following figure shows the results on the \texttt{arm}
-platform.\itemadjust
-
-
-\begin{center}
+The Fig.~\ref{fig:arm} shows the results on the \texttt{arm}
+platform.
+\begin{figure}
 \includegraphics[width=0.95\linewidth]{benchs/arm/test-arm-u64.png}
-\end{center}
-
-\itemadjust
+\caption{lock throughput on \texttt{arm}}
+\label{fig:arm}
+\end{figure}
 We see that all lock implementations allow for an acceleration of
 the application when a small number of threads is used. But what is
 also clear that the "native" lock performs worst for the case that
@@ -686,10 +684,11 @@ application throughput.
 
 Here is the relative performance of the same experiments, where the
 "mutex" implementation is taken as a base:
-
-\begin{center}
+\begin{figure}
 \includegraphics[width=0.95\linewidth]{benchs/arm/test-arm-u64-relative.png}
-\end{center}
+\caption{relative performance on \texttt{arm}}
+\label{fig:arm-rel}
+\end{figure}
 
 We see that our new implementation is about 60\% better than
 the "native" version, or 40\% than a direct implementation with
@@ -707,10 +706,11 @@ even decelerates.\footnote{Figure not shown, due to space limitations.}
 
 Nevertheless the relative performance difference between the
 different lock implementations look very similar.
-
-\begin{center}
+\begin{figure}
 \includegraphics[width=0.95\linewidth]{benchs/x86_64/test-x86_64-musl-relative.png}
-\end{center}
+\caption{relative performance on \texttt{x86\_64}}
+\label{fig:x86_64-rel}
+\end{figure}
 
 \section{Conclusion}
 \label{sec-5}
