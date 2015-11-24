@@ -28,57 +28,57 @@ Appropriate Title, Introduction, and Conclusion: 4
 Comments
 ---------------------------------------------------------------------------
 
-In this paper, the authors present an algorithm, together with an
-implementation, for manipulating a lock data structure required for supporting
-the C11 atomic interface, based on Linux’ lock interface, the futex system
-calls. According the authors, this is part of a larger open-source project for
-providing the necessary interfaces (header files) and library support for
-C11’s <stdatomic.h>. The authors discussed the advantages of the proposed
-algorithm relative to the prior art and evaluated its performance with a
-microbenchmark.
+ > In this paper, the authors present an algorithm, together with an
+ > implementation, for manipulating a lock data structure required for supporting
+ > the C11 atomic interface, based on Linux’ lock interface, the futex system
+ > calls. According the authors, this is part of a larger open-source project for
+ > providing the necessary interfaces (header files) and library support for
+ > C11’s <stdatomic.h>. The authors discussed the advantages of the proposed
+ > algorithm relative to the prior art and evaluated its performance with a
+ > microbenchmark.
 
-I don't think this paper is in a form that can be accepted by this conference:
+ > I don't think this paper is in a form that can be accepted by this conference:
+ > 
+ > (1) The abstract is badly written. It is unclear what the key contribution is.
+ > (2) The paper has quite a few grammatical errors (as shown by the list given
+ > below).
+ > (3) Only five references are cited, of which only the 2nd reference was
+ > previously published formally in a conference.
 
-(1) The abstract is badly written. It is unclear what the key contribution is.
-(2) The paper has quite a few grammatical errors (as shown by the list given
-below).
-(3) Only five references are cited, of which only the 2nd reference was
-previously published formally in a conference.
+ > While the paper is relevant to SAC, the authors are suggested to submit this
+ > paper either as a WiP paper, a tool a paper or a short paper to a conference on
+ > OS. I believe the impact of this work will
+ > be higher there, particularly if this is part of a large open-source project.
 
-While the paper is relevant to SAC, the authors are suggested to submit this
-paper either as a WiP paper, a tool a paper or a short paper to a conference on
-OS. I believe the impact of this work will
-be higher there, particularly if this is part of a large open-source project.
+ > Grammatical errors:
 
-Grammatical errors:
+ > Page 2: Our algorithm and its implementation is part of a larger
 
-Page 2: Our algorithm and its implementation is part of a larger
+ > Page 3: of all atomic object ==> of all atomic objects
 
-Page 3: of all atomic object ==> of all atomic objects
+ > Page 3: much more effi
+ > Page 3: That is should use just one 32 bit machine word ...
 
-Page 3: much more effi
-Page 3: That is should use just one 32 bit machine word ...
+ > Page 4: This is simply because there no other thread can make ...
 
-Page 4: This is simply because there no other thread can make ...
+ > Page 5: Now, once a thread successfully goes into futex_wait a new threadTP
+ > canbescheduled,competeforthelockandchange the futex value.
 
-Page 5: Now, once a thread successfully goes into futex_wait a new threadTP
-canbescheduled,competeforthelockandchange the futex value.
+ > Page 5:  another threads succeeds
 
-Page 5:  another threads succeeds
+ > Page 5:  each t_fail seconds
 
-Page 5:  each t_fail seconds
+ > Page 5:  threads succeed calls to futex_wait 
 
-Page 5:  threads succeed calls to futex_wait 
+ > Page 5: integrated in p11 with comes with Modular C, see Cmod
 
-Page 5: integrated in p11 with comes with Modular C, see Cmod
+ > Page 5: a application  ==> an application 
 
-Page 5: a application  ==> an application 
+ > Page 6:  worse that  ==>  worse than
 
-Page 6:  worse that  ==>  worse than
+ > Page 6: as open source project ==> as an open source project
 
-Page 6: as open source project ==> as an open source project
-
-Page 6:  integrat it ==>  integrate it
+ > Page 6:  integrat it ==>  integrate it
 
 ============================================================================
                             REVIEWER #2
@@ -106,37 +106,37 @@ Comments
 -Summary-
 - ----------------------
 
-The paper presents an implementation of a locking mechanism for C based on
-futex primitives.
-The new mechanism is compared with four other mechanisms on two machines and it
-is shown to be better performing.
+ > The paper presents an implementation of a locking mechanism for C based on
+ > futex primitives.
+ > The new mechanism is compared with four other mechanisms on two machines and it
+ > is shown to be better performing.
 
 -Assessment-
 - ----------------------
 
-The paper is well-written, though in a quite informal tone. I'd recommend to
-drop all shortenings (like "don't") and tune the tone a bit.
-There is no related work -- no comparison with existing different approaches,
-and this is somehow unpleasant.
-The benchmarks are nevertheless done in comparison to other 4 locking
-approaches, so it's ok.
+ > The paper is well-written, though in a quite informal tone. I'd recommend to
+ > drop all shortenings (like "don't") and tune the tone a bit.
+ > There is no related work -- no comparison with existing different approaches,
+ > and this is somehow unpleasant.
+ > The benchmarks are nevertheless done in comparison to other 4 locking
+ > approaches, so it's ok.
 
-You use the verd "dispose" in the wrong way, that needs to change.
-The dictionary says:
-    dispose 
-    verb
-    1 [ no obj. ] (dispose of) get rid of by throwing away or giving or selling
-to someone else
-    ...
-You use "dispose" as in "to have available" ('disporre', i guess).
-These two things have different meanings, please be sure to use the right one.
+ > You use the verd "dispose" in the wrong way, that needs to change.
+ > The dictionary says:
+ >     dispose 
+ >     verb
+ >     1 [ no obj. ] (dispose of) get rid of by throwing away or giving or selling
+ > to someone else
+ >     ...
+ > You use "dispose" as in "to have available" ('disporre', i guess).
+ > These two things have different meanings, please be sure to use the right one.
 
-A negative point of the paper is the non-replicability of results.
-In case of acceptance, please consider putting your benchmarks online for
-download.
+ > A negative point of the paper is the non-replicability of results.
+ > In case of acceptance, please consider putting your benchmarks online for
+ > download.
 
-Otherwise the results are nice and therefore i recommend acceptance.
-Notice that you can buy extra pages to include missing figures.
+ > Otherwise the results are nice and therefore i recommend acceptance.
+ > Notice that you can buy extra pages to include missing figures.
 
 -Strengths/Weaknesses-
 
@@ -167,59 +167,59 @@ Appropriate Title, Introduction, and Conclusion: 6
 Comments
 ---------------------------------------------------------------------------
 
-The authors present an algorithm for the implementation of an atomic primitive
-using Linux futex system calls that combines busy and non-busy waiting in a
-multithreaded programming environment using a single 32-bit integer as a lock
-variable. The authors show that their implementation compares favorably to
-other approaches under certain circumstances by avoiding system calls in favor
-of spinning. A description of the implementation of the lock and unlock
-operations is followed by a proof that the algorithm does protect against
-deadlock, given no unscheduling of a locking thread by the operating system. 
-Finally, the authors provide a comparison of their futex-based implementation
-against current alternative atomic implementations, and show that for a single
-guarded-stack, it performs similar to spinlocks until the number of threads
-exceed the number of hardware threads.
+ > The authors present an algorithm for the implementation of an atomic primitive
+ > using Linux futex system calls that combines busy and non-busy waiting in a
+ > multithreaded programming environment using a single 32-bit integer as a lock
+ > variable. The authors show that their implementation compares favorably to
+ > other approaches under certain circumstances by avoiding system calls in favor
+ > of spinning. A description of the implementation of the lock and unlock
+ > operations is followed by a proof that the algorithm does protect against
+ > deadlock, given no unscheduling of a locking thread by the operating system. 
+ > Finally, the authors provide a comparison of their futex-based implementation
+ > against current alternative atomic implementations, and show that for a single
+ > guarded-stack, it performs similar to spinlocks until the number of threads
+ > exceed the number of hardware threads.
 
 * Strengths
 
-The authors merge concepts from spin locks and futex locks, with the goal to
-keep a small number of threads active until some timeout to support fast lock
-handover and avoid congesting the lock. The authors establish context and
-describe both the algorithm and its analysis effectively and economically,
-without sacrificing clarity.
+ > The authors merge concepts from spin locks and futex locks, with the goal to
+ > keep a small number of threads active until some timeout to support fast lock
+ > handover and avoid congesting the lock. The authors establish context and
+ > describe both the algorithm and its analysis effectively and economically,
+ > without sacrificing clarity.
 
 * Weaknesses
 
-The main weakness of the paper is that it discusses several interesting points
-superficially. For example, the paper mentions the urban myth that similar
-implementations may deadlock without providing evidence. I think it is
-necessary to cite Ulrich Drepper's work on futex locks (
-http://www.akkadia.org/drepper/futex.pdf ) and compare the presented approach
-against it. Also, Drepper's work goes into more detail why the use of futexes
-for lock implementations has to be carefully designed. Overall the paper is
-very thin on related work.
+ > The main weakness of the paper is that it discusses several interesting points
+ > superficially. For example, the paper mentions the urban myth that similar
+ > implementations may deadlock without providing evidence. I think it is
+ > necessary to cite Ulrich Drepper's work on futex locks (
+ > http://www.akkadia.org/drepper/futex.pdf ) and compare the presented approach
+ > against it. Also, Drepper's work goes into more detail why the use of futexes
+ > for lock implementations has to be carefully designed. Overall the paper is
+ > very thin on related work.
 
-There is also space to show performance results for an architecture where the
-new algorithm does not perform so well. The page with references is almost
-empty.
+ > There is also space to show performance results for an architecture where the
+ > new algorithm does not perform so well. The page with references is almost
+ > empty.
 
-I assume the authors use release/acquire tags for setting and reading the lock
-variable. The paper should mention that.
+ > I assume the authors use release/acquire tags for setting and reading the lock
+ > variable. The paper should mention that.
 
-The performance analysis says that the atomics on x86 are underperforming. The
-paper suggests that this is due to the fact that almost any atomic operation
-enforces sequential consistency. I would like to see more evidence for this
-claim. I would argue that atomics on x86 are comparatively cheap, because even
-non-atomic operations provide a high degree of guarantees (except for
-stores reordered after loads).
+ > The performance analysis says that the atomics on x86 are underperforming. The
+ > paper suggests that this is due to the fact that almost any atomic operation
+ > enforces sequential consistency. I would like to see more evidence for this
+ > claim. I would argue that atomics on x86 are comparatively cheap, because even
+ > non-atomic operations provide a high degree of guarantees (except for
+ > stores reordered after loads).
 
-Minor suggestions that may help to improve the paper:
+ > Minor suggestions that may help to improve the paper:
 
-What is the memory hierarchy on the x86 compared to the ARM?
+ > What is the memory hierarchy on the x86 compared to the ARM?
 
-A performance test could just increment a variable, because this would
-eliminate any possible interference from a memory manager.
+ > A performance test could just increment a variable, because this would
+ > eliminate any possible interference from a memory manager.
 
-How does the lock compare to other locks in terms of fairness?
+ > How does the lock compare to other locks in terms of fairness?
 
-Figures should be numbered, explained, and referenced in the text.
+ > Figures should be numbered, explained, and referenced in the text.
