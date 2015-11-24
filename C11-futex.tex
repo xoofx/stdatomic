@@ -1,0 +1,822 @@
+% Created 2015-11-24 Di 14:02
+\documentclass{sig-alternate-05-2015}
+                              %\pdfpagewidth=8.5truein
+%\pdfpageheight=11truein
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage[table]{xcolor}
+\definecolor{light-gray}{gray}{0.97}
+\usepackage{listings}
+\usepackage{listings-C}
+\usepackage{listings-x86_64}
+\usepackage{listings-modernC}
+\lstloadlanguages{C11,C99}
+\lstset{
+language=[errnoPOSIX]{C},
+language=[tgmath]{C},
+language=[threads]{C},
+language=[stdatomic]{C},
+language=[boundschecking]{C},
+language=[99]{C},
+language={C11},
+style=modernC,
+basicstyle=\tt\small,
+moreemph=[5]{
+futex_wait,
+futex_wake,
+smpl, ftx,
+},
+}
+\author{Jens Gustedt\\
+%  \affaddr{\framebox[1.5cm] and \framebox[3cm]{[\hfill]}, \framebox[5cm]{[\hfill]}, \framebox[3cm]{[\hfill]}}}
+\affaddr{INRIA and ICube, Universit\'{e} de Strasbourg, France}}
+%\setcopyright{acmcopyright}
+\doi{http://dx.doi.org/xx.xxxx/xxxxxxx.xxxxxxx}
+%\isbn{978-1-4503-3739-7/16/04}
+\isbn{---}
+%\conferenceinfo{PLDI '13}{June 16--19, 2013, Seattle, WA, USA}
+%\acmPrice{\$15.00}
+%\conferenceinfo{SAC'16,}{ April 4-8, 2016, Pisa, Italy}
+%\CopyrightYear{2016} % Allows default copyright year (20XX) to be ove
+% switch off the table of contents just for LaTeX export
+\let\tableofcontents=\relax
+% ensure that in the LaTeX output links are visible as footnotes
+\let\oldHref=\href
+\def\href#1#2{\oldHref{#1}{#2}\footnote{\url{#1}}}
+\newtheorem{remark}{Remark}[section]
+\newtheorem{lemma}[remark]{Lemma}
+\newtheorem{theorem}[remark]{Theorem}
+\date{\today}
+\title{Futex based locks for C11's generic atomics}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 24.4.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\begin{abstract}
+The implementation of C11's atomic interface needs compiler support
+for the individual atomic operations and library supports for the
+cases where no low-level atomic instruction is available and a lock
+must be taken. A lock data structure for that purpose has to meet
+very specific criteria for its field of operation and its
+performance. We present a new algorithm and implementation of such a
+specific lock data structure that is based on Linux' lock interface,
+the \texttt{futex} system calls. It allows us to assemble compiler support
+for atomics and OS support for inactive thread sleeps into an
+efficient tool that is able to outperform the compiler's \emph{native}
+library by around 60\%.
+\end{abstract}
+
+\section{Introduction}
+\label{sec-1}
+
+Only very recently (with C11, see \cite{C11}) the C language has
+integrated threads and atomic operations into the core of the
+language.  Support for these features is still partial: where the
+main open source compilers \href{https://gcc.gnu.org/}{\texttt{gcc}} and
+\href{http://clang.llvm.org/}{\texttt{clang}}p now offer atomics, most Linux
+platforms still use \href{https://www.gnu.org/software/libc/}{\texttt{glibc}}
+as their C library which doesn't implement C11 threads. Only
+platforms that are based on \href{http://musl-libc.org}{musl} as C
+library, e.g \href{http://alpinelinux.org/}{\texttt{Alpine} Linux}, are
+feature complete.
+
+The implementation of the C11 atomic interface typically sits in the
+middle between the implementation of the core language by the C
+compiler and the implementation of the C library. It needs compiler
+support for the individual atomic operations and library support for
+the cases where no low-level atomic instruction is available and a
+lock must be taken. We refer to the latter, as a \emph{generic atomic
+lock} interface.
+
+Since Linux' open source C libraries don't implement the generic
+interface, the compilers currently provide a library stub that
+implements the necessary lock by means of a combination of atomics
+and \href{http://pubs.opengroup.org/onlinepubs/9699919799/}{POSIX'}
+\texttt{pthread\_mutex\_t}. By consensus in the community an API interface
+has emerged that both, \texttt{gcc} and \texttt{clang}, implement.
+
+This library stubs can rely on all their knowledge of the
+architecture specific atomics for the non-contended part of the
+implementation, finally that is the context in which they were
+created. But since they are generic, in case of contention these
+library stubs rely on generic OS interfaces to put threads to
+sleep. From a point of view of the C language the natural interface
+for that would be C11 threads, that could be a bit lighter than
+POSIX threads. But since this end is still missing in \texttt{glibc}, they
+fall back to POSIX threads for which there are reliable and
+efficient implementations.
+
+This situation is less than ideal, the role of a language interface
+is finally to do the work of mapping to platform specific properties
+and thereby to draw the best performance from any given hardware. In
+this work we present a specific algorithm for the generic lock that
+relies on a specific set of Linux utilities, the \texttt{futex} system
+calls. These system calls combine just one atomic integer and OS
+scheduling in a very ingenious way and are the tool of choice of a
+Linux specific implementation of any lock structure.
+
+Our algorithm uses all possibilities that the \texttt{futex} interfaces
+offers. In particular we use just one \texttt{unsigned} integer to
+implement the lock and a waiter count at the same time. Not only is
+the resulting data type of minimal size (32 bit on all
+architectures) but the algorithm can take advantage of that property
+by minimizing the number of CPU to memory transfers. In most cases
+one such transfer is sufficient, where other algorithms have to
+update a lock and a waiter counter separately.
+
+To our knowledge pursuing this approach to a complete solution is
+new. Previously urban myth had it that such approaches would risk
+deadlocks if confronted to heavy load, because repeated failures of
+calls to \texttt{futex\_wait} could lead to unbounded loops. We are able to
+prove that such unbounded loops will not happen for our algorithm.
+Also, our measurements have shown that such an approach can be very
+effective: failed system calls to \texttt{futex\_wait} are much less costly
+than commonly thought.
+
+Our algorithm and its implementation is part of a larger open
+source project to provide the necessary interfaces (header files)
+and library support for C11's \texttt{<stdatomic.h>}. Unfortunately, due to
+space limitations we will not be able to present this project
+further, but have to concentrate on the generic lock feature that it
+provides.
+
+At the time of this writing this project is functional to be used
+with \texttt{gcc} and \texttt{clang}, even for version that only have partial
+support for atomic operations through builtin functions. If accepted
+for publication, we will provide links to the complete source in the
+de-anonymized version. In a later stage, we intent to integrate the
+whole project into the \texttt{musl} C library.
+
+\section{Tools to deal with data consistency and races}
+\label{sec-2}
+
+Data races are the most difficult challenge for parallel
+programming. They often lead to hard to trace sporadic errors. The
+main problems are:\vspace*{-2ex}
+
+\begin{description}
+\item[{atomicity:}] Writes to memory may or may be not split by the
+hardware into several chunks that are written
+separately. A reader may occasionally see
+inconsistent values, for example a high and a low
+word of a wide integer that originate from different
+writes.\vspace*{-2ex}
+\item[{divisibility:}] A read-modify-write operations such as a simple
+\texttt{i++} may be split into several CPU instructions,
+e.g a read, an increment and a write. If a first
+write of another threads falls sometime between
+the read and the write, the new write will erase
+the value with one that is outdated.\vspace*{-2ex}
+\item[{memory ordering:}] The results of read and writes to different
+objects in memory might be perceived by different threads in
+different order. Reordering of instructions may originate from
+optimization (compiler) or occur at run time (processor).
+\end{description}
+
+\vspace*{-3ex}
+A data type that is guaranteed to avoid the first problem is called
+\emph{atomic}. Before the C11 revision C only had one data type,
+\texttt{sig\_atomic\_t}, that had this guaranty to be read and written in one
+chunk. It can be used to communicate state between a user program
+and a signal handler.
+
+For the second problem, divisibility, C had no standard tool. No
+other operation than read or write of \texttt{sig\_atomic\_t} was guaranteed
+to be \emph{indivisible}.  The \emph{indivisible} operations that most
+computing hardware offer could not be accessed through language
+features. Usually they had to be programmed through extensions such
+as inline assembler or special compiler builtins.
+
+Before C11, C also had no thread concept, so the memory ordering
+problem could not even be formalized within the vocabulary of the C
+standard. Obviously, it also could not provide tools to deal with
+it.
+
+\subsection{C atomics and its library interfaces}
+\label{sec-2-1}
+
+With modern multi-processor and multi-core hardware, parallel
+programming is an imperative for many if not most user applications
+that are used on a larger scale. Therefore it was crucial for C to
+provide the concepts and tools that are necessary to deal with
+it. So C11 introduces a lot of vocabulary and two optional
+features: threads through the \texttt{<threads.h>} interface, and atomics
+trough the \texttt{<stdatomic.h>} interface. Evidently here we are more
+interested in the latter, but it is important to note that both
+features need each other to unfold all of their potential.
+
+C11 introduced a new qualifier, \texttt{\_Atomic}. A such qualified object
+guarantees that any read or write access to it is \emph{atomic} in the
+sense we have defined above. This qualification also guarantees
+that between different threads all standard operations (defined
+through operators such as \texttt{+=} or functional such as
+\texttt{atomic\_exchange}) are perceived as \emph{indivisible}. Note well that
+this guarantee is only given \emph{between threads} and \emph{in perception}:
+in reality an operation can well be divided into several processor
+instructions and the perception guarantee doesn't extend to
+visibility between the main program and signal handlers. An
+operation that extends perception of indivisibility to signal
+handlers is called \emph{lockfree} in the jargon of the C
+standard. Below we will see where this choice of words originates.
+
+C11 also introduces different concepts of \texttt{memory\_order} for atomic
+operations. The whole of that specification is much too complex to
+unfold, here. In the following we will assume \emph{sequential
+consistency} (\texttt{memory\_order\_seq\_cst}) for all atomic
+operations. This forces all atomic operations to appear totally
+ordered between all threads.
+
+We will use the following atomic operations:\vspace*{-3ex}
+
+\begin{center}
+\begin{tabular}{ll}
+\texttt{atomic\_store} & store a new value\\
+\texttt{atomic\_exchange} & store a new value and\\
+ & return the previous\\
+\texttt{atomic\_fetch\_and\_add} & add to an object and\\
+ & return the previous value\\
+\texttt{atomic\_compare\_exchange\_weak} & compare to desired value,\\
+ & then exchange, may fail\\
+\end{tabular}
+\end{center}
+
+
+
+
+\subsection{Atomic instructions on modern hardware}
+\label{sec-2-2}
+
+Almost since the beginning of modern computing, parallelism was
+implemented in hardware and the consistency problems that we
+introduced above became apparent. Modern hardware (which almost
+always is inherently parallel) deals with this by providing special
+instructions, usually referred to as \emph{atomic instructions}. It is
+important to note that these are not the same as the atomic
+operations on the level of the C language.\vspace*{-2ex}
+
+\begin{description}
+\item[{word size:}] Usually atomic instructions are limited to word
+sized data types. Available on most platforms are
+instructions for 8, 16, 32 and 64 bit
+data types. Some also extend to 128 bit.\vspace*{-2ex}
+\item[{primitives:}] The instructions that are implemented may or may
+not directly correspond to atomic operations. E.g
+some CPU may have a proper instruction for the
+increment operator \texttt{++}, e.g \texttt{x86\_64}, on others,
+e.g \texttt{arm}, such an operation will have to be
+composed from primitives.\vspace*{-2ex}
+\item[{boundedness:}] Atomic instructions may give a guarantee to
+succeed within a bounded time (usually some
+memory cycles) or just return success or
+failure. For the latter, this may result in C
+level operations that have an \emph{unbounded}
+response time.\vspace*{-2ex}
+\item[{state:}] Atomic instructions may operate on an internal state of
+the platform. E.g \texttt{arm} CPU work with a feature called
+\emph{monitors} that memorize state of previous atomic
+access to memory.\vspace*{-2ex}
+\end{description}
+
+Due to all these differences, programming with atomic instructions
+directly on assembly level is a mess, and in general it is very
+tedious to provide portability between different
+architectures. Such code has to ensure\vspace*{-2ex}
+\begin{itemize}
+\item the correct composition of atomic primitives to obtain sensible
+semantics of the operations,\vspace*{-2ex}
+\item the correct alignment of all atomic object such that they don't
+cross cache line boundaries,\vspace*{-2ex}
+\item the correct ordering of instructions, e.g it has to ensure that
+neighboring store instructions can't be reordered by the CPU,
+\item that the unboundedness of some operation may not result in
+application deadlocks,\vspace*{-2ex}
+\item and that the OS correctly restores processor state when the
+execution context switches from one thread to another or to a
+signal handler.
+\end{itemize}
+
+Luckily, C11 now ensures that only C compiler and C library
+Implementers have to consider all the glorious details of a
+specific architecture. One problem remains though, and this is what
+this paper is all about. Because of the limited word size for
+atomic instructions, the implemented compiler operations can't just
+resort to a composition of atomic primitives on the atomic object
+itself. If an object is large, say 128 bit wide, or has a size that
+is not a power of 2, they must rely on external or internal \emph{locks}
+that protect a \emph{critical section}, CS. That is they need an
+auxiliary object that protects the data object by means of some
+\emph{lock primitives} and by memorizing a \emph{state} of the application.
+
+Typically such locks can be made invisible between different
+threads, but remain visible between a thread and its signal
+handler. So the access to an object that is qualified with
+\texttt{\_Atomic} but that needs a lock for operation may be divisible with
+respect to a signal handler. This property is what coined C's
+terminology of \emph{lockfree} that we already mentioned above.
+
+
+\subsection{Fast user space mutexes}
+\label{sec-2-3}
+
+In a singular toolbox Fast User space muTEXes, \texttt{futex} for short,
+see \cite{Hutton02fuss,hart09}, combine two levels of operations
+for the implementation of lock primitives:\vspace*{-2ex}
+
+\begin{enumerate}
+\item User space atomic integers with lockfree operations are used to
+regulate access to the lock as long as it is not congested.\vspace*{-2ex}
+
+\item Wait and wake-up system calls resolve conflicts when the lock is
+under congestion by multiple threads or processes. They relate
+to such integers by address (user space or kernel space
+addresses) and are guaranteed to be perceived as indivisible by
+the caller.\vspace*{-2ex}
+\end{enumerate}
+
+In the beginning, when \texttt{futex} were first introduced they needed
+non-standard features: assembly extensions for the atomic
+instructions, and a system call interface into the Linux
+kernel. Fortunately with the atomics interface of C11 we now have
+a standardized tool for the first. For the second, in the
+following we will assume that we dispose of two library calls
+\texttt{futex\_wait} and \texttt{futex\_wake}. With these a simple but
+inefficient lock structure \texttt{smpl} could look as follows:
+
+\lstset{language=C11,label= ,caption= ,numbers=none}
+\begin{lstlisting}
+typedef _Atomic(int) smpl;
+void lock(smpl* lck) {
+  for (;;) {
+     int prev = atomic_exchange(lck, 1);
+     if (!prev) break;
+     futex_wait(lck, prev);
+  }
+}
+void unlock(smpl* lck) {
+  atomic_store(lck, 0);
+  futex_wake(lck, 1);
+}
+\end{lstlisting}
+
+Here the second parameter to \texttt{futex\_wait} guarantees that the thread
+will only be set to sleep if the value of the atomic object \texttt{*lck}
+still is \texttt{prev}. As a consequence the \texttt{lock} function will iterate until the
+atomic exchange succeeds in modifying the value from a previous
+value of \texttt{0} to the value of \texttt{1}.
+
+The second parameter of \texttt{futex\_wake} corresponds to the maximal
+number of threads that are to be woken up. So here, the thread that
+holds the lock restores the object \texttt{*lck} to the value \texttt{0} and wakes
+up one possible waiter.
+
+Both functions as described above are simplistic and not very
+efficient. The first, \texttt{lock}, is inefficient because each failed
+attempt to acquire the lock will result in a call into the OS
+kernel, even if the lock would be available almost instantly.  The
+second, \texttt{unlock}, tries to wake up another thread without any
+knowledge if there even is such a thread that is waiting for it.
+
+To avoid these two shortcomings, system libraries that implement
+locks (such as e.g \texttt{glibc} and \texttt{musl}) usually combine two
+strategies:\vspace*{-2ex}
+
+\begin{itemize}
+\item A first spinning phase attempts the atomic operation several
+times. Thereby an application with a very short CS can mostly
+avoid sending threads into sleep.\vspace*{-2ex}
+
+\item They use at least two \texttt{\_Atomic} objects, one for the lock itself
+and a second one that counts the waiters. By checking if the
+counter is 0, this allows to avoid useless calls to
+\texttt{futex\_wake}.\vspace*{-2ex}
+\end{itemize}
+
+Even though these additions enlarge the lock data structure and add
+one atomic operation to the \texttt{unlock} function these strategies have
+proven to be much more efficient then our simplistic versions,
+above.
+
+\section{A new generic lock algorithm using futex system calls}
+\label{sec-3}
+
+To construct and adapted lock data structure for our situation, we
+want to have the following properties:
+
+\begin{itemize}
+\item The size of the data structure should be minimal. That is should
+use just one 32 bit machine word as it is needed by the \texttt{futex}
+calls.\vspace*{-1ex}
+
+\item When there is no contention, the number of atomic operations should
+be minimal. That is one such operation for each, \texttt{lock} and
+\texttt{unlock}, should suffice in that case.\vspace*{-1ex}
+
+\item The procedure should be efficient, that is it should not
+unnecessarily waste resources. In particular, threads that have no
+chance to acquire the lock should be put into an OS sleep
+state.\vspace*{-1ex}
+
+\item If the number of threads is bounded, the procedure should be
+deadlock free.\vspace*{-1ex}
+\end{itemize}
+
+\subsection{The algorithm}
+\label{sec-3-1}
+
+For our strategy we use a single \texttt{unsigned} value that at the same
+time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \texttt{unsigned} is always 32 bit wide.}
+
+\lstset{language=C11,label= ,caption= ,numbers=none}
+\begin{lstlisting}
+typedef _Atomic(unsigned) ftx;
+#define ftx_mask        0x7FFFFFFFU
+#define ftx_count(FTX)  (FTX & ftx_mask)
+#define ftx_locked(FTX) (FTX > ftx_mask)
+// highest and lowest bit to 1
+#define ftx_contrib     0x80000001U
+\end{lstlisting}
+
+That counter is not viewed as a counter of the threads that are in
+a kernel wait, but counts the number of threads inside the critical
+section.  So an update of the counter part is done once when a
+thread enters the CS. Compared to the number of times
+the counter is accessed under congestion such events are relatively
+rare. Thereby we save memory bandwidth for the update, and we also
+avoid too much interaction between the different threads that
+compete for the lock.
+
+\lstset{language=C11,label= ,caption= ,numbers=none}
+\begin{lstlisting}
+void lock(ftx* lck) {
+  unsigned curr = 0;
+  if (!atomic_compare_exchage_weak(
+         lck, &curr, ftx_contrib)) {
+     curr = atomic_fetch_add(lck, 1) + 1;
+     for (;;) {
+        while (curr <= ftx_mask) {
+          // here: spin for some time
+          if (acquired) return;
+        }
+        while (curr > ftx_mask) {
+           futex_wait(lck, curr);
+           curr = atomic_load(lck);
+        }
+     }
+  }
+}
+\end{lstlisting}
+
+\begin{enumerate}
+\item A thread is on the fast path for the lock when the overall value
+is \texttt{0}. The lock can be acquired with one atomic operation.  If
+this returns successfully, it has set the HO bit (the lock bit)
+and the LO bit (for a counter of value \texttt{1}) in one go. If the
+fast path fails, we increment the lock value atomically.
+
+\item Otherwise, we enter an acquisition loop.\vspace*{-2ex}
+
+\begin{enumerate}
+\item First, we spin for a while (determined below) to set the HO
+bit as well, and thus acquire the lock.
+
+\item If that times out, we suppose that the lock is under
+congestion and we go into a \texttt{futex\_wait}.\vspace*{-2ex}
+\end{enumerate}
+\end{enumerate}
+
+Going into the \texttt{futex\_wait} may fail if the value changes, but
+since additional threads only change the counter when they arrive,
+this can't happen too often and the thread goes to sleep,
+eventually.
+
+Unlocking is a very simple operation. The locker has contributed
+\texttt{ftx\_contrib} to the value, and just has to decrement the value
+atomically by that amount.  The return value of the operation
+reveals if other threads still are in the CS, and a
+\texttt{futex\_wake} call can be placed accordingly.
+
+\lstset{language=C11,label= ,caption= ,numbers=none}
+\begin{lstlisting}
+void unlock(ftx* lck) {
+  unsigned prev
+    = atomic_fetch_sub(lck, ftx_contrib);
+  if (prev != ftx_contrib)
+    futex_wake(lck, 1);
+}
+\end{lstlisting}
+
+
+\subsection{Analysis}
+\label{sec-3-2}
+
+It is relatively easy to see that this new strategy provides a
+functional lock primitive using just a 32 bit data structure and
+one atomic operation for fast \texttt{lock} and \texttt{unlock}. It remains to
+show that it cannot deadlock.
+
+The worst case scenario for our use of our lock primitive is that
+the thread that holds the lock, say $T_0$, is unscheduled while
+inside the CS. Suppose further that there are $N$ other threads
+that are ready to be scheduled, and that once they are scheduled
+they start to compete for the lock.
+
+Different quantities are interesting for an analysis of the runtime
+behavior of the algorithm. We can control one of them, namely the
+time $t_{\textrm{mono}}$ that a scheduled thread spends spinning
+before trying to switch to \texttt{futex\_wait}.  Three others are platform
+dependent:\vspace*{-1ex}
+
+\begin{description}
+\item[{$t_{\textrm{fail}}$}] is the maximum of two system specific
+times: the time a thread $T_1$ may either spend in a failed
+attempt to \texttt{futex\_wait} or that the system needs to put $T_1$
+to sleep and start another thread $T_2$.\vspace*{-1ex}
+
+\item[{$P$}] is the \emph{number of processor cores}, which is viewed to be
+equal to the maximum number of threads that are scheduled
+simultaneously.\vspace*{-1ex}
+
+\item[{$t_{\textrm{para}}$}] is the time that $P$ threads need for a
+spinning phase that they perform in parallel.\vspace*{-1ex}
+\end{description}
+
+A value $t_{\textrm{para}}$ close to $t_{\textrm{mono}}$ indicates
+a perfect parallelism, a value of $P \cdot t_{\textrm{mono}}$
+means that there is none at all. Usually it will be greater than
+$t_{\textrm{mono}}$, e.g because of memory contention or
+contention on other shared resources (execution pipelines,
+caches). We derive some other quantities from the
+above:\vspace*{-1ex}
+
+\begin{description}
+\item[{$\widehat{P}$}] given as $\frac{P\cdot
+                       t_{\textrm{mono}}}{t_{\textrm{para}}}$ is the
+\emph{parallelism} of the platform.
+
+\item[{$E$}] given as $\frac{t_\textrm{mono}}{t_{\textrm{para}}} =
+             \frac{\widehat{P}}{P}$ is the \emph{efficiency} of the
+platform.
+\end{description}
+
+For example, on a modern hyperthreaded machine with $4$ cores in
+total, $\widehat{P}$ is typically between $2.5$ and $3$, $E$ is
+between $0.625$ and $0.75$.
+
+\begin{remark}
+On a platform where $\widehat{P}$ is close to one, the spinning
+phase of the algorithm should entirely be skipped.
+\end{remark}
+
+This is simply because there no other thread can make progress
+while a thread is spinning. Thus spinning would just waste
+resources and the state of the application would not progress.  So
+from now on we may assume that $\widehat{P} \geq 1+\epsilon$ for some
+reasonable value of $\epsilon > 0$.
+
+\begin{lemma}
+Provided that no other threads are unscheduled, after at most
+$$t_{\textrm{para}} + (P-1)\cdot t_{\textrm{fail}}$$
+seconds a first thread successfully calls \texttt{futex\_wait}.
+\end{lemma}
+
+\begin{proof}
+For the first term, observe that after $t_{\textrm{para}}$ time,
+at least one thread has finished the spinning phase, and attempts
+\texttt{futex\_wait}.
+
+While no thread is unscheduled at most $P$ scheduled threads can
+enter the CS. There are at most $P-1$ atomic
+increments that change the futex value. Thus the first thread that
+enters the CS will need at most $t_{\textrm{para}}$
+time for spinning and then \texttt{futex\_wait} may fail at most $P-1$
+times in a row.
+\end{proof}
+
+This already shows that, provided no other unscheduling takes
+place, our algorithm is deadlock-free.
+
+Now, once a thread successfully goes into \texttt{futex\_wait} a new
+thread $T_P$ can be scheduled, compete for the lock and change the
+\texttt{futex} value. It may disturb all other threads that are trying to
+go into \texttt{futex\_wait}, forcing them to restart their attempt.
+
+\begin{remark}
+Provided that no threads are unscheduled otherwise, that there are
+always $P$ threads inside the CS and that at least one of them has
+finished spinning, after a time of $t_{\textrm{fail}}$ another
+threads succeeds his call to \texttt{futex\_wait}.
+\end{remark}
+
+That is, under these circumstances we have a stable regime where each
+$t_{fail}$ seconds a thread enters \texttt{futex\_wait}.
+
+To be able to ensure that there is always at least one thread that
+has finished spinning, we observe that if $t_{\textrm{para}} \leq
+    t_{\textrm{fail}}$ (or equivalently $t_{\textrm{mono}} \leq E\cdot
+    t_{\textrm{fail}}$) a newly scheduled thread has finished spinning
+when the next thread successfully goes into \texttt{futex\_wait}.
+
+\begin{lemma}
+Provided that no threads are unscheduled otherwise, that there are
+always $P$ threads inside the CS and that $t_{\textrm{para}} \leq
+    t_{\textrm{fail}}$, threads succeed calls to \texttt{futex\_wait} at a rate of
+$1/t_{\textrm{fail}}$ per second.
+\end{lemma}
+
+Or, roughly if $P \ll N$ the time for all threads to calm down and
+successfully call \texttt{futex\_wait} is $N\cdot t_{\textrm{fail}}$.
+
+\begin{theorem}
+Let be $T_0$ a thread out of $N \gg P$ that is unscheduled when
+holding the lock.  Provided that none of the threads is
+unscheduled by other means and that $t_{\textrm{para}} \leq
+    t_{\textrm{fail}}$, after a time of $N\cdot t_{\textrm{fail}}$ the
+application makes progress.
+\end{theorem}
+
+\begin{proof}
+This progress can be of two forms.  Either there is another thread
+than $T_{0}$ that doesn't enter the the CS and thus
+progresses the application, or $T_0$ will be rescheduled and
+finishes its CS.
+\end{proof}
+
+The time $t_{\textrm{mono}}$ has not only an influence for this
+worst case, but is also responsible for the response time in the
+non-congested situation. The longer we spin, the higher the
+probability to acquire the lock without going into
+\texttt{futex\_wait}. So the best compromise would be to choose
+$t_{\textrm{mono}} = E\cdot t_{\textrm{fail}}$. Practically a
+factor of 0.9 always guarantees liveness of the application and
+shows good performance on average.
+
+\section{Benchmarks}
+\label{sec-4}
+
+\subsection{The framework}
+\label{sec-4-1}
+
+We have run a long series of benchmarks to validate the
+approach. The code for the benchmark is integrated in \emph{p11} with
+comes with \emph{Modular C}, see
+\href{http://cmod.gforge.inria.fr}{Cmod}. For compilation of that
+benchmark we also need a C11 compliant library, that has C11
+threads, and a C11 compiler that also has gcc extension. We used
+\texttt{musl} for the first and gcc and clang for the latter.
+
+The implementation of our algorithm is a bit more sophisticated
+than what may appear above. In particular it takes care of reducing
+the number of atomic operations to a minimum and to use memory
+ordering for the locks that is adapted to the case.
+
+\subsection{The test program}
+\label{sec-4-2}
+
+The test in p11 is called p11\#test\#lifo. It is based on a stack
+implementation (Last In First Out) that uses an atomic pair of
+pointers for the head to avoid the ABA problem,
+\cite{IBM370,michael04:aba}. For the benchmarks, the size of the atomic
+data structure has been chosen in such a way that the generic
+atomic functions based on locks are chosen.
+
+The idea of this benchmark is to have a application that runs under
+full load, stresses the platform with a lot of allocations and
+deallocations and in the middle of that does a lot of locking and
+unlocking. It works as follows:
+
+It creates or deletes a random number of list elements for the lifo
+inside a loop. All test runs last \texttt{10s} and were repeated at least
+10 times. The measure that is reported is the number of list
+elements that have been handled per second on average.
+
+The parameters of the runs are the number of threads that run in
+parallel, values ranging from \texttt{1} up to \texttt{256}.  Different lock
+primitives can be chosen at compile time to protect the head of the
+LIFO:\vspace*{-1ex}
+
+\begin{description}
+\item[{futex:}] the futex based algorithm described here
+\item[{mutex:}] based on a standard mutex
+\item[{musl:}] musl's lowlevel \texttt{lock/unlock} functions
+\item[{spin:}] a spin lock using atomic exchange
+\item[{native:}] the compilers "native" generic lock, also a mutex
+\end{description}
+
+The latter can only be produced on a platform where the native C
+library and the library of the compiler are compatible.
+
+\subsection{The test platforms}
+\label{sec-4-3}
+
+\subsubsection{An \texttt{arm7} machine with 4 cores}
+\label{sec-4-3-1}
+
+This machine has 4 symmetric \texttt{arm7} cores at a \texttt{1.3 GHz} with \texttt{2
+    GiB} of RAM. This system is equipped with Alpine Linux, so it has
+\texttt{musl} as a native C library. The processor has atomic
+instructions for word sizes up to 64 bit. The compiler is \texttt{gcc}
+version \texttt{4.9}.
+
+\subsubsection{A \texttt{x86\_64} machine with 2x2 hyperthreaded cores}
+\label{sec-4-3-2}
+
+This is a i7-4600U CPU at \texttt{2.10GHz} and with \texttt{8 GiB} of RAM. The
+OS is Debian Linux, with \texttt{glibc} as native library.  The processor
+has atomic instructions for word sizes up to 128 bit. The compiler
+is \texttt{gcc} version \texttt{5.2}.
+
+\subsection{Performance comparison}
+\label{sec-4-4}
+
+The following figure shows the results on the \texttt{arm}
+platform.\vspace*{-2ex}
+
+
+\begin{center}
+\includegraphics[width=0.95\linewidth]{benchs/arm/test-arm-u64.png}
+\end{center}
+
+\vspace*{-2ex}
+We see that all lock implementations allow for an acceleration of
+the application when a small number of threads is used. But what is
+also clear that the "native" lock performs worst for the case that
+is the most interesting: the range where each thread disposes of
+its own CPU core. Even the "mutex" lock performs better.
+
+We also see that musl's internal lock structure shows a drastic
+performance loss when it comes to congestion. This is due to a
+switch of the spinning strategy: as soon as congestion is detected,
+spinning is abandoned and threads directly attempt
+\texttt{futex\_wait}. This is meant to ensure fairness of lock acquisition,
+but as we can see for our use case it has a dramatic impact on the
+application throughput.
+
+Here is the relative performance of the same experiments, where the
+"mutex" implementation is taken as a base:
+
+\begin{center}
+\includegraphics[width=0.95\linewidth]{benchs/arm/test-arm-u64-relative.png}
+\end{center}
+
+We see that our new implementation is about 60\% better than
+the "native" version, or 40\% than a direct implementation with
+mutex. It combines the good performance of a spinlock for the less
+congested range with a good policy for strong congestion.
+
+To finish let us consider the \texttt{x86\_64} platform. Although it
+is much more powerful than the other, the atomics of the hardware
+are much less performing. This is due to the fact that here an
+atomic instruction almost always enforces a complete
+synchronization. So any atomic operation incurs a strong latency
+penalty. Thereby, our application isn't even able to accelerate for
+2, 3 or 4 threads as it was the case on arm. In the contrary it
+even decelerates.\footnote{Figure not shown, due to space limitations.}
+
+Nevertheless the relative performance difference between the
+different lock implementations look very similar.
+
+\begin{center}
+\includegraphics[width=0.95\linewidth]{benchs/x86_64/test-x86_64-musl-relative.png}
+\end{center}
+
+\section{Conclusion}
+\label{sec-5}
+
+We have presented a new locking algorithm that combines consequent use
+of C11 atomics with Linux' futex system calls. We have proven that it
+is deadlock free.
+
+When compared to other lock implementations it shows better
+performance. This is not surprising, an implementation that is tuned
+for the purpose (very short CS) and that may avoid stacked calls into
+the C library should always perform better than a generic one.
+Surprising to us was the wide performance gap between the
+implementations.
+
+By pursuing this research we also learned to mistrust some of the
+urban legends that turn around atomics, futexes and lock structures in
+general. At least when we stick to the basics (\texttt{futex\_wait} and
+\texttt{futex\_wake}) and if we have a decent interface for atomics,
+programming them is not as difficult as the legends suggest. Also
+using a system call is not so much worse that spinning around an
+atomic access. The performance factor between the two is only about
+10, and so spinlocks in the order of 10 should be sufficient in many
+cases.
+
+In the future we plan to make this whole support library available as
+open source project. We hope to integrat it into the C library that we
+used for most of our experiments, \texttt{musl}.
+
+
+
+\clearpage
+\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliography{modernC}
+% Emacs 24.4.1 (Org mode 8.2.10)
+\end{document}
