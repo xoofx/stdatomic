@@ -42,8 +42,14 @@ Comments
  > (1) The abstract is badly written. It is unclear what the key contribution is.
  > (2) The paper has quite a few grammatical errors (as shown by the list given
  > below).
+
+kind of contradictory with review 2
+
  > (3) Only five references are cited, of which only the 2nd reference was
  > previously published formally in a conference.
+
+so what? you mean that the scientific community missed the important
+stuff, is that it?
 
  > While the paper is relevant to SAC, the authors are suggested to submit this
  > paper either as a WiP paper, a tool a paper or a short paper to a conference on
@@ -116,6 +122,9 @@ Comments
 
  > The paper is well-written, though in a quite informal tone. I'd recommend to
  > drop all shortenings (like "don't") and tune the tone a bit.
+
+ok, this is constructive
+
  > There is no related work -- no comparison with existing different approaches,
  > and this is somehow unpleasant.
  > The benchmarks are nevertheless done in comparison to other 4 locking
@@ -131,9 +140,24 @@ Comments
  > You use "dispose" as in "to have available" ('disporre', i guess).
  > These two things have different meanings, please be sure to use the right one.
 
+Hm, my dictonary has dispose with that sense, perhaps the reviewer is
+not a native speaker either?
+
+to dispose of sth. [have at one's disposal]
+über etw. verfügen [Zeit, Geld]
+
+to legally dispose of sth. [in a testament]
+rechtlich über etw. verfügen [in einem Testament]law
+
+authority to dispose
+Verfügungsmacht {f}
+
  > A negative point of the paper is the non-replicability of results.
  > In case of acceptance, please consider putting your benchmarks online for
  > download.
+
+how am I supposed to make benchmarks replicable when this is a
+double-blind reviewing process?
 
  > Otherwise the results are nice and therefore i recommend acceptance.
  > Notice that you can buy extra pages to include missing figures.
@@ -196,15 +220,26 @@ Comments
  > necessary to cite Ulrich Drepper's work on futex locks (
  > http://www.akkadia.org/drepper/futex.pdf ) and compare the presented approach
  > against it. Also, Drepper's work goes into more detail why the use of futexes
- > for lock implementations has to be carefully designed. Overall the paper is
- > very thin on related work.
+ > for lock implementations has to be carefully designed.
+
+This is not really a fair comparison. Drepper paper is an ongoing
+paper with a lot of revisions with currently 12 pages.
+
+ > Overall the paper is very thin on related work.
+
+probably true
 
  > There is also space to show performance results for an architecture where the
  > new algorithm does not perform so well. The page with references is almost
  > empty.
 
+unfortunately the author hasn't understood the principle of SAC
+submissions, where you have 6 pages *not* including the bibliography
+
  > I assume the authors use release/acquire tags for setting and reading the lock
  > variable. The paper should mention that.
+
+What are release/acquire tags? Setting and reading the lock variable?
 
  > The performance analysis says that the atomics on x86 are underperforming. The
  > paper suggests that this is due to the fact that almost any atomic operation
@@ -213,13 +248,28 @@ Comments
  > non-atomic operations provide a high degree of guarantees (except for
  > stores reordered after loads).
 
+No, this is completely off track. x86 load and stores are "cheap" as
+long as they don't require consistency. When they are issued with a
+lock prefix they are extremely costly because they are pessimising.
+
  > Minor suggestions that may help to improve the paper:
 
  > What is the memory hierarchy on the x86 compared to the ARM?
 
+I don't think this is relevant. An atomic read-modify-write operation
+has to traverse the whole memory bus twice.
+
  > A performance test could just increment a variable, because this would
  > eliminate any possible interference from a memory manager.
 
+How is that? Any read-modify-write operation (including ++) in a
+thread shared environment has to tranverse the whole memory hierarchy
+and thus forcebly interacts with hardware that manages memory.
+
  > How does the lock compare to other locks in terms of fairness?
 
+ok, but how to say that where there only is a fuzzy terminology of fairness
+
  > Figures should be numbered, explained, and referenced in the text.
+
+ok
