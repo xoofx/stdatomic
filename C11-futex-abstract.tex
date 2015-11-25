@@ -1,11 +1,18 @@
-The implementation of C11's atomic interface needs compiler support
-for the individual atomic operations and library supports for the
-cases where no low-level atomic instruction is available and a lock
-must be taken. A lock data structure for that purpose has to meet
-very specific criteria for its field of operation and its
-performance. We present a new algorithm and implementation of such a
-specific lock data structure that is based on Linux' lock interface,
-the \texttt{futex} system calls. It allows us to assemble compiler support
-for atomics and OS support for inactive thread sleeps into an
-efficient tool that is able to outperform the compiler's \emph{native}
-library by around 60\%.
+We present a new algorithm and implementation of a lock primitive that
+is based on Linux' native lock interface, the \texttt{futex} system
+call. It allows us to assemble compiler support for atomic data
+structures that can not be handled through specific hardware
+instructions.  Such an implementation is needed for C11's atomics
+interface because here an \code{_Atomic} qualification can be attached
+to almost any data type. Our lock data structure for that purpose
+meets very specific criteria concerning its field of operation and its
+performance. By that we are able to outperform gcc's
+\texttt{libatomic} library by around 60\%.
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: reftex
+%%% fill-column: 75
+%%% ispell-dictionary: "american"
+%%% x-symbol-8bits: nil
+%%% End:

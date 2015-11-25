@@ -11,12 +11,8 @@
 #    	gnuplot home:     http://www.gnuplot.info
 #    	faq, bugs, etc:   type "help FAQ"
 #    	immediate help:   type "help"  (plot window: hit 'h')
-set terminal postscript landscape noenhanced defaultplex \
-   leveldefault color colortext \
-   dashed dashlength 1.0 linewidth 1.0 butt noclip \
-   nobackground \
-   palfuncparam 2000,0.003 \
-   "Helvetica" 14  fontscale 1.0 
+set terminal png size 1280,960 fontscale 1.7
+set output 'test-x86_64-musl.png'
 unset clip points
 set clip one
 unset clip two

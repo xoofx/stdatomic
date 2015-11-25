@@ -7,7 +7,12 @@
 %\pdfpageheight=11truein
 \usepackage{amsmath}
 \usepackage{hyperref}
+\usepackage{subfigure}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\topfraction}{0.99}
+\renewcommand{\floatpagefraction}{0.9}
 \usepackage{color}
+\usepackage{xspace}
 \usepackage[table]{xcolor}
 \definecolor{light-gray}{gray}{0.97}
 \usepackage{listings}
@@ -24,13 +29,24 @@ language=[boundschecking]{C},
 language=[99]{C},
 language={C11},
 style=modernC,
-basicstyle=\tt\small,
+basicstyle=\tt\scriptsize,
 moreemph=[5]{
 futex_wait,
 futex_wake,
+},
+moreemph=[3]{
+smpl_lock,
+smpl_unlock,
 smpl, ftx,
+ftx_lock,
+ftx_unlock,
+ftx_mask,
+ftx_count,
+ftx_locked,
+ftx_contrib,
 },
 }
+\newcommand{\code}[1]{\text{\lstinline`#1`\xspace}}
 \author{Jens Gustedt\\
 %  \affaddr{\framebox[1.5cm] and \framebox[3cm]{[\hfill]}, \framebox[5cm]{[\hfill]}, \framebox[3cm]{[\hfill]}}}
 \affaddr{INRIA and ICube, Universit\'{e} de Strasbourg, France}}
@@ -51,11 +67,16 @@ smpl, ftx,
 \newtheorem{lemma}[remark]{Lemma}
 \newtheorem{theorem}[remark]{Theorem}
 \date{\today}
-\title{Futex based locks for C11's generic atomics}
+\title{Futex based locks for C11's generic atomics\\
+(extended abstract)}
 \hypersetup{
-  pdfkeywords={},
-  pdfsubject={},
-  pdfcreator={Emacs 24.4.1 (Org mode 8.2.10)}}
+    pdftitle={Futex based locks for C11's generic atomics, Extended Abstract},
+    pdfauthor={Jens Gustedt},
+    pdfkeywords={lock primitives, atomics, C11, futex, Linux},
+    pdfsubject={Futex based locks for C11's generic atomics},
+    bookmarksopen = true,
+    pdflang={English},
+}
 \begin{document}
 
 \maketitle
