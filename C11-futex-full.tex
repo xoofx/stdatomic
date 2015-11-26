@@ -83,8 +83,9 @@ whole project into the \texttt{musl} C library.
 \label{sec-2}
 
 Data races are the most difficult challenge for parallel
-programming. They often lead to hard to trace sporadic errors. The
-main problems are:\itemadjust
+programming. They often lead to hard to trace sporadic errors.
+\iflong
+The main problems are:\itemadjust
 
 \begin{description}
 \item[{atomicity:}] Writes to memory may or may be not split by the
@@ -123,10 +124,12 @@ Before C11, C also had no thread concept, so the memory ordering
 problem could not even be formalized within the vocabulary of the C
 standard. Obviously, it also could not provide tools to deal with
 it.
+\fi
 
 \subsection{C atomics and its library interfaces}
 \label{sec-2-1}
 
+\iflong
 With modern multi-processor and multi-core hardware, parallel
 programming is an imperative for many if not most user applications
 that are used on a larger scale. Therefore it was crucial for C to
@@ -175,7 +178,7 @@ We will use the following atomic operations:
 \item[] \hspace*{-3ex}\code{atomic_compare_exchange_weak}: compare to desired, then
   exchange, may fail
 \end{itemize}
-
+\fi
 
 
 
@@ -195,8 +198,10 @@ see \textsl{e.g.}
 \cite{Netzer1992}.
 Modern hardware (which almost
 always is inherently parallel) deals with this by providing special
-instructions, usually referred to as \emph{atomic instructions}. It is
-important to note that these are not the same as the atomic
+instructions, usually referred to as \emph{atomic instructions}.
+
+\iflong%
+It is important to note that these are not the same as the atomic
 operations on the level of the C language.\itemadjust
 
 \begin{description}
@@ -259,7 +264,7 @@ handler. So the access to an object that is qualified with
 \code{_Atomic} but that needs a lock for operation may be divisible with
 respect to a signal handler. This property is what coined C's
 terminology of \emph{lockfree} that we already mentioned above.
-
+\fi
 
 \subsection{Fast user space mutexes}
 \label{sec-2-3}
@@ -267,8 +272,8 @@ terminology of \emph{lockfree} that we already mentioned above.
 In a singular toolbox \emph{Fast User space muTEXes}, \texttt{futex} for
 short, the Linux kernel combines two levels of operations for the
 implementation of lock primitives, see
-\cite{Hutton02fuss,hart09}:\itemadjust
-
+\cite{Hutton02fuss,hart09}:
+\iflong
 \begin{enumerate}
 \item User space atomic integers with lockfree operations are used to
 regulate access to the lock as long as it is not congested.\itemadjust
@@ -295,6 +300,7 @@ remains is that a call to \code{futex_wait} is only successful if the
 kernel can guarantee that the value of the atomic object still is as
 expected.
 %
+\fi
 With these interfaces a simple but
 inefficient lock structure \code{smpl} could look as follows:
 
@@ -314,6 +320,7 @@ void smpl_unlock(smpl* lck) {
 }
 \end{lstlisting}
 
+\iflong%
 Here the second parameter to \code{futex_wait} guarantees that the thread
 will only be set to sleep if the value of the atomic object \code{*lck}
 still is \code{prev}. As a consequence the \code{smpl_lock} function will iterate until the
@@ -324,6 +331,7 @@ The second parameter of \code{futex_wake} corresponds to the maximal
 number of threads that are to be woken up. So here, the thread that
 holds the lock restores the object \code{*lck} to the value \code{0} and wakes
 up one possible waiter.
+\fi
 
 Both functions as described above are simplistic and not very
 efficient. The first, \code{smpl_lock}, is inefficient because each failed
@@ -347,14 +355,17 @@ counter is 0, this allows to avoid useless calls to
 \code{futex_wake}.\itemadjust
 \end{itemize}
 
+\iflong
 Even though these additions enlarge the lock data structure and add
 one atomic operation to the unlock function these strategies have
 proven to be much more efficient then our simplistic versions,
 above.
+\fi
 
 \section{A new generic lock algorithm using futex system calls}
 \label{sec-3}
 
+\iflong%
 To construct and adapted lock data structure for our situation, we
 want to have the following properties:
 
@@ -378,29 +389,40 @@ deadlock free.\itemadjust
 
 \subsection{The algorithm}
 \label{sec-3-1}
+\fi
 
 For our strategy we use a single \code{unsigned} value that at the same
 time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \code{unsigned} is always 32 bit wide.}
 
 \lstset{language=C11,label= ,caption= ,numbers=none}
+\iflong%
 \begin{lstlisting}
 typedef _Atomic(unsigned) ftx;
 #define ftx_mask        0x7FFFFFFFU
-#define ftx_count(FTX)  (FTX & ftx_mask)
 #define ftx_locked(FTX) (FTX > ftx_mask)
+#define ftx_count(FTX)  (FTX & ftx_mask)
 // highest and lowest bit to 1
 #define ftx_contrib     0x80000001U
 \end{lstlisting}
+\else
+\begin{lstlisting}
+typedef _Atomic(unsigned) ftx;
+#define ftx_locked(FTX) (FTX > 0x7FFFFFFFU)
+#define ftx_contrib     0x80000001U
+\end{lstlisting}
+\fi
 
 That counter is not viewed as a counter of the threads that are in
 a kernel wait, but counts the number of threads inside the critical
 section.  So an update of the counter part is done once when a
-thread enters the CS. Compared to the number of times
+thread enters the CS.
+\iflong%
+Compared to the number of times
 the counter is accessed under congestion such events are relatively
 rare. Thereby we save memory bandwidth for the update, and we also
 avoid too much interaction between the different threads that
 compete for the lock.
-
+\fi
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
 void ftx_lock(ftx* lck) {
@@ -408,11 +430,11 @@ void ftx_lock(ftx* lck) {
  if (!atomic_compare_exchange_weak(lck, &curr, ftx_contrib)) {
   curr = atomic_fetch_add(lck, 1) + 1;
   for (;;) {
-   while (curr <= ftx_mask) {
+   while (!ftx_locked(curr)) {
     // here: spin for some time
     if (acquired) return;
    }
-   while (curr > ftx_mask) {
+   while (ftx_locked(curr)) {
     futex_wait(lck, curr);
     curr = atomic_load(lck);
    }
@@ -423,33 +445,44 @@ void ftx_lock(ftx* lck) {
 
 \begin{enumerate}
 \item A thread is on the fast path for the lock when the overall value
-is \code{0}. The lock can be acquired with one atomic operation.  If
+is \code{0}. The lock can be acquired with one atomic operation.
+\iflong%
+If
 this returns successfully, it has set the HO bit (the lock bit)
 and the LO bit (for a counter of value \code{1}) in one go. If the
 fast path fails, we increment the lock value atomically.
-
+\fi
+\itemadjust
 \item Otherwise, we enter an acquisition loop.\itemadjust
-
 \begin{enumerate}
-\item First, we spin for a while (determined below) to set the HO
-bit as well, and thus acquire the lock.
-
-\item If that times out, we suppose that the lock is under
-congestion and we go into a \code{futex_wait}.\itemadjust
+\item First, we spin for a while
+\iflong%
+(determined below) to set the HO
+bit as well, and thus
+\else%
+to
+\fi%
+acquire the lock.
+\item If that times out,
+\iflong%
+we suppose that the lock is under congestion and
+\fi%
+we go into a \code{futex_wait}.
+\itemadjust
 \end{enumerate}
 \end{enumerate}
-
+\iflong%
 Going into the \code{futex_wait} may fail if the value changes, but
 since additional threads only change the counter when they arrive,
 this will not happen too often and the thread goes to sleep,
 eventually.
-
+\fi%
 Unlocking is a very simple operation. The locker has contributed
 \code{ftx_contrib} to the value, and just has to decrement the value
 atomically by that amount.  The return value of the operation
 reveals if other threads still are in the CS, and a
 \code{futex_wake} call can be placed accordingly.
-
+\iflong%
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
 void ftx_unlock(ftx* lck) {
@@ -457,7 +490,7 @@ void ftx_unlock(ftx* lck) {
  if (prev != ftx_contrib) futex_wake(lck, 1);
 }
 \end{lstlisting}
-
+\fi
 
 \subsection{Analysis}
 \label{sec-3-2}
@@ -466,7 +499,7 @@ It is relatively easy to see that this new strategy provides a
 functional lock primitive using just a 32 bit data structure and
 one atomic operation for fast \code{ftx_lock} and \code{ftx_unlock}. It remains to
 show that it cannot deadlock.
-
+\iflong%
 The worst case scenario for our use of our lock primitive is that
 the thread that holds the lock, say $T_0$, is unscheduled while
 inside the CS. Suppose further that there are $N$ other threads
@@ -477,8 +510,9 @@ Different quantities are interesting for an analysis of the runtime
 behavior of the algorithm. We can control one of them, namely the
 time $t_{\textrm{mono}}$ that a scheduled thread spends spinning
 before trying to switch to \code{futex_wait}.  Three others are platform
-dependent:\itemadjust
-
+dependent:
+\fi
+\itemadjust
 \begin{description}
 \item[{$t_{\textrm{fail}}$}] is the maximum of two system specific
 times: the time a thread $T_1$ may either spend in a failed
@@ -493,6 +527,7 @@ simultaneously.\itemadjust
 spinning phase that they perform in parallel.\itemadjust
 \end{description}
 
+\iflong%
 A value $t_{\textrm{para}}$ close to $t_{\textrm{mono}}$ indicates
 a perfect parallelism, a value of $P \cdot t_{\textrm{mono}}$
 means that there is none at all. Usually it will be greater than
@@ -500,6 +535,7 @@ $t_{\textrm{mono}}$, e.g because of memory contention or
 contention on other shared resources (execution pipelines,
 caches). We derive some other quantities from the
 above:\itemadjust
+
 
 \begin{description}
 \item[{$\widehat{P}$}] given as $\frac{P\cdot
@@ -525,6 +561,7 @@ while a thread is spinning. Thus spinning would just waste
 resources and the state of the application would not progress.  So
 from now on we may assume that $\widehat{P} \geq 1+\epsilon$ for some
 reasonable value of $\epsilon > 0$.
+\fi
 
 \begin{lemma}
 Provided that no other threads are unscheduled, after at most
@@ -545,6 +582,7 @@ time for spinning and then \code{futex_wait} may fail at most $P-1$
 times in a row.
 \end{proof}
 
+\iflong
 This already shows that, provided no other unscheduling takes
 place, our algorithm is deadlock-free.
 
@@ -578,6 +616,7 @@ $1/t_{\textrm{fail}}$ per second.
 
 Or, roughly if $P \ll N$ the time for all threads to calm down and
 successfully call \code{futex_wait} is $N\cdot t_{\textrm{fail}}$.
+\fi
 
 \begin{theorem}
 Let be $T_0$ a thread out of $N \gg P$ that is unscheduled when
@@ -587,6 +626,7 @@ unscheduled by other means and that $t_{\textrm{para}} \leq
 application makes progress.
 \end{theorem}
 
+\iflong
 \begin{proof}
 This progress can be of two forms.  Either there is another thread
 than $T_{0}$ that does not enter the the CS and thus
@@ -602,10 +642,12 @@ probability to acquire the lock without going into
 $t_{\textrm{mono}} = E\cdot t_{\textrm{fail}}$. Practically a
 factor of 0.9 always guarantees liveness of the application and
 shows good performance on average.
+\fi
 
 \section{Benchmarks}
 \label{sec-4}
 
+\iflong%
 \subsection{The framework}
 \label{sec-4-1}
 
@@ -660,7 +702,7 @@ library and the library of the compiler are compatible.
 
 \subsection{The test platforms}
 \label{sec-4-3}
-
+\fi
 \begin{figure*}[t]
   \subfigure[lock throughput\label{fig:arm-abs}]{
     \includegraphics[width=0.48\textwidth]{benchs/arm/test-arm-u64.png}
@@ -671,7 +713,7 @@ library and the library of the compiler are compatible.
   \caption{benchmarks on \texttt{arm}}
   \label{fig:arm}
 \end{figure*}
-
+\iflong%
 \subsubsection{An \texttt{arm7} machine with 4 cores}
 \label{sec-4-3-1}
 
@@ -691,6 +733,10 @@ is \texttt{gcc} version \texttt{5.2}.
 
 \subsection{Performance comparison}
 \label{sec-4-4}
+\else
+\emph{Summarize platform and benchmark in one single paragraph}
+\fi
+
 
 The Fig.~\ref{fig:arm} shows the results on the \texttt{arm}
 platform.
