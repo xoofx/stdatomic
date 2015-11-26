@@ -2,15 +2,14 @@
 \section{Introduction}
 \label{sec-1}
 
-Only very recently (with C11, see \cite{C11}) the C language has
+Only very recently (with C11, see \citeauthor{C11}) the C language has
 integrated threads and atomic operations into the core of the
 language.  Support for these features is still partial: where the
-main open source compilers \href{https://gcc.gnu.org/}{\texttt{gcc}} and
-\href{http://clang.llvm.org/}{\texttt{clang}}p now offer atomics, most Linux
-platforms still use \href{https://www.gnu.org/software/libc/}{\texttt{glibc}}
+main open source compilers~\citeauthor{gcc} and~\citeauthor{clang} now offer atomics, most Linux
+platforms still use~\citeauthor{glibc}
 as their C library which does not implement C11 threads. Only
-platforms that are based on \href{http://musl-libc.org}{musl} as C
-library, e.g \href{http://alpinelinux.org/}{\texttt{Alpine} Linux}, are
+platforms that are based on~\citeauthor{musl} as C
+library, e.g~\citeauthor{alpine}, are
 feature complete.
 
 The implementation of the C11 atomic interface typically sits in the
@@ -24,7 +23,7 @@ lock} interface.
 Since Linux' open source C libraries do not implement the generic
 interface, the compilers currently provide a library stub that
 implements the necessary lock by means of a combination of atomics
-and \href{http://pubs.opengroup.org/onlinepubs/9699919799/}{POSIX'}
+and~\citeauthor{POSIX2009}
 \code{pthread_mutex_t}. By consensus in the community an API interface
 has emerged that both, \texttt{gcc} and \texttt{clang}, implement.
 
@@ -85,7 +84,7 @@ whole project into the \texttt{musl} C library.
 
 Data races are the most difficult challenge for parallel
 programming. They often lead to hard to trace sporadic errors. The
-main problems are:\vspace*{-2ex}
+main problems are:\itemadjust
 
 \begin{description}
 \item[{atomicity:}] Writes to memory may or may be not split by the
@@ -106,7 +105,7 @@ different order. Reordering of instructions may originate from
 optimization (compiler) or occur at run time (processor).
 \end{description}
 
-\vspace*{-3ex}
+\itemadjust
 A data type that is guaranteed to avoid the first problem is called
 \emph{atomic}. Before the C11 revision C only had one data type,
 \code{sig_atomic_t}, that had this guaranty to be read and written in one
@@ -185,7 +184,16 @@ We will use the following atomic operations:
 
 Almost since the beginning of modern computing, parallelism was
 implemented in hardware and the consistency problems that we
-introduced above became apparent. Modern hardware (which almost
+introduced above became apparent
+\iflong
+.
+An early overview of the problem had been given by
+\else
+,
+see \textsl{e.g.}
+\fi
+\cite{Netzer1992}.
+Modern hardware (which almost
 always is inherently parallel) deals with this by providing special
 instructions, usually referred to as \emph{atomic instructions}. It is
 important to note that these are not the same as the atomic
