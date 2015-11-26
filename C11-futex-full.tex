@@ -67,17 +67,17 @@ than commonly thought.
 
 Our algorithm and its implementation is part of a larger open
 source project to provide the necessary interfaces (header files)
-and library support for C11's \code{<stdatomic.h>}. Unfortunately, due to
-space limitations we will not be able to present this project
-further, but have to concentrate on the generic lock feature that it
-provides.
+and library support for C11's \code{<stdatomic.h>}. Here we concentrate on
+the generic lock feature that it provides.
 
-At the time of this writing this project is functional to be used
-with \texttt{gcc} and \texttt{clang}, even for version that only have partial
-support for atomic operations through builtin functions. If accepted
-for publication, we will provide links to the complete source in the
-de-anonymized version. In a later stage, we intent to integrate the
-whole project into the \texttt{musl} C library.
+At the time of this writing this project is functional to be used with
+\texttt{gcc} and \texttt{clang}, even for version that only have partial
+support for atomic operations through builtin functions.  In a later stage,
+we intent to integrate the whole project into the \texttt{musl} C library.
+
+The source is available at \url{http://stdatomic.gforge.inria.fr/}. The
+benchmarks that are presented in this paper come with the reference
+implementation of Modular C, see \url{http://cmod.gforge.inria.fr/}.
 
 \section{Tools to deal with data consistency and races}
 \label{sec-2}
@@ -721,7 +721,7 @@ This machine has 4 symmetric \texttt{arm7} cores at a \texttt{1.3 GHz} with \tex
     GiB} of RAM. This system is equipped with Alpine Linux, so it has
 \texttt{musl} as a native C library. The processor has atomic
 instructions for word sizes up to 64 bit. The compiler is \texttt{gcc}
-version \texttt{4.9}.
+version \texttt{5.2}.
 
 \subsubsection{A \texttt{x86\_64} machine with 2x2 hyperthreaded cores}
 \label{sec-4-3-2}
@@ -729,7 +729,7 @@ version \texttt{4.9}.
 This is a i7-4600U CPU at \texttt{2.10GHz} and with \texttt{8 GiB} of RAM. The
 OS is Debian Linux, with \texttt{glibc} as native library.  The processor
 has atomic instructions for word sizes up to 128 bit. The compiler
-is \texttt{gcc} version \texttt{5.2}.
+is \texttt{gcc} version \texttt{4.9}.
 
 \subsection{Performance comparison}
 \label{sec-4-4}
@@ -763,11 +763,14 @@ the "native" version, or 40\% than a direct implementation with
 mutex. It combines the good performance of a spinlock for the less
 congested range with a good policy for strong congestion.
 
-To finish let us consider the \texttt{x86\_64} platform. Although it
-is much more powerful than the other, the atomics of the hardware
+To finish let us consider the \texttt{x86\_64} platform, Fig.~\ref{fig:x86_64}. Although it
+has more compute power than the other, the atomics of the hardware
 are much less performing. This is due to the fact that here an
-atomic instruction almost always enforces a complete
-synchronization. So any atomic operation incurs a strong latency
+atomic instruction usually enforces a complete
+synchronization at a cost of about 50 CPU cycles. Basically, the CPU
+is blocked for this number of cycles. Compared to that, in a monitor based approach
+as on the arm architecture part of these cycles can be used for other computations.
+So on the \texttt{x86\_64} platform any atomic operation incurs a strong latency
 penalty. Thereby, our application is not even able to accelerate for
 2, 3 or 4 threads as it was the case on arm. In the contrary it
 even decelerates.
@@ -813,9 +816,9 @@ atomic access. The performance factor between the two is only about
 10, and so spinlocks in the order of 10 should be sufficient in many
 cases.
 
-In the future we plan to make this whole support library available as
-open source project. We hope to integrat it into the C library that we
-used for most of our experiments, \texttt{musl}.
+This support library is now available as open source at
+\url{http://stdatomic.gforge.inria.fr}. We hope to integrat it into the C library
+that we used for most of our experiments, \texttt{musl}.
 
 
 %%% Local Variables:
