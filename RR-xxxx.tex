@@ -89,12 +89,14 @@ moreemph=[3]{
 smpl_lock,
 smpl_unlock,
 smpl, ftx,
+ftx_cmpxch,
+ftx_fetch_add,
+ftx_fetch_sub,
+ftx_lkd,
+ftx_load,
 ftx_lock,
+ftx_set,
 ftx_unlock,
-ftx_mask,
-ftx_count,
-ftx_locked,
-ftx_contrib,
 },
 }
 
@@ -414,7 +416,9 @@ framesep=1em
 %\maketitle
 
 \RRNo{XXXX}
-\RRetitle {Futex based locks for C11's generic atomics}
+\RRetitle {Futex based locks for C11's generic atomics%
+  \thanks{A short version of this paper is accepted for publication, see~\cite{gustedt16:futex}}
+}
 \RRauthor {Jens Gustedt%
 \thanks[inria]{Inria, France}%
 \thanks[uniS]{Universit\'{e} de Strasbourg, ICube, France}%

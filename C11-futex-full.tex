@@ -395,22 +395,29 @@ For our strategy we use a single \code{unsigned} value that at the same
 time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \code{unsigned} is always 32 bit wide.}
 
 \lstset{language=C11,label= ,caption= ,numbers=none}
-\iflong%
 \begin{lstlisting}
 typedef _Atomic(unsigned) ftx;
-#define ftx_mask        0x7FFFFFFFU
-#define ftx_locked(FTX) (FTX > ftx_mask)
-#define ftx_count(FTX)  (FTX & ftx_mask)
-// highest and lowest bit to 1
-#define ftx_contrib     0x80000001U
+#define ftx_set(VAL)  (0x80000000u | (VAL))
+#define ftx_lkd(VAL)  (0x80000000u & (VAL))
+
+void ftx_lock(ftx* lck) {
+ unsigned cur = 0;
+ if (!ftx_cmpxch(lck, &cur, ftx_set(1))) {
+  cur = ftx_fetch_add(lck, 1) + 1;
+  for (;;) {
+   while (!ftx_lkd(cur)) {
+    if (ftx_cmpxch(lck, &cur, ftx_set(cur))) return;
+    for (unsigned i = 0; i < E && ftx_lkd(cur); i++)
+     cur = ftx_load(lck);
+   }
+   while (ftx_lkd(cur)) {
+    futex_wait(lck, cur);
+    cur = ftx_load(lck);
+   }
+  }
+ }
+}
 \end{lstlisting}
-\else
-\begin{lstlisting}
-typedef _Atomic(unsigned) ftx;
-#define ftx_locked(FTX) (FTX > 0x7FFFFFFFU)
-#define ftx_contrib     0x80000001U
-\end{lstlisting}
-\fi
 
 That counter is not viewed as a counter of the threads that are in
 a kernel wait, but counts the number of threads inside the critical
@@ -423,47 +430,29 @@ rare. Thereby we save memory bandwidth for the update, and we also
 avoid too much interaction between the different threads that
 compete for the lock.
 \fi
-\lstset{language=C11,label= ,caption= ,numbers=none}
-\begin{lstlisting}
-void ftx_lock(ftx* lck) {
- unsigned curr = 0;
- if (!atomic_compare_exchange_weak(lck, &curr, ftx_contrib)) {
-  curr = atomic_fetch_add(lck, 1) + 1;
-  for (;;) {
-   while (!ftx_locked(curr)) {
-    // here: spin for some time
-    if (acquired) return;
-   }
-   while (ftx_locked(curr)) {
-    futex_wait(lck, curr);
-    curr = atomic_load(lck);
-   }
-  }
- }
-}
-\end{lstlisting}
 
+\itemadjust
 \begin{enumerate}
 \item A thread is on the fast path for the lock when the overall value
 is \code{0}. The lock can be acquired with one atomic operation.
 \iflong%
 If
 this returns successfully, it has set the HO bit (the lock bit)
-and the LO bit (for a counter of value \code{1}) in one go. If the
-fast path fails, we increment the lock value atomically.
+and the LO bit (for a counter of value \code{1}) in one go.
 \fi
 \itemadjust
-\item Otherwise, we enter an acquisition loop.\itemadjust
+\item Otherwise, we increment the lock value atomically and enter an
+  acquisition loop.\itemadjust
 \begin{enumerate}
-\item First, we spin for a while
+\item First, we spin \code{E} times
 \iflong%
-(determined below) to set the HO
+(\code{E} determined below) to set the HO
 bit as well, and thus
 \else%
 to
 \fi%
 acquire the lock.
-\item If that times out,
+\item If that fails,
 \iflong%
 we suppose that the lock is under congestion and
 \fi%
@@ -478,7 +467,7 @@ this will not happen too often and the thread goes to sleep,
 eventually.
 \fi%
 Unlocking is a very simple operation. The locker has contributed
-\code{ftx_contrib} to the value, and just has to decrement the value
+\code{ftx_set(1u)} to the value, and just has to decrement the value
 atomically by that amount.  The return value of the operation
 reveals if other threads still are in the CS, and a
 \code{futex_wake} call can be placed accordingly.
@@ -486,8 +475,8 @@ reveals if other threads still are in the CS, and a
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
 void ftx_unlock(ftx* lck) {
- unsigned prev = atomic_fetch_sub(lck, ftx_contrib);
- if (prev != ftx_contrib) futex_wake(lck, 1);
+ unsigned prev = ftx_fetch_sub(lck, ftx_set(1u));
+ if (prev != ftx_set(1u)) futex_wake(lck, 1);
 }
 \end{lstlisting}
 \fi
@@ -690,15 +679,12 @@ primitives can be chosen at compile time to protect the head of the
 LIFO:\itemadjust
 
 \begin{description}
-\item[{futex:}] the futex based algorithm described here
-\item[{mutex:}] based on a standard mutex
-\item[{musl:}] musl's lowlevel \code{lock/unlock} functions
-\item[{spin:}] a spin lock using atomic exchange
-\item[{native:}] the compilers "native" generic lock, also a mutex
+\item[{futex}] the futex based algorithm described here
+\item[{mutex}] based on a standard mutex
+\item[{musl}] musl's lowlevel \code{lock/unlock} functions
+\item[{spin}] a spin lock using atomic exchange
+\item[{native}] the compilers "native" generic lock, also a mutex
 \end{description}
-
-The latter can only be produced on a platform where the native C
-library and the library of the compiler are compatible.
 
 \subsection{The test platforms}
 \label{sec-4-3}
@@ -722,6 +708,10 @@ This machine has 4 symmetric \texttt{arm7} cores at a \texttt{1.3 GHz} with \tex
 \texttt{musl} as a native C library. The processor has atomic
 instructions for word sizes up to 64 bit. The compiler is \texttt{gcc}
 version \texttt{5.2}.
+%
+Here, the native C library is musl and so the atomic library of gcc are
+compatible. Therefore the benchmarks include ``native''.
+
 
 \subsubsection{A \texttt{x86\_64} machine with 2x2 hyperthreaded cores}
 \label{sec-4-3-2}
@@ -730,6 +720,9 @@ This is a i7-4600U CPU at \texttt{2.10GHz} and with \texttt{8 GiB} of RAM. The
 OS is Debian Linux, with \texttt{glibc} as native library.  The processor
 has atomic instructions for word sizes up to 128 bit. The compiler
 is \texttt{gcc} version \texttt{4.9}.
+%
+Because musl is not the native C library, the atomic library of gcc is not
+compatible. Therefore the benchmark ``native'' is missing.
 
 \subsection{Performance comparison}
 \label{sec-4-4}
@@ -763,7 +756,11 @@ the "native" version, or 40\% than a direct implementation with
 mutex. It combines the good performance of a spinlock for the less
 congested range with a good policy for strong congestion.
 
-To finish let us consider the \texttt{x86\_64} platform, Fig.~\ref{fig:x86_64}. Although it
+To finish let us consider the \texttt{x86\_64} platform%
+\iflong%
+, Fig.~\ref{fig:x86_64}%
+\fi%
+. Although it
 has more compute power than the other, the atomics of the hardware
 are much less performing. This is due to the fact that here an
 atomic instruction usually enforces a complete
@@ -817,7 +814,7 @@ atomic access. The performance factor between the two is only about
 cases.
 
 This support library is now available as open source at
-\url{http://stdatomic.gforge.inria.fr}. We hope to integrat it into the C library
+\url{http://stdatomic.gforge.inria.fr}. We hope to integrate it into the C library
 that we used for most of our experiments, \texttt{musl}.
 
 

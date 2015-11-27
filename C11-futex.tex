@@ -10,9 +10,9 @@
 \usepackage{hyperref}
 \usepackage{natbib}
 \usepackage{subfigure}
-\renewcommand{\textfraction}{0.05}
-\renewcommand{\topfraction}{0.99}
-\renewcommand{\floatpagefraction}{0.9}
+% \renewcommand{\textfraction}{0.05}
+% \renewcommand{\topfraction}{0.99}
+% \renewcommand{\floatpagefraction}{0.9}
 \usepackage{color}
 \usepackage{xspace}
 \usepackage[table]{xcolor}
@@ -40,11 +40,16 @@ moreemph=[3]{
 smpl_lock,
 smpl_unlock,
 smpl, ftx,
+ftx_bit,
+ftx_fetch_add,
+ftx_cmpxch,
+ftx_load,
 ftx_lock,
 ftx_unlock,
 ftx_mask,
 ftx_count,
-ftx_locked,
+ftx_set,
+ftx_lkd,
 ftx_contrib,
 },
 }
@@ -54,12 +59,12 @@ ftx_contrib,
 \affaddr{INRIA and ICube, Universit\'{e} de Strasbourg, France}}
 %\setcopyright{acmcopyright}
 \doi{http://dx.doi.org/xx.xxxx/xxxxxxx.xxxxxxx}
-%\isbn{978-1-4503-3739-7/16/04}
-\isbn{---}
+\isbn{978-1-4503-3739-7/16/04}
+%\isbn{---}
 %\conferenceinfo{PLDI '13}{June 16--19, 2013, Seattle, WA, USA}
 %\acmPrice{\$15.00}
-%\conferenceinfo{SAC'16,}{ April 4-8, 2016, Pisa, Italy}
-%\CopyrightYear{2016} % Allows default copyright year (20XX) to be ove
+\conferenceinfo{SAC'16,}{ April 4-8, 2016, Pisa, Italy}
+\CopyrightYear{2016} % Allows default copyright year (20XX) to be ove
 % switch off the table of contents just for LaTeX export
 \let\tableofcontents=\relax
 % ensure that in the LaTeX output links are visible as footnotes
@@ -69,7 +74,9 @@ ftx_contrib,
 \newtheorem{lemma}[remark]{Lemma}
 \newtheorem{theorem}[remark]{Theorem}
 \date{\today}
-\title{Futex based locks for C11's generic atomics\\
+\title{Futex based locks for C11's generic atomics%
+  \thanks{A long version of this paper can be found in \cite{gustedt15:futex}}
+\\
 (extended abstract)}
 \hypersetup{
     pdftitle={Futex based locks for C11's generic atomics, Extended Abstract},
@@ -96,8 +103,10 @@ ftx_contrib,
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
+%\bibliographystyle{ACM-Reference-Format-Journals}
+%\bibliography{modernC}
 \begin{thebibliography}{00}
-
+\itemsep=0.8ex
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
 %%% customized versions of any of these macros before the \bibliography
@@ -160,6 +169,16 @@ ftx_contrib,
 \url{https://www.gnu.org/software/libc/}}
 
 
+\bibitem[\protect\citeauthoryear{Gustedt}{Gustedt}{2015}]%
+        {gustedt15:futex}
+{Jens Gustedt}. 2015.
+\newblock {\em Futex based locks for C11's generic atomics}.
+\newblock {T}echnical {R}eport RR-XXXX. INRIA.
+\newblock
+\showURL{%
+\url{https://hal.inria.fr/hal-0123xxxx}}
+
+
 \bibitem[\protect\citeauthoryear{Hart}{Hart}{2009}]%
         {hart09}
 {Darren Hart}. 2009.
@@ -208,11 +227,9 @@ IBM 1983.
 \newblock
 
 
-\bibitem[\protect\citeauthoryear{MUSL}{MUSL}{2015}]%
+\bibitem[\protect\citeauthoryear{MUSL}{MUSL}{}]%
         {musl}
-{MUSL}. 2015.
-\newblock libc.
-\newblock   (2015).
+{MUSL} libc.
 \newblock
 \showURL{%
 \url{http://musl-libc.org}}
