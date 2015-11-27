@@ -24,31 +24,47 @@ Since Linux' open source C libraries do not implement the generic
 interface, the compilers currently provide a library stub that
 implements the necessary lock by means of a combination of atomics
 and~\citeauthor{POSIX2009}
-\code{pthread_mutex_t}. By consensus in the community an API interface
-has emerged that both, \texttt{gcc} and \texttt{clang}, implement.
+\code{pthread_mutex_t}.
 
-This library stubs can rely on all their knowledge of the
-architecture specific atomics for the non-contended part of the
-implementation, finally that is the context in which they were
-created. But since they are generic, in case of contention these
+\iflong%
+By consensus in the community an API interface
+has emerged that both, \texttt{gcc} and \texttt{clang}, implement.
+\fi%
+
+\iflong%
+These library stubs can rely on all their knowledge of the architecture
+specific atomics for the non-contended part of the implementation, finally
+that is the context in which they were created. But since
+\else%
+Since
+\fi%
+they are generic, in case of contention these
 library stubs rely on generic OS interfaces to put threads to
 sleep. From a point of view of the C language the natural interface
-for that would be C11 threads, that could be a bit lighter than
-POSIX threads. But since this end is still missing in \texttt{glibc}, they
-fall back to POSIX threads for which there are reliable and
-efficient implementations.
+for that would be C11 threads,
+but since these are still missing in \texttt{glibc}, they fall back to
+POSIX threads for which there are reliable and efficient implementations.
 
-This situation is less than ideal, the role of a language interface
-is finally to do the work of mapping to platform specific properties
-and thereby to draw the best performance from any given hardware. In
+This situation is less than ideal, a language interface
+should map to platform specific properties
+and draw the best performance from any given hardware. In
 this work we present a specific algorithm for the generic lock that
 relies on a specific set of Linux utilities, the \texttt{futex} system
-calls. These system calls combine just one atomic integer and OS
-scheduling in a very ingenious way and are the tool of choice of a
-Linux specific implementation of any lock structure.
+calls. They combine one atomic integer and OS
+scheduling%
+\iflong%
+in a very ingenious way and are the tool of choice of a
+Linux specific implementation of any lock structure
+\fi%
+.
 
+\iflong%
 Our algorithm uses all possibilities that the \texttt{futex} interfaces
-offers. In particular we use just one \code{unsigned} integer to
+offers. In particular we
+\else%
+We
+\fi%
+use just one \code{unsigned} integer to
 implement the lock and a waiter count at the same time. Not only is
 the resulting data type of minimal size (32 bit on all
 architectures) but the algorithm can take advantage of that property
@@ -78,12 +94,13 @@ we intent to integrate the whole project into the \texttt{musl} C library.
 The source is available at \url{http://stdatomic.gforge.inria.fr/}. The
 benchmarks that are presented in this paper come with the reference
 implementation of Modular C, see \url{http://cmod.gforge.inria.fr/}.
+\clearpage
 
 \section{Tools to deal with data consistency and races}
 \label{sec-2}
 
 Data races are the most difficult challenge for parallel
-programming. They often lead to hard to trace sporadic errors.
+programming. They often lead to hard to trace erratic errors.
 \iflong
 The main problems are:\itemadjust
 
@@ -124,12 +141,10 @@ Before C11, C also had no thread concept, so the memory ordering
 problem could not even be formalized within the vocabulary of the C
 standard. Obviously, it also could not provide tools to deal with
 it.
-\fi
 
 \subsection{C atomics and its library interfaces}
 \label{sec-2-1}
 
-\iflong
 With modern multi-processor and multi-core hardware, parallel
 programming is an imperative for many if not most user applications
 that are used on a larger scale. Therefore it was crucial for C to
@@ -180,10 +195,9 @@ We will use the following atomic operations:
 \end{itemize}
 \fi
 
-
-
 \subsection{Atomic instructions on modern hardware}
 \label{sec-2-2}
+%\fi
 
 Almost since the beginning of modern computing, parallelism was
 implemented in hardware and the consistency problems that we
@@ -199,11 +213,14 @@ see \textsl{e.g.}
 Modern hardware (which almost
 always is inherently parallel) deals with this by providing special
 instructions, usually referred to as \emph{atomic instructions}.
-
 \iflong%
 It is important to note that these are not the same as the atomic
-operations on the level of the C language.\itemadjust
-
+operations on the level of the C language.
+\else
+C, as of version C11, encapsulates these in atomic types (\code{_Atomic}
+keyword) and \emph{operations}.
+\fi
+\iflong
 \begin{description}
 \item[{word size:}] Usually atomic instructions are limited to word
 sized data types. Available on most platforms are
@@ -264,10 +281,10 @@ handler. So the access to an object that is qualified with
 \code{_Atomic} but that needs a lock for operation may be divisible with
 respect to a signal handler. This property is what coined C's
 terminology of \emph{lockfree} that we already mentioned above.
-\fi
 
 \subsection{Fast user space mutexes}
 \label{sec-2-3}
+\fi
 
 In a singular toolbox \emph{Fast User space muTEXes}, \texttt{futex} for
 short, the Linux kernel combines two levels of operations for the
@@ -340,6 +357,7 @@ kernel, even if the lock would be available almost instantly.  The
 second, \code{smpl_unlock}, tries to wake up another thread without any
 knowledge if there even is such a thread that is waiting for it.
 
+\iflong
 To avoid these two shortcomings, system libraries that implement
 locks (such as e.g \code{glibc} and \code{musl}) usually combine two
 strategies:\itemadjust
@@ -355,7 +373,6 @@ counter is 0, this allows to avoid useless calls to
 \code{futex_wake}.\itemadjust
 \end{itemize}
 
-\iflong
 Even though these additions enlarge the lock data structure and add
 one atomic operation to the unlock function these strategies have
 proven to be much more efficient then our simplistic versions,
@@ -419,8 +436,11 @@ void ftx_lock(ftx* lck) {
 }
 \end{lstlisting}
 
-That counter is not viewed as a counter of the threads that are in
-a kernel wait, but counts the number of threads inside the critical
+That counter
+\iflong%
+is not viewed as a counter of the threads that are in a kernel wait, but
+\fi
+counts the number of threads inside the critical
 section.  So an update of the counter part is done once when a
 thread enters the CS.
 \iflong%
