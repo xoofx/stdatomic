@@ -13,37 +13,42 @@ library, e.g~\citeauthor{alpine}, are
 feature complete.
 
 The implementation of the C11 atomic interface typically sits in the
-middle between the implementation of the core language by the C
-compiler and the implementation of the C library. It needs compiler
-support for the individual atomic operations and library support for
-the cases where no low-level atomic instruction is available and a
-lock must be taken. We refer to the latter, as a \emph{generic atomic
-lock} interface.
+middle between the implementation of the core language
+\iflong%
+by the C compiler and the implementation of the
+\else%
+and the
+\fi%
+C library. It needs compiler support for the individual atomic operations
+and a \emph{generic atomic lock} interface in the C library when no
+low-level atomic instruction is available.
+
 
 Since Linux' open source C libraries do not implement the generic
 interface, the compilers currently provide a library stub that
 implements the necessary lock by means of a combination of atomics
 and~\citeauthor{POSIX2009}
 \code{pthread_mutex_t}.
-
 \iflong%
+
 By consensus in the community an API interface
 has emerged that both, \texttt{gcc} and \texttt{clang}, implement.
-\fi%
 
-\iflong%
 These library stubs can rely on all their knowledge of the architecture
 specific atomics for the non-contended part of the implementation, finally
 that is the context in which they were created. But since
-\else%
-Since
-\fi%
 they are generic, in case of contention these
 library stubs rely on generic OS interfaces to put threads to
-sleep. From a point of view of the C language the natural interface
+sleep.
+\fi%
+From a point of view of the C language the natural interface
 for that would be C11 threads,
 but since these are still missing in \texttt{glibc}, they fall back to
-POSIX threads for which there are reliable and efficient implementations.
+POSIX threads%
+\iflong%
+for which there are reliable and efficient implementations%
+\fi%
+.
 
 This situation is less than ideal, a language interface
 should map to platform specific properties
@@ -94,9 +99,9 @@ we intent to integrate the whole project into the \texttt{musl} C library.
 The source is available at \url{http://stdatomic.gforge.inria.fr/}. The
 benchmarks that are presented in this paper come with the reference
 implementation of Modular C, see \url{http://cmod.gforge.inria.fr/}.
-\clearpage
+%\clearpage
 
-\section{Tools to deal with data consistency and races}
+\section{Tools for data consistency and races}
 \label{sec-2}
 
 Data races are the most difficult challenge for parallel
@@ -195,10 +200,12 @@ We will use the following atomic operations:
 \end{itemize}
 \fi
 
-\subsection{Atomic instructions on modern hardware}
-\label{sec-2-2}
-%\fi
+\ \hfill\\\vspace*{-2ex}
 
+%\paragraph{Atomic instructions}
+%\subsection{Atomic instructions on modern hardware}
+%\label{sec-2-2}
+%\fi
 Almost since the beginning of modern computing, parallelism was
 implemented in hardware and the consistency problems that we
 introduced above became apparent
@@ -210,8 +217,11 @@ An early overview of the problem had been given by
 see \textsl{e.g.}
 \fi
 \cite{Netzer1992}.
-Modern hardware (which almost
-always is inherently parallel) deals with this by providing special
+Modern hardware
+\iflong%
+(which almost always is inherently parallel)
+\fi%
+deals with this by providing special
 instructions, usually referred to as \emph{atomic instructions}.
 \iflong%
 It is important to note that these are not the same as the atomic
@@ -220,6 +230,7 @@ operations on the level of the C language.
 C, as of version C11, encapsulates these in atomic types (\code{_Atomic}
 keyword) and \emph{operations}.
 \fi
+
 \iflong
 \begin{description}
 \item[{word size:}] Usually atomic instructions are limited to word
@@ -407,6 +418,7 @@ deadlock free.\itemadjust
 \subsection{The algorithm}
 \label{sec-3-1}
 \fi
+
 
 For our strategy we use a single \code{unsigned} value that at the same
 time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \code{unsigned} is always 32 bit wide.}
