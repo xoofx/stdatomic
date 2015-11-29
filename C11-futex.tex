@@ -128,21 +128,22 @@ and~\citeauthor{POSIX2009}
 From a point of view of the C language the natural interface
 for that would be C11 threads,
 but since these are still missing in \texttt{glibc}, they fall back to
-POSIX threads.
-
-This situation is less than ideal, a language interface
-should map to platform specific properties
-and draw the best performance from any given hardware. In
+POSIX threads,
+%
+instead of
+%
+mapping to platform specific properties
+and drawing the best performance from a given platform. In
 this work we present a specific algorithm for the generic lock that
-relies on a specific set of Linux utilities, the \texttt{futex} system
-calls. They combine one atomic integer and OS
-scheduling.
+relies on a specific Linux utility, the \texttt{futex} system
+call.
 
-We
-use just one \code{unsigned} integer to
-implement the lock and a waiter count at the same time. Not only is
-the resulting data type of minimal size (32 bit on all
-architectures) but the algorithm can take advantage of that property
+A \texttt{futex} combines one atomic integer and OS scheduling.
+In our approach, we
+use one \code{unsigned} to
+implement the lock and a waiter count at the same time.
+The resulting data type of minimal size (32 bit on all
+architectures) and the algorithm can take advantage
 by minimizing the number of CPU to memory transfers. In most cases
 one such transfer is sufficient, where other algorithms have to
 update a lock and a waiter counter separately.
@@ -156,20 +157,16 @@ Also, our measurements have shown that such an approach can be very
 effective: failed system calls to \code{futex_wait} are much less costly
 than commonly thought.
 
-Our algorithm and its implementation is part of a larger open
-source project to provide the necessary interfaces (header files)
-and library support for C11's \code{<stdatomic.h>}. Here we concentrate on
-the generic lock feature that it provides.
+Our algorithm and its implementation is part of a larger open source
+project to provide the necessary interfaces (header files) and library
+support for C11's \code{<stdatomic.h>}. It is available at
+\url{http://stdatomic.gforge.inria.fr/}. The benchmarks that are presented
+in this paper come with the reference implementation of Modular C, see
+\url{http://cmod.gforge.inria.fr/}.  The code is functional to be used with
+\texttt{gcc} and \texttt{clang}, even for older version without full
+support for atomic operations.  In a later stage, we intent to integrate
+the whole project into the \texttt{musl} C library.
 
-At the time of this writing this project is functional to be used with
-\texttt{gcc} and \texttt{clang}, even for version that only have partial
-support for atomic operations through builtin functions.  In a later stage,
-we intent to integrate the whole project into the \texttt{musl} C library.
-
-The source is available at \url{http://stdatomic.gforge.inria.fr/}. The
-benchmarks that are presented in this paper come with the reference
-implementation of Modular C, see \url{http://cmod.gforge.inria.fr/}.
-%\clearpage
 
 \section{Tools for data consistency and races}
 \label{sec-2}
@@ -302,7 +299,7 @@ spinning phase that they perform in parallel.\itemadjust
 
 \begin{lemma}
 Provided that no other threads are unscheduled, after at most
-$$t_{\textrm{para}} + (P-1)\cdot t_{\textrm{fail}}$$
+$t_{\textrm{para}} + (P-1)\cdot t_{\textrm{fail}}$
 seconds a first thread successfully calls \code{futex_wait}.
 \end{lemma}
 
@@ -368,7 +365,12 @@ compatible. Therefore the benchmark ``native'' is missing.
 \subsection{Performance comparison}
 \label{sec-4-4}
 \else
-\emph{Summarize platform and benchmark in one single paragraph}
+\emph{Summarize platform and benchmark in one single paragraph.}
+\emph{Summarize platform and benchmark in one single paragraph.}
+\emph{Summarize platform and benchmark in one single paragraph.}
+\emph{Summarize platform and benchmark in one single paragraph.}
+\emph{Summarize platform and benchmark in one single paragraph.}
+\emph{Summarize platform and benchmark in one single paragraph.}
 \fi
 
 
@@ -417,16 +419,17 @@ different lock implementations look very similar.%
 
 We have presented a new locking algorithm that combines consequent use
 of C11 atomics with Linux' futex system calls. We have proven that it
-is deadlock free.
-
-When compared to other lock implementations it shows better
-performance. This is not surprising, an implementation that is tuned
+is deadlock free, and that shows better
+performance than other lock implementations.
+\iflong
+This is not surprising, an implementation that is tuned
 for the purpose (very short CS) and that may avoid stacked calls into
 the C library should always perform better than a generic one.
 Surprising to us was the wide performance gap between the
 implementations.
+\fi
 
-By pursuing this research we also learned to mistrust some of the
+By pursuing this research we learned to mistrust some of the
 urban legends that turn around atomics, futexes and lock structures in
 general. At least when we stick to the basics (\code{futex_wait} and
 \code{futex_wake}) and if we have a decent interface for atomics,
@@ -514,7 +517,7 @@ that we used for most of our experiments, \texttt{musl}.
         {gustedt15:futex}
 {Jens Gustedt}. 2015.
 \newblock {\em Futex based locks for C11's generic atomics}.
-\newblock {T}echnical {R}eport RR-XXXX. INRIA.
+\newblock INRIA.
 \newblock
 \showURL{%
 \url{https://hal.inria.fr/hal-0123xxxx}}
@@ -535,9 +538,9 @@ that we used for most of our experiments, \texttt{musl}.
 {Andrew~J. Hutton} et~al. 2002.
 \newblock \showarticletitle{Fuss, Futexes and Furwocks: Fast Userlevel Locking
   in Linux}. In {\em Proceedings of the Ottawa Linux Symposium}. 479--495.
-\newblock
-\showURL{%
-\url{https://www.kernel.org/doc/ols/2002/ols2002-pages-479-495.pdf}}
+% \newblock
+% \showURL{%
+% \url{https://www.kernel.org/doc/ols/2002/ols2002-pages-479-495.pdf}}
 
 
 \bibitem[\protect\citeauthoryear{IBM}{IBM}{1983}]%
@@ -553,11 +556,11 @@ IBM 1983.
 \bibitem[\protect\citeauthoryear{JTC1/SC22/WG14}{JTC1/SC22/WG14}{2011}]%
         {C11}
 {JTC1/SC22/WG14} (Ed.). 2011.
-\newblock {\em Programming languages - {C}\/} (cor. 1:2012 ed.).
+\newblock {\em Programming languages~---~{C}\/} (cor. 1:2012 ed.).
 \newblock Number ISO/IEC 9899. ISO.
-\newblock
-\showURL{%
-\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf}}
+% \newblock
+% \showURL{%
+% \url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf}}
 
 
 \bibitem[\protect\citeauthoryear{Michael}{Michael}{2004}]%
@@ -584,8 +587,8 @@ IBM 1983.
 \newblock {\em ACM Lett. Program. Lang. Syst.\/} {1}, 1 (March 1992), 74--88.
 \newblock
 \showISSN{1057-4514}
-\showDOI{%
-\url{http://dx.doi.org/10.1145/130616.130623}}
+% \showDOI{%
+% \url{http://dx.doi.org/10.1145/130616.130623}}
 
 
 \bibitem[\protect\citeauthoryear{POSIX}{POSIX}{2009}]%
