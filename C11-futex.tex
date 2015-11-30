@@ -74,8 +74,7 @@ ftx_contrib,
 \newtheorem{lemma}[remark]{Lemma}
 \newtheorem{theorem}[remark]{Theorem}
 \date{\today}
-\title{Futex based locks for C11's generic atomics%
-  \thanks{A long version of this paper can be found in \cite{gustedt15:futex}}
+\title{Futex based locks for C11's generic atomics
 \\
 (extended abstract)}
 \hypersetup{
@@ -160,42 +159,31 @@ than commonly thought.
 Our algorithm and its implementation is part of a larger open source
 project to provide the necessary interfaces (header files) and library
 support for C11's \code{<stdatomic.h>}. It is available at
-\url{http://stdatomic.gforge.inria.fr/}. The benchmarks that are presented
-in this paper come with the reference implementation of Modular C, see
-\url{http://cmod.gforge.inria.fr/}.  The code is functional to be used with
+\url{http://stdatomic.gforge.inria.fr/}. The code is functional to be used with
 \texttt{gcc} and \texttt{clang}, even for older version without full
 support for atomic operations.  In a later stage, we intent to integrate
 the whole project into the \texttt{musl} C library.
-
+%
+A long version of this paper can be found in \cite{gustedt15:futex}.
 
 \section{Tools for data consistency and races}
 \label{sec-2}
 
-Data races are the most difficult challenge for parallel
-programming. They often lead to hard to trace erratic errors.
+Data races are the most difficult challenge for parallel programming. They
+often lead to hard to trace erratic errors and these had become apparent
+almost since the beginning of modern computing.  An early overview of the
+problem had been given by see \textsl{e.g.}  \cite{Netzer1992}.  Modern
+hardware deals with races by providing so-called \emph{atomic
+  instructions}.  C, as of version C11, abstracts and encapsulates these
+instructions in atomic types (\code{_Atomic} keyword) and
+\emph{operations}.
 
-%\paragraph{Atomic instructions}
-%\subsection{Atomic instructions on modern hardware}
-%\label{sec-2-2}
-%\fi
-Almost since the beginning of modern computing, parallelism was
-implemented in hardware and the consistency problems that we
-introduced above became apparent.
-An early overview of the problem had been given by
-see \textsl{e.g.}
-\cite{Netzer1992}.
-Modern hardware
-deals with this by providing special
-instructions, usually referred to as \emph{atomic instructions}.
-C, as of version C11, encapsulates these in atomic types (\code{_Atomic}
-keyword) and \emph{operations}.
-
-In a singular toolbox \emph{Fast User space muTEXes}, \texttt{futex} for
-short, the Linux kernel combines two levels of operations for the
-implementation of lock primitives, see
-\cite{Hutton02fuss,hart09}.
-With these interfaces a simple but
-inefficient lock structure \code{smpl} could look as follows:
+Dealing with races efficiently also requires support from the execution
+platform, namely the OS. In a singular toolbox called \emph{Fast User space
+  muTEXes}, \texttt{futex} for short, the Linux kernel combines two levels
+of operations (atomics and a system call) for the implementation of lock
+primitives, see \cite{Hutton02fuss,hart09}.  With these interfaces a simple
+but inefficient lock structure \code{smpl} could look as follows:
 
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
@@ -224,7 +212,7 @@ knowledge if there even is such a thread that is waiting for it.
 \label{sec-3}
 
 For our strategy we use a single \code{unsigned} value that at the same
-time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \code{unsigned} is always 32 bit wide.}
+time holds the lock bit (HO bit) and a 31 bit counter.
 
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
@@ -253,13 +241,14 @@ void ftx_lock(ftx* lck) {
 
 That counter
 counts the number of threads inside the critical
-section.  So an update of the counter part is done once when a
+section.  An update of the counter part is done once when a
 thread enters the CS.
 
 \itemadjust
 \begin{enumerate}
 \item A thread is on the fast path for the lock when the overall value
-is \code{0}. The lock can be acquired with one atomic operation.
+is \code{0}. The lock can be acquired with one atomic operation which sets
+the counter and the lock bit simultaneously.
 \itemadjust
 \item Otherwise, we increment the lock value atomically and enter an
   acquisition loop.\itemadjust
@@ -316,6 +305,8 @@ time for spinning and then \code{futex_wait} may fail at most $P-1$
 times in a row.
 \end{proof}
 
+With this lemma, in the full version of this paper, \cite{gustedt15:futex},
+we are able to prove the following theorem:
 \begin{theorem}
 Let be $T_0$ a thread out of $N \gg P$ that is unscheduled when
 holding the lock.  Provided that none of the threads is
@@ -337,44 +328,13 @@ application makes progress.
   \caption{benchmarks on \texttt{arm}}
   \label{fig:arm}
 \end{figure*}
-\iflong%
-\subsubsection{An \texttt{arm7} machine with 4 cores}
-\label{sec-4-3-1}
+Our benchmark comes with the reference implementation of Modular C, see
+\url{http://cmod.gforge.inria.fr/}.  It is a list-based stack implementation
+that uses an atomic pair of pointers for the head to avoid the ABA problem,
+\cite{IBM370,michael04:aba}.  The size of the atomic data structure has
+been chosen to force the use of the lock-based generic atomic functions.
 
-This machine has 4 symmetric \texttt{arm7} cores at a \texttt{1.3 GHz} with \texttt{2
-    GiB} of RAM. This system is equipped with Alpine Linux, so it has
-\texttt{musl} as a native C library. The processor has atomic
-instructions for word sizes up to 64 bit. The compiler is \texttt{gcc}
-version \texttt{5.2}.
-%
-Here, the native C library is musl and so the atomic library of gcc are
-compatible. Therefore the benchmarks include ``native''.
-
-
-\subsubsection{A \texttt{x86\_64} machine with 2x2 hyperthreaded cores}
-\label{sec-4-3-2}
-
-This is a i7-4600U CPU at \texttt{2.10GHz} and with \texttt{8 GiB} of RAM. The
-OS is Debian Linux, with \texttt{glibc} as native library.  The processor
-has atomic instructions for word sizes up to 128 bit. The compiler
-is \texttt{gcc} version \texttt{4.9}.
-%
-Because musl is not the native C library, the atomic library of gcc is not
-compatible. Therefore the benchmark ``native'' is missing.
-
-\subsection{Performance comparison}
-\label{sec-4-4}
-\else
-\emph{Summarize platform and benchmark in one single paragraph.}
-\emph{Summarize platform and benchmark in one single paragraph.}
-\emph{Summarize platform and benchmark in one single paragraph.}
-\emph{Summarize platform and benchmark in one single paragraph.}
-\emph{Summarize platform and benchmark in one single paragraph.}
-\emph{Summarize platform and benchmark in one single paragraph.}
-\fi
-
-
-The Fig.~\ref{fig:arm} shows the results on the \texttt{arm}
+Fig.~\ref{fig:arm-abs} shows the results on a 4 core \texttt{arm7}
 platform.
 %
 We see that all lock implementations allow for an acceleration of
@@ -391,15 +351,16 @@ spinning is abandoned and threads directly attempt
 but as we can see for our use case it has a dramatic impact on the
 application throughput.
 
-Here is the relative performance of the same experiments, where the
-"mutex" implementation is taken as a base:
-
+Fig.~\ref{fig:arm-rel} shows the relative performance of the same
+experiments, where the "mutex" implementation is taken as a base.
+%
 We see that our new implementation is about 60\% better than
 the "native" version, or 40\% than a direct implementation with
 mutex. It combines the good performance of a spinlock for the less
 congested range with a good policy for strong congestion.
 
-To finish let us consider the \texttt{x86\_64} platform. Although it
+Other test have been run on a \texttt{x86\_64} platform with 2x2
+hyperthreaded cores. Although it
 has more compute power than the other, the atomics of the hardware
 are much less performing. This is due to the fact that here an
 atomic instruction usually enforces a complete
@@ -411,8 +372,9 @@ penalty. Thereby, our application is not even able to accelerate for
 2, 3 or 4 threads as it was the case on arm. In the contrary it
 even decelerates.
 Nevertheless the relative performance difference between the
-different lock implementations look very similar.%
-\footnote{Figures not shown, due to space limitations.}
+different lock implementations look very similar.
+For figures and more information we refer to the long version of this
+paper, \cite{gustedt15:futex}.
 
 \section{Conclusion}
 \label{sec-5}
