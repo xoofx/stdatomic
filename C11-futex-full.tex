@@ -54,25 +54,15 @@ This situation is less than ideal, a language interface
 should map to platform specific properties
 and draw the best performance from any given hardware. In
 this work we present a specific algorithm for the generic lock that
-relies on a specific set of Linux utilities, the \texttt{futex} system
-calls. They combine one atomic integer and OS
-scheduling%
-\iflong%
-in a very ingenious way and are the tool of choice of a
-Linux specific implementation of any lock structure
-\fi%
-.
+relies on a specific Linux utility, the \texttt{futex} system
+call.
 
-\iflong%
-Our algorithm uses all possibilities that the \texttt{futex} interfaces
-offers. In particular we
-\else%
-We
-\fi%
-use just one \code{unsigned} integer to
-implement the lock and a waiter count at the same time. Not only is
-the resulting data type of minimal size (32 bit on all
-architectures) but the algorithm can take advantage of that property
+A \texttt{futex} combines one atomic integer and OS scheduling.
+In our approach, we
+use one \code{unsigned} to
+implement the lock and a waiter count at the same time.
+The resulting data type of minimal size (32 bit on all
+architectures) and the algorithm can take advantage
 by minimizing the number of CPU to memory transfers. In most cases
 one such transfer is sufficient, where other algorithms have to
 update a lock and a waiter counter separately.
@@ -86,19 +76,15 @@ Also, our measurements have shown that such an approach can be very
 effective: failed system calls to \code{futex_wait} are much less costly
 than commonly thought.
 
-Our algorithm and its implementation is part of a larger open
-source project to provide the necessary interfaces (header files)
-and library support for C11's \code{<stdatomic.h>}. Here we concentrate on
-the generic lock feature that it provides.
-
-At the time of this writing this project is functional to be used with
-\texttt{gcc} and \texttt{clang}, even for version that only have partial
-support for atomic operations through builtin functions.  In a later stage,
-we intent to integrate the whole project into the \texttt{musl} C library.
-
-The source is available at \url{http://stdatomic.gforge.inria.fr/}. The
-benchmarks that are presented in this paper come with the reference
-implementation of Modular C, see \url{http://cmod.gforge.inria.fr/}.
+Our algorithm and its implementation is part of a larger open source
+project to provide the necessary interfaces (header files) and library
+support for C11's \code{<stdatomic.h>}. It is available at
+\url{http://stdatomic.gforge.inria.fr/}. The benchmarks that are presented
+in this paper come with the reference implementation of Modular C, see
+\url{http://cmod.gforge.inria.fr/}.  The code is functional to be used with
+\texttt{gcc} and \texttt{clang}, even for older version without full
+support for atomic operations.  In a later stage, we intent to integrate
+the whole project into the \texttt{musl} C library.
 %\clearpage
 
 \section{Tools for data consistency and races}
@@ -297,7 +283,7 @@ terminology of \emph{lockfree} that we already mentioned above.
 \label{sec-2-3}
 \fi
 
-In a singular toolbox \emph{Fast User space muTEXes}, \texttt{futex} for
+In a singular toolbox called \emph{Fast User space muTEXes}, \texttt{futex} for
 short, the Linux kernel combines two levels of operations for the
 implementation of lock primitives, see
 \cite{Hutton02fuss,hart09}:
@@ -453,7 +439,7 @@ That counter
 is not viewed as a counter of the threads that are in a kernel wait, but
 \fi
 counts the number of threads inside the critical
-section.  So an update of the counter part is done once when a
+section.  An update of the counter part is done once when a
 thread enters the CS.
 \iflong%
 Compared to the number of times
@@ -466,12 +452,8 @@ compete for the lock.
 \itemadjust
 \begin{enumerate}
 \item A thread is on the fast path for the lock when the overall value
-is \code{0}. The lock can be acquired with one atomic operation.
-\iflong%
-If
-this returns successfully, it has set the HO bit (the lock bit)
-and the LO bit (for a counter of value \code{1}) in one go.
-\fi
+is \code{0}. The lock can be acquired with one atomic operation which sets
+the counter and the lock bit simultaneously, if successful.
 \itemadjust
 \item Otherwise, we increment the lock value atomically and enter an
   acquisition loop.\itemadjust
@@ -763,7 +745,7 @@ compatible. Therefore the benchmark ``native'' is missing.
 \fi
 
 
-The Fig.~\ref{fig:arm} shows the results on the \texttt{arm}
+Fig.~\ref{fig:arm-abs} shows the results on the \texttt{arm}
 platform.
 %
 We see that all lock implementations allow for an acceleration of
@@ -780,9 +762,9 @@ spinning is abandoned and threads directly attempt
 but as we can see for our use case it has a dramatic impact on the
 application throughput.
 
-Here is the relative performance of the same experiments, where the
-"mutex" implementation is taken as a base:
-
+Fig.~\ref{fig:arm-rel} shows the relative performance of the same
+experiments, where the "mutex" implementation is taken as a base.
+%
 We see that our new implementation is about 60\% better than
 the "native" version, or 40\% than a direct implementation with
 mutex. It combines the good performance of a spinlock for the less
@@ -827,15 +809,16 @@ different lock implementations look very similar.%
 We have presented a new locking algorithm that combines consequent use
 of C11 atomics with Linux' futex system calls. We have proven that it
 is deadlock free.
+is deadlock free, and that it shows better
+performance than other lock implementations.
 
-When compared to other lock implementations it shows better
-performance. This is not surprising, an implementation that is tuned
+This is not surprising, an implementation that is tuned
 for the purpose (very short CS) and that may avoid stacked calls into
 the C library should always perform better than a generic one.
 Surprising to us was the wide performance gap between the
 implementations.
 
-By pursuing this research we also learned to mistrust some of the
+By pursuing this research we learned to mistrust some of the
 urban legends that turn around atomics, futexes and lock structures in
 general. At least when we stick to the basics (\code{futex_wait} and
 \code{futex_wake}) and if we have a decent interface for atomics,
