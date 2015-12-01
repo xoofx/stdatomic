@@ -85,7 +85,7 @@ in this paper come with the reference implementation of Modular C, see
 \texttt{gcc} and \texttt{clang}, even for older version without full
 support for atomic operations.  In a later stage, we intent to integrate
 the whole project into the \texttt{musl} C library.
-%\clearpage
+\clearpage
 
 \section{Tools for data consistency and races}
 \label{sec-2}
@@ -186,11 +186,9 @@ We will use the following atomic operations:
 \end{itemize}
 \fi
 
-\ \hfill\\\vspace*{-2ex}
-
 %\paragraph{Atomic instructions}
-%\subsection{Atomic instructions on modern hardware}
-%\label{sec-2-2}
+\subsection{Atomic instructions on modern hardware}
+\label{sec-2-2}
 %\fi
 Almost since the beginning of modern computing, parallelism was
 implemented in hardware and the consistency problems that we
@@ -384,8 +382,8 @@ To construct and adapted lock data structure for our situation, we
 want to have the following properties:
 
 \begin{itemize}
-\item The size of the data structure should be minimal. That is should
-use just one 32 bit machine word as it is needed by the \texttt{futex}
+\item The size of the data structure should be minimal: it should
+use just one 32 bit word as it is needed by the \texttt{futex}
 calls.\itemadjust
 
 \item When there is no contention, the number of atomic operations should
@@ -397,43 +395,28 @@ unnecessarily waste resources. In particular, threads that have no
 chance to acquire the lock should be put into an OS sleep
 state.\itemadjust
 
+\item The procedure should be optimized for the use case, namely a CS that
+  is very short, just the time to a copy operation of a small object.
+
 \item If the number of threads is bounded, the procedure should be
 deadlock free.\itemadjust
 \end{itemize}
+
+Typical OS lock structures also have the problem of \emph{fairness}, that
+is that they should ensure that no single thread has an waiting time for
+the lock that is much longer than for others. For a lock that is used for
+atomics, this is only a secondary concern if we can guarantee liveness. As
+we will see below in the benchmark section, congestion here only is
+noticeable for an extremely high load, for which we may not expect any
+reasonable application responsiveness.
 
 \subsection{The algorithm}
 \label{sec-3-1}
 \fi
 
 
-For our strategy we use a single \code{unsigned} value that at the same
+For our strategy, see Listing~\ref{algo:lock}, we use a single \code{unsigned} value that at the same
 time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \code{unsigned} is always 32 bit wide.}
-
-\lstset{language=C11,label= ,caption= ,numbers=none}
-\begin{lstlisting}
-typedef _Atomic(unsigned) ftx;
-#define ftx_set(VAL)  (0x80000000u | (VAL))
-#define ftx_lkd(VAL)  (0x80000000u & (VAL))
-
-void ftx_lock(ftx* lck) {
- unsigned cur = 0;
- if (!ftx_cmpxch(lck, &cur, ftx_set(1))) {
-  cur = ftx_fetch_add(lck, 1) + 1;
-  for (;;) {
-   while (!ftx_lkd(cur)) {
-    if (ftx_cmpxch(lck, &cur, ftx_set(cur))) return;
-    for (unsigned i = 0; i < E && ftx_lkd(cur); i++)
-     cur = ftx_load(lck);
-   }
-   while (ftx_lkd(cur)) {
-    futex_wait(lck, cur);
-    cur = ftx_load(lck);
-   }
-  }
- }
-}
-\end{lstlisting}
-
 That counter
 \iflong%
 is not viewed as a counter of the threads that are in a kernel wait, but
@@ -448,6 +431,30 @@ rare. Thereby we save memory bandwidth for the update, and we also
 avoid too much interaction between the different threads that
 compete for the lock.
 \fi
+\begin{lstlisting}[language=C11,label= ,caption={A lock algorithm using a
+    single \code{_Atomic unsigned}.} ,numbers=none, float=t, label={algo:lock}]
+typedef _Atomic(unsigned) ftx;
+#define ftx_set(VAL)  (0x80000000u | (VAL))
+#define ftx_lkd(VAL)  (0x80000000u & (VAL))
+
+void ftx_lock(ftx* lck) {
+ unsigned cur = 0;
+ if (!atomic_compare_exchange_weak(lck, &cur, ftx_set(1))) {
+  cur = ftx_fetch_add(lck, 1) + 1;
+  for (;;) {
+   while (!ftx_lkd(cur)) {
+    if (atomic_compare_exchange_weak(lck, &cur, ftx_set(cur))) return;
+    for (unsigned i = 0; i < E && ftx_lkd(cur); i++)
+     cur = atomic_load(lck);
+   }
+   while (ftx_lkd(cur)) {
+    futex_wait(lck, cur);
+    cur = atomic_load(lck);
+   }
+  }
+ }
+}
+\end{lstlisting}
 
 \itemadjust
 \begin{enumerate}
@@ -489,7 +496,7 @@ reveals if other threads still are in the CS, and a
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
 void ftx_unlock(ftx* lck) {
- unsigned prev = ftx_fetch_sub(lck, ftx_set(1u));
+ unsigned prev = atomic_fetch_sub(lck, ftx_set(1u));
  if (prev != ftx_set(1u)) futex_wake(lck, 1);
 }
 \end{lstlisting}
