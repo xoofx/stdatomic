@@ -2,7 +2,7 @@ We present a new algorithm and implementation of a lock primitive that
 is based on Linux' native lock interface, the \texttt{futex} system
 call. It allows us to assemble compiler support for atomic data
 structures that can not be handled through specific hardware
-instructions.  Such an implementation is needed for C11's atomics
+instructions.  Such a tool is needed for C11's atomics
 interface because here an \code{_Atomic} qualification can be attached
 to almost any data type. Our lock data structure for that purpose
 meets very specific criteria concerning its field of operation and its

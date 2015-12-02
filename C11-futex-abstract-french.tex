@@ -1,0 +1,25 @@
+Nous présentons un nouveau algorithme pour une primitive de verrouillage et
+son implantation qui se basent sur l'interface natif de Linux, l'appel
+système \texttt{futex}.
+%
+Ceci nous permet d'assembler le support à la compilation de structures de
+données atomiques tant qu'il ne peut pas être réalisé par une instruction
+matérielle.
+%
+Une tel outil est nécessaire pour l'interface atomique de C11, car ici la
+qualification \code{_Atomic} peut être attribuée à presque tous les types de
+données.
+%
+Notre structure de verrouillage vérifie des propriétés spécifiques pour son
+champ opérationnel et ses besoins de performance.
+%
+Ainsi nous sommes en mesure surpasser les performances de la bibliothèque
+\texttt{libatomic} de gcc par 60\%.
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: reftex
+%%% fill-column: 75
+%%% ispell-dictionary: "french"
+%%% x-symbol-8bits: nil
+%%% End:
