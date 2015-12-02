@@ -14,11 +14,7 @@ feature complete.
 
 The implementation of the C11 atomic interface typically sits in the
 middle between the implementation of the core language
-\iflong%
 by the C compiler and the implementation of the
-\else%
-and the
-\fi%
 C library. It needs compiler support for the individual atomic operations
 and a \emph{generic atomic lock} interface in the C library when no
 low-level atomic instruction is available.
@@ -29,7 +25,6 @@ interface, the compilers currently provide a library stub that
 implements the necessary lock by means of a combination of atomics
 and~\citeauthor{POSIX2009}
 \code{pthread_mutex_t}.
-\iflong%
 
 By consensus in the community an API interface
 has emerged that both, \texttt{gcc} and \texttt{clang}, implement.
@@ -40,15 +35,11 @@ that is the context in which they were created. But since
 they are generic, in case of contention these
 library stubs rely on generic OS interfaces to put threads to
 sleep.
-\fi%
 From a point of view of the C language the natural interface
 for that would be C11 threads,
 but since these are still missing in \texttt{glibc}, they fall back to
-POSIX threads%
-\iflong%
-for which there are reliable and efficient implementations%
-\fi%
-.
+POSIX threads
+for which there are reliable and efficient implementations.
 
 This situation is less than ideal, a language interface
 should map to platform specific properties
@@ -92,7 +83,6 @@ the whole project into the \texttt{musl} C library.
 
 Data races are the most difficult challenge for parallel
 programming. They often lead to hard to trace erratic errors.
-\iflong
 The main problems are:\itemadjust
 
 \begin{description}
@@ -157,7 +147,7 @@ in reality an operation can well be divided into several processor
 instructions and the perception guarantee does not extend to
 visibility between the main program and signal handlers. An
 operation that extends perception of indivisibility to signal
-handlers is called \emph{lockfree} in the jargon of the C
+handlers is called \emph{lock-free} in the jargon of the C
 standard. Below we will see where this choice of words originates.
 
 C11 also introduces different concepts of \code{memory_order} for atomic
@@ -184,7 +174,6 @@ We will use the following atomic operations:
 \item[] \hspace*{-3ex}\code{atomic_compare_exchange_weak}: compare to desired, then
   exchange, may fail
 \end{itemize}
-\fi
 
 %\paragraph{Atomic instructions}
 \subsection{Atomic instructions on modern hardware}
@@ -192,30 +181,16 @@ We will use the following atomic operations:
 %\fi
 Almost since the beginning of modern computing, parallelism was
 implemented in hardware and the consistency problems that we
-introduced above became apparent
-\iflong
-.
+introduced above became apparent.
 An early overview of the problem had been given by
-\else
-,
-see \textsl{e.g.}
-\fi
 \cite{Netzer1992}.
 Modern hardware
-\iflong%
 (which almost always is inherently parallel)
-\fi%
 deals with this by providing special
 instructions, usually referred to as \emph{atomic instructions}.
-\iflong%
 It is important to note that these are not the same as the atomic
 operations on the level of the C language.
-\else
-C, as of version C11, encapsulates these in atomic types (\code{_Atomic}
-keyword) and \emph{operations}.
-\fi
 
-\iflong
 \begin{description}
 \item[{word size:}] Usually atomic instructions are limited to word
 sized data types. Available on most platforms are
@@ -275,19 +250,17 @@ threads, but remain visible between a thread and its signal
 handler. So the access to an object that is qualified with
 \code{_Atomic} but that needs a lock for operation may be divisible with
 respect to a signal handler. This property is what coined C's
-terminology of \emph{lockfree} that we already mentioned above.
+terminology of \emph{lock-free} that we already mentioned above.
 
 \subsection{Fast user space mutexes}
 \label{sec-2-3}
-\fi
 
 In a singular toolbox called \emph{Fast User space muTEXes}, \texttt{futex} for
 short, the Linux kernel combines two levels of operations for the
 implementation of lock primitives, see
 \cite{Hutton02fuss,hart09}:
-\iflong
 \begin{enumerate}
-\item User space atomic integers with lockfree operations are used to
+\item User space atomic integers with lock-free operations are used to
 regulate access to the lock as long as it is not congested.\itemadjust
 
 \item Wait and wake-up system calls resolve conflicts when the lock is
@@ -312,7 +285,6 @@ remains is that a call to \code{futex_wait} is only successful if the
 kernel can guarantee that the value of the atomic object still is as
 expected.
 %
-\fi
 With these interfaces a simple but
 inefficient lock structure \code{smpl} could look as follows:
 
@@ -332,7 +304,6 @@ void smpl_unlock(smpl* lck) {
 }
 \end{lstlisting}
 
-\iflong%
 Here the second parameter to \code{futex_wait} guarantees that the thread
 will only be set to sleep if the value of the atomic object \code{*lck}
 still is \code{prev}. As a consequence the \code{smpl_lock} function will iterate until the
@@ -343,7 +314,6 @@ The second parameter of \code{futex_wake} corresponds to the maximal
 number of threads that are to be woken up. So here, the thread that
 holds the lock restores the object \code{*lck} to the value \code{0} and wakes
 up one possible waiter.
-\fi
 
 Both functions as described above are simplistic and not very
 efficient. The first, \code{smpl_lock}, is inefficient because each failed
@@ -352,7 +322,6 @@ kernel, even if the lock would be available almost instantly.  The
 second, \code{smpl_unlock}, tries to wake up another thread without any
 knowledge if there even is such a thread that is waiting for it.
 
-\iflong
 To avoid these two shortcomings, system libraries that implement
 locks (such as e.g \code{glibc} and \code{musl}) usually combine two
 strategies:\itemadjust
@@ -372,12 +341,10 @@ Even though these additions enlarge the lock data structure and add
 one atomic operation to the unlock function these strategies have
 proven to be much more efficient then our simplistic versions,
 above.
-\fi
 
 \section{A new generic lock algorithm using futex system calls}
 \label{sec-3}
 
-\iflong%
 To construct and adapted lock data structure for our situation, we
 want to have the following properties:
 
@@ -412,25 +379,19 @@ reasonable application responsiveness.
 
 \subsection{The algorithm}
 \label{sec-3-1}
-\fi
-
 
 For our strategy, see Listing~\ref{algo:lock}, we use a single \code{unsigned} value that at the same
 time holds the lock bit (HO bit) and a 31 bit counter.\footnote{On Linux, \code{unsigned} is always 32 bit wide.}
 That counter
-\iflong%
 is not viewed as a counter of the threads that are in a kernel wait, but
-\fi
 counts the number of threads inside the critical
 section.  An update of the counter part is done once when a
 thread enters the CS.
-\iflong%
 Compared to the number of times
 the counter is accessed under congestion such events are relatively
 rare. Thereby we save memory bandwidth for the update, and we also
 avoid too much interaction between the different threads that
 compete for the lock.
-\fi
 \begin{lstlisting}[language=C11,label= ,caption={A lock algorithm using a
     single \code{_Atomic unsigned}.} ,numbers=none, float=t, label={algo:lock}]
 typedef _Atomic(unsigned) ftx;
@@ -466,33 +427,24 @@ the counter and the lock bit simultaneously, if successful.
   acquisition loop.\itemadjust
 \begin{enumerate}
 \item First, we spin \code{E} times
-\iflong%
 (\code{E} determined below) to set the HO
 bit as well, and thus
-\else%
-to
-\fi%
 acquire the lock.
 \item If that fails,
-\iflong%
 we suppose that the lock is under congestion and
-\fi%
 we go into a \code{futex_wait}.
 \itemadjust
 \end{enumerate}
 \end{enumerate}
-\iflong%
 Going into the \code{futex_wait} may fail if the value changes, but
 since additional threads only change the counter when they arrive,
 this will not happen too often and the thread goes to sleep,
 eventually.
-\fi%
 Unlocking is a very simple operation. The locker has contributed
 \code{ftx_set(1u)} to the value, and just has to decrement the value
 atomically by that amount.  The return value of the operation
 reveals if other threads still are in the CS, and a
 \code{futex_wake} call can be placed accordingly.
-\iflong%
 \lstset{language=C11,label= ,caption= ,numbers=none}
 \begin{lstlisting}
 void ftx_unlock(ftx* lck) {
@@ -500,7 +452,6 @@ void ftx_unlock(ftx* lck) {
  if (prev != ftx_set(1u)) futex_wake(lck, 1);
 }
 \end{lstlisting}
-\fi
 
 \subsection{Analysis}
 \label{sec-3-2}
@@ -509,7 +460,6 @@ It is relatively easy to see that this new strategy provides a
 functional lock primitive using just a 32 bit data structure and
 one atomic operation for fast \code{ftx_lock} and \code{ftx_unlock}. It remains to
 show that it cannot deadlock.
-\iflong%
 The worst case scenario for our use of our lock primitive is that
 the thread that holds the lock, say $T_0$, is unscheduled while
 inside the CS. Suppose further that there are $N$ other threads
@@ -521,7 +471,6 @@ behavior of the algorithm. We can control one of them, namely the
 time $t_{\textrm{mono}}$ that a scheduled thread spends spinning
 before trying to switch to \code{futex_wait}.  Three others are platform
 dependent:
-\fi
 \itemadjust
 \begin{description}
 \item[{$t_{\textrm{fail}}$}] is the maximum of two system specific
@@ -537,7 +486,6 @@ simultaneously.\itemadjust
 spinning phase that they perform in parallel.\itemadjust
 \end{description}
 
-\iflong%
 A value $t_{\textrm{para}}$ close to $t_{\textrm{mono}}$ indicates
 a perfect parallelism, a value of $P \cdot t_{\textrm{mono}}$
 means that there is none at all. Usually it will be greater than
@@ -571,7 +519,6 @@ while a thread is spinning. Thus spinning would just waste
 resources and the state of the application would not progress.  So
 from now on we may assume that $\widehat{P} \geq 1+\epsilon$ for some
 reasonable value of $\epsilon > 0$.
-\fi
 
 \begin{lemma}
 Provided that no other threads are unscheduled, after at most
@@ -592,8 +539,7 @@ time for spinning and then \code{futex_wait} may fail at most $P-1$
 times in a row.
 \end{proof}
 
-\iflong
-This already shows that, provided no other unscheduling takes
+This already shows that, provided no other descheduling takes
 place, our algorithm is deadlock-free.
 
 Now, once a thread successfully goes into \code{futex_wait} a new
@@ -626,7 +572,6 @@ $1/t_{\textrm{fail}}$ per second.
 
 Or, roughly if $P \ll N$ the time for all threads to calm down and
 successfully call \code{futex_wait} is $N\cdot t_{\textrm{fail}}$.
-\fi
 
 \begin{theorem}
 Let be $T_0$ a thread out of $N \gg P$ that is unscheduled when
@@ -636,7 +581,6 @@ unscheduled by other means and that $t_{\textrm{para}} \leq
 application makes progress.
 \end{theorem}
 
-\iflong
 \begin{proof}
 This progress can be of two forms.  Either there is another thread
 than $T_{0}$ that does not enter the the CS and thus
@@ -652,12 +596,10 @@ probability to acquire the lock without going into
 $t_{\textrm{mono}} = E\cdot t_{\textrm{fail}}$. Practically a
 factor of 0.9 always guarantees liveness of the application and
 shows good performance on average.
-\fi
 
 \section{Benchmarks}
 \label{sec-4}
 
-\iflong%
 \subsection{The framework}
 \label{sec-4-1}
 
@@ -702,14 +644,13 @@ LIFO:\itemadjust
 \begin{description}
 \item[{futex}] the futex based algorithm described here
 \item[{mutex}] based on a standard mutex
-\item[{musl}] musl's lowlevel \code{lock/unlock} functions
+\item[{musl}] musl's low-level \code{lock/unlock} functions
 \item[{spin}] a spin lock using atomic exchange
 \item[{native}] the compilers "native" generic lock, also a mutex
 \end{description}
 
 \subsection{The test platforms}
 \label{sec-4-3}
-\fi
 \begin{figure*}[t]
   \subfigure[lock throughput\label{fig:arm-abs}]{
     \includegraphics[width=0.48\textwidth]{benchs/arm/test-arm-u64.png}
@@ -720,7 +661,6 @@ LIFO:\itemadjust
   \caption{benchmarks on \texttt{arm}}
   \label{fig:arm}
 \end{figure*}
-\iflong%
 \subsubsection{An \texttt{arm7} machine with 4 cores}
 \label{sec-4-3-1}
 
@@ -747,10 +687,6 @@ compatible. Therefore the benchmark ``native'' is missing.
 
 \subsection{Performance comparison}
 \label{sec-4-4}
-\else
-\emph{Summarize platform and benchmark in one single paragraph}
-\fi
-
 
 Fig.~\ref{fig:arm-abs} shows the results on the \texttt{arm}
 platform.
@@ -777,11 +713,7 @@ the "native" version, or 40\% than a direct implementation with
 mutex. It combines the good performance of a spinlock for the less
 congested range with a good policy for strong congestion.
 
-To finish let us consider the \texttt{x86\_64} platform%
-\iflong%
-, Fig.~\ref{fig:x86_64}%
-\fi%
-. Although it
+To finish let us consider the \texttt{x86\_64} platform, Fig.~\ref{fig:x86_64}. Although it
 has more compute power than the other, the atomics of the hardware
 are much less performing. This is due to the fact that here an
 atomic instruction usually enforces a complete
@@ -793,8 +725,7 @@ penalty. Thereby, our application is not even able to accelerate for
 2, 3 or 4 threads as it was the case on arm. In the contrary it
 even decelerates.
 Nevertheless the relative performance difference between the
-different lock implementations look very similar.%
-\iflong
+different lock implementations look very similar.
 \begin{figure*}[t]
   \subfigure[lock throughput\label{fig:x86_64-abs}
   ]{
@@ -806,9 +737,6 @@ different lock implementations look very similar.%
   \caption{benchmarks on \texttt{x86\_64}}
   \label{fig:x86_64}
 \end{figure*}
-\else
-\footnote{Figures not shown, due to space limitations.}
-\fi
 
 \section{Conclusion}
 \label{sec-5}
