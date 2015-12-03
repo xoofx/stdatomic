@@ -57,14 +57,11 @@ ftx_contrib,
 \author{Jens Gustedt\\
 %  \affaddr{\framebox[1.5cm] and \framebox[3cm]{[\hfill]}, \framebox[5cm]{[\hfill]}, \framebox[3cm]{[\hfill]}}}
 \affaddr{INRIA and ICube, Universit\'{e} de Strasbourg, France}}
-%\setcopyright{acmcopyright}
-\doi{http://dx.doi.org/xx.xxxx/xxxxxxx.xxxxxxx}
-\isbn{978-1-4503-3739-7/16/04}
-%\isbn{---}
-%\conferenceinfo{PLDI '13}{June 16--19, 2013, Seattle, WA, USA}
-%\acmPrice{\$15.00}
-\conferenceinfo{SAC'16,}{ April 4-8, 2016, Pisa, Italy}
-\CopyrightYear{2016} % Allows default copyright year (20XX) to be ove
+\CopyrightYear{2016} 
+\setcopyright{licensedothergov}
+\conferenceinfo{SAC 2016,}{April 04 - 08, 2016, Pisa, Italy}
+\isbn{978-1-4503-3739-7/16/04}\acmPrice{\$15.00}
+\doi{http://dx.doi.org/10.1145/2851613.2851956}
 % switch off the table of contents just for LaTeX export
 \let\tableofcontents=\relax
 % ensure that in the LaTeX output links are visible as footnotes
@@ -164,7 +161,8 @@ support for C11's \code{<stdatomic.h>}. It is available at
 support for atomic operations.  In a later stage, we intent to integrate
 the whole project into the \texttt{musl} C library.
 %
-A long version of this paper can be found in \cite{gustedt15:futex}.
+A full version of this paper, \cite{gustedt15:futex}, is available online
+as \url{https://hal.inria.fr/hal-01236734}.
 
 \section{Tools for data consistency and races}
 \label{sec-2}
@@ -201,12 +199,12 @@ void smpl_unlock(smpl* lck) {
 }
 \end{lstlisting}
 
-Both functions as described above are simplistic and not very
+Both functions are simplistic and not very
 efficient. The first, \code{smpl_lock}, is inefficient because each failed
 attempt to acquire the lock will result in a call into the OS
 kernel, even if the lock would be available almost instantly.  The
-second, \code{smpl_unlock}, tries to wake up another thread without any
-knowledge if there even is such a thread that is waiting for it.
+second, \code{smpl_unlock}, tries to wake up another thread without knowing
+if any thread is waiting.
 
 \section{A new generic lock algorithm using futex system calls}
 \label{sec-3}
@@ -330,7 +328,7 @@ application makes progress.
 \end{figure*}
 Our benchmark comes with the reference implementation of Modular C, see
 \url{http://cmod.gforge.inria.fr/}.  It is a list-based stack implementation
-that uses an atomic pair of pointers for the head to avoid the ABA problem,
+that uses an atomic pair of two values for the head to avoid the ABA problem,
 \cite{IBM370,michael04:aba}.  The size of the atomic data structure has
 been chosen to force the use of the lock-based generic atomic functions.
 
@@ -352,7 +350,7 @@ but as we can see for our use case it has a dramatic impact on the
 application throughput.
 
 Fig.~\ref{fig:arm-rel} shows the relative performance of the same
-experiments, where the "mutex" implementation is taken as a base.
+experiments, where the "mutex" implementation is taken as base for comparison.
 %
 We see that our new implementation is about 60\% better than
 the "native" version, or 40\% than a direct implementation with
@@ -373,7 +371,7 @@ penalty. Thereby, our application is not even able to accelerate for
 even decelerates.
 Nevertheless the relative performance difference between the
 different lock implementations look very similar.
-For figures and more information we refer to the long version of this
+For figures and more information we refer to the full version of this
 paper, \cite{gustedt15:futex}.
 
 \section{Conclusion}
@@ -479,10 +477,10 @@ that we used for most of our experiments, \texttt{musl}.
         {gustedt15:futex}
 {Jens Gustedt}. 2015.
 \newblock {\em Futex based locks for C11's generic atomics}.
-\newblock INRIA.
+\newblock INRIA RR-8818
 \newblock
 \showURL{%
-\url{https://hal.inria.fr/hal-0123xxxx}}
+\url{https://hal.inria.fr/hal-01236734}}
 
 
 \bibitem[\protect\citeauthoryear{Hart}{Hart}{2009}]%
