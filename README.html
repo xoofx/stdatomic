@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>An implementation of the C11 <code>&lt;stdatomic.h&gt;</code> interface</title>
-<!-- 2015-09-17 Do 16:51 -->
+<!-- 2015-12-10 Do 17:39 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Jens Gustedt" />
@@ -135,48 +135,6 @@ for the JavaScript code in this tag.
  }
 /*]]>*///-->
 </script>
-<script type="text/javascript" src="/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script type="text/javascript">
-<!--/*--><![CDATA[/*><!--*/
-    MathJax.Hub.Config({
-        // Only one of the two following lines, depending on user settings
-        // First allows browser-native MathML display, second forces HTML/CSS
-            config: ["MMLorHTML.js"], jax: ["input/TeX"],
-        //  jax: ["input/TeX", "output/HTML-CSS"],
-        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
-                     "TeX/noUndefined.js"],
-        tex2jax: {
-            inlineMath: [ ["\\(","\\)"] ],
-            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
-            skipTags: ["script","noscript","style","textarea","pre","code"],
-            ignoreClass: "tex2jax_ignore",
-            processEscapes: false,
-            processEnvironments: true,
-            preview: "TeX"
-        },
-        showProcessingMessages: true,
-        displayAlign: "center",
-        displayIndent: "2em",
-
-        "HTML-CSS": {
-             scale: 100,
-             availableFonts: ["STIX","TeX"],
-             preferredFont: "TeX",
-             webFont: "TeX",
-             imageFont: "TeX",
-             showMathMenu: true,
-        },
-        MMLorHTML: {
-             prefer: {
-                 MSIE:    "MML",
-                 Firefox: "MML",
-                 Opera:   "HTML",
-                 other:   "HTML"
-             }
-        }
-    });
-/*]]>*///-->
-</script>
 </head>
 <body>
 <div id="content">
@@ -215,8 +173,6 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#sec-3-1-1">3.1.1. Compilers</a></li>
 <li><a href="#sec-3-1-2">3.1.2. OS or C library support</a></li>
-<li><a href="#sec-3-1-3">3.1.3. The algorithm</a></li>
-<li><a href="#sec-3-1-4">3.1.4. Analysis</a></li>
 </ul>
 </li>
 <li><a href="#sec-3-2">3.2. Caveats</a>
@@ -234,15 +190,12 @@ for the JavaScript code in this tag.
 </li>
 </ul>
 </li>
-<li><a href="#sec-4">4. Benchmarks</a>
+<li><a href="#sec-4">4. Performance considerations</a>
 <ul>
-<li><a href="#sec-4-1">4.1. The framework</a></li>
-<li><a href="#sec-4-2">4.2. The test program</a></li>
-<li><a href="#sec-4-3">4.3. The test platform</a></li>
-<li><a href="#sec-4-4">4.4. Comparative performance of the different lock primitives</a>
+<li><a href="#sec-4-1">4.1. Benchmarks</a></li>
+<li><a href="#sec-4-2">4.2. Code inspection</a>
 <ul>
-<li><a href="#sec-4-4-1">4.4.1. Lower range of thread numbers</a></li>
-<li><a href="#sec-4-4-2">4.4.2. Higher range of thread numbers</a></li>
+<li><a href="#sec-4-2-1">4.2.1. Lower range of thread numbers</a></li>
 </ul>
 </li>
 </ul>
@@ -272,10 +225,22 @@ C standard need.
 </li>
 
 <li>For compilers that don't offer the direct language support for
-atomics this provides a reduced but fully functional approach to
-atomic operations.
+atomics this provides a syntactically reduced but fully functional
+approach to atomic operations.
 </li>
 </ul>
+
+<p>
+The sources of this library can be found at
+<a href="https://gforge.inria.fr/projects/stdatomic">https://gforge.inria.fr/projects/stdatomic</a>
+</p>
+
+<p>
+A short description of the new futex-lock algorithm that is
+implemented for the Linux operating system has been accepted for
+SAC'16. A long version of that article can be found here:
+<a href="https://hal.inria.fr/hal-01236734">https://hal.inria.fr/hal-01236734</a>
+</p>
 
 </div>
 
@@ -289,7 +254,7 @@ the <code>&lt;stdatomic.h&gt;</code> header file.
 
 <p>
 The latter already contains a lot of intelligence, because it has
-to do type generic stuff. This is more involved than usual C
+to provide type generic interfaces. This is more involved than usual C
 library header files.
 </p>
 
@@ -368,31 +333,12 @@ example. Lock-free doesn't mean a bounded number of instructions.
 </p>
 
 <p>
-For the operations that cannot be mapped to assembler instructions
-the compiler inserts calls to external functions. The names for
-these functions are typically composed of the operation and
-prefixed either by <code>__sync_</code> (the older gcc ABI) or <code>__atomic_</code>
-(the newer gcc ABI). The names of these calls can be suffixed by
-<code>_X</code> for <code>X</code> as above if this concerns an operation on a type of
-the corresponding width.
-</p>
-
-<p>
-All external functions that the gcc ABI's require are provided.
-</p>
-</div>
-
-<div id="outline-container-sec-1-2-1" class="outline-4">
-<h4 id="sec-1-2-1"><span class="section-number-4">1.2.1</span> The <code>__atomic_</code> ABI</h4>
-<div class="outline-text-4" id="text-1-2-1">
-<p>
-is already close to the C11 call interface. Relevant for C11 are 9
-operations
+Relevant for C11 are 9 operations
 </p>
 <ul class="org-ul">
-<li><code>fetch_add</code> for integer addition, returning the previous value
+<li><code>fetch_add</code> for integer and pointer addition, returning the previous value
 </li>
-<li><code>fetch_sub</code> for integer subtraction, returning the previous value
+<li><code>fetch_sub</code> for integer and pointer subtraction, returning the previous value
 </li>
 <li><code>fetch_or</code>  for bitwise or, returning the previous value
 </li>
@@ -410,16 +356,72 @@ operations
 <li><code>compare_exchange</code> for an atomic compare and exchange
 operation, equivalent to a conditional <code>store</code> that also saves
 the previous value, and returns <code>false</code> or <code>true</code> according to
-the success of the condition.
+the success of the condition and the possible <code>store</code>
+operation. Two semantically different interfaces are
+provided. A <code>strong</code> version that returns <code>false</code> and <code>true</code> as
+described, and a <code>weak</code> version that may fail eventually, even
+if the condition of equality was fulfilled.
 </li>
 </ul>
+
+<p>
+According to recent precision given by the C standards committee
+the <code>store</code>, <code>exchange</code> and <code>compare_exchange</code> functions have
+memory semantics, that is they are done as-if using <code>memcpy</code> and
+<code>memcmp</code> not as-if using equality and assignment operations. This
+distinction is important for two cases
+</p>
+
+<ul class="org-ul">
+<li>If the corresponding type has padding bits or bytes,
+<code>compare_exchange</code> can fail even if the abstract value of two
+objects would compare equal. This is because the padding, if
+different for the objects, enters into the comparison.
+</li>
+<li>Floating point <code>NaN</code> seen as values always compares false, even
+if two <code>NaN</code> are compared. When compared as bit pattern through
+<code>memcmp</code> they could compare equal.
+</li>
+</ul>
+
+<p>
+These operations in C11 generally have two variants, one that uses
+sequential consistency and another one where a more detailed
+consistency can be requested through additional parameters. So in
+total we have to provide 20 different type generic functional
+interfaces.
+</p>
+
+<p>
+For the operations that cannot be mapped to built-in compiler support
+the compilers inserts calls to external functions. The names for
+these functions are typically composed of the operation and
+prefixed either by <code>__sync_</code> (the older gcc ABI) or <code>__atomic_</code>
+(the newer gcc ABI). The names of these calls can be suffixed by
+<code>_X</code> for <code>X</code> as above if this concerns an operation on a type of
+the corresponding width.
+</p>
+
+<p>
+All external functions that the gcc ABI's require are provided.
+</p>
+</div>
+
+<div id="outline-container-sec-1-2-1" class="outline-4">
+<h4 id="sec-1-2-1"><span class="section-number-4">1.2.1</span> The <code>__atomic_</code> ABI</h4>
+<div class="outline-text-4" id="text-1-2-1">
+<p>
+is already close to the C11 call interface as given above.
+</p>
 
 <p>
 In addition to the more or less obvious operands, the built-in
 functions take one or two additional parameters that reflect an
 eventual requirement for the <code>memory_order</code> of the operation. So
 the functions represent the C11 "explicit" features such as
-<code>atomic_fetch_add_explicit</code>.
+<code>atomic_fetch_add_explicit</code>. The non-explicit versions have to be
+mapped to the explicit version by providing <code>memory_order_seq_cst</code>
+as parameter(s).
 </p>
 
 <p>
@@ -428,7 +430,7 @@ Observe that the built-in functions only foresee one interface
 </p>
 
 <ul class="org-ul">
-<li>The distinction between "weak" and "strong" versions of these
+<li>The distinction between <code>weak</code> and <code>strong</code> versions of these
 built-in functions are ruled through an additional parameter,
 not through a different function interface.
 </li>
@@ -446,37 +448,10 @@ C11 operation
 </ul>
 
 <p>
-Load, store and compare operations have <i>memory</i> semantics, that is
-they are equivalent to the use of <code>memcpy</code> and <code>memcmp</code> library
-functions. The implementation may use = or == operators in some
-places for optimization, but it then does so with objects of
-<code>uintXX_t</code>, so every bit is accounted for. For data types where
-memory and value comparison are different, the result of an
-<code>atomic_compare_exchange</code> operation can be different than you'd
-expect:
-</p>
-
-<ul class="org-ul">
-<li><code>_Bool</code> objects where other bits than the lowest-order bit have
-been polluted, will not compare equal to <code>false</code> or <code>true</code>.
-</li>
-
-<li>Floating point types may compare different representations of
-<code>0</code> not to be equal.
-</li>
-
-<li>Two floating point <code>NaN</code> may compare equal, though as value
-comparison <code>NaN</code> never compares equal to anything.
-</li>
-
-<li>Objects of <code>struct</code> or <code>union</code> type may be considered unequal
-because they differ on some padding bytes.
-</li>
-</ul>
-
-<p>
-This behavior is in alignment with the intended interpretation by
-the C and C++ standard's committees.
+As said, <code>load</code>, <code>store</code> and <code>compare_exchange</code> operations have
+<i>memory</i> semantics. The implementation may use <code>=</code> or <code>==</code> operators
+in some places for optimization, but it then does so with objects
+of <code>uintXX_t</code>, so every bit is accounted for.
 </p>
 
 <p>
@@ -489,7 +464,7 @@ the variants for 1, 2, 4 and 8 can always be generated.
 
 <p>
 For a 128 bit type these are only generated if <code>__SIZEOF_INT128__</code>
-or <code>__GCC_HAVE_SYNC_COMPARE_AND_SWAP_X</code> exist. If so, we assume
+or <code>__GCC_HAVE_SYNC_COMPARE_AND_SWAP_16</code> exist. If so, we assume
 that <code>__uint128_t</code> is such an integer type and known to the
 compiler.
 </p>
@@ -508,9 +483,9 @@ other built-ins, namely
 </p>
 
 <ul class="org-ul">
-<li><code>__atomic_add_fetch</code> for integer addition, returning the updated value
+<li><code>__atomic_add_fetch</code> for integer or pointer addition, returning the updated value
 </li>
-<li><code>__atomic_sub_fetch</code> for integer subtraction, returning the updated value
+<li><code>__atomic_sub_fetch</code> for integer or pointer subtraction, returning the updated value
 </li>
 <li><code>__atomic_or_fetch</code>  for bitwise or, returning the updated value
 </li>
@@ -768,7 +743,7 @@ already implements most of the C11 semantic:
 </ul>
 
 <p>
-The versions provide the built-in functions as described above but
+These versions provide the built-in functions as described above but
 lack full compiler support for atomic types and operations.
 </p>
 
@@ -981,345 +956,22 @@ macros to detect the C11 versions of the built-ins.
 <h4 id="sec-3-1-2"><span class="section-number-4">3.1.2</span> OS or C library support</h4>
 <div class="outline-text-4" id="text-3-1-2">
 <p>
-The library may work with different lock constructs, currently we
-implement one simple generic approach that only uses spinning, and
-a mixed approach that uses Linux' <code>futex</code> as an inactive sleep
-strategy as a last resort. The latter has been tested with the
-<code>musl</code> C library.
+The library may work with different lock constructs, as described
+above, that is a futex based support for Linux, C11's <code>mtx_t</code>,
+POSIX' <code>pthread_mutex_t</code>, and active spinning as a last
+resort. You may find a description of the algorithms and some
+performance figures in the article
+<a href="https://hal.inria.fr/hal-01236734">https://hal.inria.fr/hal-01236734</a>
 </p>
 
 <p>
-This locking strategy can be a performance bottleneck for
-applications with a strong congestion on one particular atomic
-data, e.g code that would insert list elements through a
-centralized list head. If this list head can not be realized with
-a lock-free atomic, the critical section of modifying it is
-protected by our lock. Such code has very particular properties.
+If you would like to see support for other OS or runtime
+environments, don't hesitate to contact me if you'd like to work
+on implementing and integrating this.
 </p>
-
-<ul class="org-ul">
-<li>Since the critical section usually is really short compared to a
-scheduling interval of the OS, the probability that the lock can
-be taken immediately is high. So the fast path for taking the
-lock must be <b>really fast</b>. Our implementation essentially has
-an <code>atomic_compare_exchange_strong_explicit</code>, here. One memory
-instruction on the fast path must be enough.
-</li>
-
-<li>If locking fails a the first try, still the probability is very
-high that it will succeed soon after. This is because only
-scheduled threads compete, here, so there are never more threads
-in play than we have processors. Therefore as a second strategy
-we spin for a while until we get the lock. In our experiments on
-average one single round of spinning was enough.
-</li>
-
-<li>A third exceptional case may occur, when the thread that is
-holding the lock is descheduled in the middle of the critical
-section. The probability for that event is quite rare (0.1 % in
-our experiments) but still this case occurs. If it does, the
-world changes drastically, a herd of threads all have to wait
-for a long time (until the locker is rescheduled) to have any
-chance to obtain the lock. Active wait here is
-counterproductive. In the contrary, by going into an inactive OS
-sleep, the possibility for the locker to regain an execution
-slot increases.
-</li>
-</ul>
-</div>
-</div>
-
-<div id="outline-container-sec-3-1-3" class="outline-4">
-<h4 id="sec-3-1-3"><span class="section-number-4">3.1.3</span> The algorithm</h4>
-<div class="outline-text-4" id="text-3-1-3">
-<p>
-We implement this strategy a bit differently than classical locks
-with wait-counters would do. We just have a single <code>unsigned</code> value
-that at the same time holds the lock bit (HO bit) and a
-counter. That counter is not viewed as a counter of the threads
-that are in a kernel wait, but just counts the number of threads
-inside the critical section. This has the following advantages:
-</p>
-
-<ul class="org-ul">
-<li>An update to the counter part is relatively rare. So we save
-memory bandwidth, and we also avoid too much interaction between
-the different threads that compete for the lock.
-</li>
-
-<li>The fast path occurs when the value is <code>0</code>, initially. It sets
-the HO bit (the lock bit) and the LO bit (for a counter of value
-<code>1</code>) in one go. The resulting value is <code>UINT_MAX/2u+2u</code>.
-</li>
-
-<li>If the fast path fails, the counter is atomically incremented by
-one, and we enter a spin lock to set the HO bit as well.
-</li>
-
-<li>After having spun for sometime, we suppose that we are in the bad
-situation and go into a <code>futex_wait</code>. Going into the <code>futex_wait</code>
-may fail if the value changes. Since additional threads only
-change the counter when they arrive, this can't happen too often
-and the thread goes to sleep, eventually.
-</li>
-
-<li>Unlocking is a very simple operation. The locker has contributed
-<code>UINT_MAX/2u+2u</code> to the value, and so just has to decrement the
-value atomically by that amount. By doing so, the thread also
-notices if other threads still are in the critical section and
-wakens one of them.
-</li>
-</ul>
-</div>
-</div>
-
-<div id="outline-container-sec-3-1-4" class="outline-4">
-<h4 id="sec-3-1-4"><span class="section-number-4">3.1.4</span> Analysis</h4>
-<div class="outline-text-4" id="text-3-1-4">
-<p>
-Let us assume a worst case scenario where a thread \(T_0\) is
-unscheduled while inside the critical section, and that there are
-\(N\) threads that are ready to be scheduled, and that once
-scheduled start to compete for the lock.
-</p>
-
-<p>
-Different quantities are interesting for an analysis of the
-runtime behavior of the algorithm.
-</p>
-
-<ul class="org-ul">
-<li>\(t_{slice}\) is the length of a scheduling time slice.
-</li>
-
-<li>\(P\) is the <i>number of processor cores</i>, which is viewed to be
-equal to the maximum number of threads that are scheduled
-simultaneously.
-</li>
-
-<li>\(t_{spin}\) is the time that a scheduled thread spends spinning
-before trying to switch to <code>futex_wait</code>.
-</li>
-
-<li>\(1 \leq S \leq P\) is the <i>slowdown</i> of the platform.  We suppose
-that \(P\) threads can spin concurrently and the time for them
-spinning exactly in parallel is \(S \cdot t_{spin}\).
-</li>
-
-<li>\(\frac{1}{P} \leq E = \frac{1}{S} \leq 1\) is the <i>efficiency</i> of
-the platform.  This will in general be less than \(1\), e.g
-because of memory contention or contention on other shared
-resources (execution pipelines, caches). On a typical
-hyperthreaded machine of today with \(4\) cores in total, this
-would be between \(0.625\) and \(0.75\). On an ideal SMP machine
-without resource sharing this would be \(1\).
-</li>
-
-<li>\(1 \leq \hat{P}=E\cdot P \leq P\) is the <i>parallelism</i> of the
-platform. For the example of the hyperthreaded machine with \(4\)
-cores in total, \(\hat{P}\) could be between \(2.5\) and \(3\).
-</li>
-
-<li>\(t_{fail}\) is the maximum of two system specific times: the time
-a thread \(T_1\) may either spend in a failed attempt to
-<code>futex_wait</code> or that the system needs to put \(T_1\) to sleep and
-start another thread \(T_2\).
-</li>
-</ul>
-
-<p>
-As a first observation let us state:
-</p>
-<div class="em">
-<div class="center">
-<p>
-On a platform where \(\hat{P}\) is close to one, the spinning phase of
-the algorithm should entirely be skipped.
-</p>
-</div>
-
-</div>
-
-<p>
-This is simply because there no other thread can make progress
-while a thread is spinning. Thus spinning would just waste
-resources and the state of the application would not progress.  So
-from now on we can assume that \(\hat{P} \geq 1+\epsilon\) for some
-reasonable value of \(\epsilon > 0\).
-</p>
-
-
-<p>
-Let \(T_0\) be the thread that holds the lock and suppose that \(T_0\)
-is unscheduled by the OS in the middle of its critical
-section. Now, the only interaction that other threads can have
-over the lock, is the time they spend inside the lock function
-itself. Since they will not reach the applicative part of the
-critical section before \(T_0\) releases the lock, that part is
-neglected for the rest of the discussion.
-</p>
-
-<p>
-Any individual thread needs at least time \(t_{spin}\) to reach the
-call to <code>futex_wait</code>, all \(P\) threads together may need \(S \cdot
-    t_{spin}\) time.
-</p>
-
-<p>
-Also, in that situation not more than \(P\) scheduled threads can enter
-the critical section. There are \(P-1\) atomic events that change
-the futex value in this case and thus <code>futex_wait</code> may have been
-forced to fail at most \(P-1\) times.
-</p>
-
-<div class="em">
-<div class="center">
-<p>
-Provided that no other threads are descheduled, after at most
-$$\max \{ S\cdot t_{spin} + t_{fail}, t_{spin} + (P-1)\cdot t_{fail}\}$$
-seconds a first thread successfully calls <code>futex_wait</code>.
-</p>
-</div>
-
-</div>
-
-<p>
-This already shows that, provided no descheduling takes place, our
-algorithm is deadlock-free.
-</p>
-
-<p>
-Now, once a thread successfully goes into <code>futex_wait</code> a new
-thread \(T_P\) is scheduled, competes for the lock and changes the
-<code>futex</code> value. It will perturb all other threads that are trying
-to go into <code>futex_wait</code>, forcing them to restart their attempt.
-</p>
-
-<div class="em">
-<div class="center">
-<p>
-After a thread successfully enters <code>futex_wait</code> and the newly
-scheduled thread enters immediately into the critical section, the
-time for next thread to succeed a call to <code>futex_wait</code> is \(t_{fail}\)
-</p>
-</div>
-
-</div>
-
-<p>
-But, under some premises this value is also an upper bound:
-</p>
-
-
-<div class="em">
-<div class="center">
-<p>
-Provided that no threads are descheduled otherwise, that there are
-always \(P\) threads inside the CS and that at least one of them has
-finished spinning, after a time of \(t_{fail}\) another threads succeeds
-his call to <code>futex_wait</code>.
-</p>
-</div>
-
-</div>
-
-<p>
-That is, under these circumstances we have a stable regime where each
-\(t_{fail}\) seconds a thread enters <code>futex_wait</code>.
-</p>
-
-<p>
-To be able to ensure that there is always at least one thread that has
-finished spinning, we observe that if
-</p>
-
-<p>
-$$S\cdot t_{spin} \leq t_{fail}$$
-</p>
-
-<p>
-or equivalently
-</p>
-
-<p>
-$$t_{spin} \leq E\cdot t_{fail}$$
-</p>
-
-<p>
-a newly scheduled thread \(T_P\) has finished spinning when the next
-thread successfully goes into <code>futex_wait</code>.
-</p>
-
-<div class="em">
-<div class="center">
-<p>
-Provided that no threads are descheduled otherwise, that there are
-always \(P\) threads inside the CS and that \(S\cdot t_{spin} \leq
-t_{fail}\), threads succeed calls to <code>futex_wait</code> at a rate of
-\(1/t_{fail}\) per second.
-</p>
-</div>
-
-</div>
-
-<p>
-Or, roughly the time for all threads to calm down and successfully
-call <code>futex_wait</code> is \(N\cdot t_{fail}\).
-</p>
-
-<div class="em">
-<div class="center">
-<p>
-Provided that no threads are descheduled otherwise, that there are
-always \(P\) threads inside the CS and that \(S\cdot t_{spin} \leq
-t_{fail}\), after a time of \(N\cdot t_{fail}\) the application can start
-to make progress, again.
-</p>
-</div>
-
-</div>
-
-<p>
-This progress can either be that there are other threads that do some
-work for the application, or, if there are no such threads, \(T_0\) will
-be rescheduled and finish its CS.
-</p>
-
-<p>
-The time \(t_{spin}\) has not only an influence for this worst case, but
-is also responsible for the response time in the non-congested
-situation. Here the longer we spin, the higher the probability to get
-away without going into <code>futex_wait</code>. So the best compromise would be
-to choose
-</p>
-
-<p>
-$$t_{spin} = E\cdot t_{fail}.$$
-</p>
-
-<p>
-Observe that as soon that \(P > 1 + \epsilon\) this formula is otherwise
-independent of \(P\) itself.
-</p>
-
-<p>
-The exact value for \(E\) is not so easy to measure or guess in real
-life. As a good heuristic value is
-</p>
-
-\begin{equation}
-\frac{t_{spin}}{t_{fail}} =
-\begin{cases}
-0 & \textrm{if $\hat{P} \leq 1+\epsilon$}\\
-0.5 + \frac{\epsilon}{2} & \textrm{if $\hat{P} \leq 2$}\\
-0.9 & \textrm{otherwise.}
-\end{cases}
-\end{equation}
 </div>
 </div>
 </div>
-
-
 
 <div id="outline-container-sec-3-2" class="outline-3">
 <h3 id="sec-3-2"><span class="section-number-3">3.2</span> Caveats</h3>
@@ -1388,8 +1040,10 @@ would not be able to inline the atomics in the user binary.
 </ul>
 
 <p>
-All of this is not yet, done, though. Be careful when using this
-preliminary version.
+I already have a working implementation of such a safety feature
+in some other code, so this is feasible. But for the moment this
+is not yet done, here. Be careful when using this preliminary
+version.
 </p>
 </div>
 </div>
@@ -1421,9 +1075,9 @@ yet to see what would be best, here.
 <p>
 There is optional instrumentation for the lock
 functions. Switching it on changes overall performance
-substantially, and thus I'd expect a noticeable Heisenberg
-effect. So these counter can give qualitative information about
-what happens, you shouldn't take the figures verbally. Also these
+substantially, and thus I'd expect a noticeable effect by the observation
+principle. These counters can give qualitative information about
+what happens, but you shouldn't take the figures verbally. Also these
 counters are only protected if you test the library with only one
 lock, using atomics for these counters themselves would have a
 strong performance impact and the resulting statistics would
@@ -1460,8 +1114,11 @@ true for the calling thread.
 <p>
 There is a "weak" version of <code>atomic_inject</code> that does nothing. It
 can be overwritten by a specific version that you provide
-yourself. E.g in Modular C the slow path of the algorithm is
-stressed by simply calling <code>thrd_yield</code>.
+yourself. E.g for the benchmarks using
+<a href="http://cmod.gforge.inria.fr">Modular C</a> in the
+<a href="https://hal.inria.fr/hal-01236734">article</a> that we mentionned
+above, slow path of the algorithm is stressed by simply calling
+<code>thrd_yield</code>.
 </p>
 
 <p>
@@ -1475,201 +1132,59 @@ probabilities of failure.
 </div>
 
 <div id="outline-container-sec-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> Benchmarks</h2>
+<h2 id="sec-4"><span class="section-number-2">4</span> Performance considerations</h2>
 <div class="outline-text-2" id="text-4">
 </div><div id="outline-container-sec-4-1" class="outline-3">
-<h3 id="sec-4-1"><span class="section-number-3">4.1</span> The framework</h3>
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Benchmarks</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 I have run a long series of benchmarks to validate the
 approach. The code for the benchmark is at the moment integrated in
-<i>p11</i> with comes with <i>Modular C</i>, see <i>Cmod</i>. To compile it you'd
-need
+<i>p11</i> with comes with <i>Modular C</i>, see
+<a href="http://cmod.gforge.inria.fr">Cmod</a>. To compile it you'd need
 </p>
 
 <ul class="org-ul">
-<li>a C11 compliant library, that has C11 threads. I only know of <i>musl</i>.
+<li>a C11 compliant library that has C11 threads, I only know of
+<a href="http://www.muls-libc.org">musl</a>, or an implementation of
+POSIX' threads that can be used to emulate C11 threads.
 </li>
 <li>a C11 compiler that also has gcc extension. I tested with gcc and
 clang.
 </li>
-<li>Cmod
+<li><a href="http://cmod.gforge.inria.fr">Cmod</a>
 </li>
-<li><i>P99</i>, my old macro library. This one could probably avoided, it is
-just needed for some parts of p11.
+<li><a href="http://p99.gforge.inria.fr">P99</a>, my old macro library. This one
+could probably avoided, it is just needed for some parts of p11.
 </li>
 </ul>
 
 <p>
 The test in p11 is called p11#test#lifo. It is based on a stack
 implementation (Last In First Out) that uses an atomic pair of
-pointers for the head to avoid the ABA problem.
+items for the head to avoid the ABA problem.
+</p>
+
+<p>
+Please refer to the <a href="https://hal.inria.fr/hal-01236734">article</a>
+for some results of the benchmarks.
 </p>
 </div>
 </div>
 
 <div id="outline-container-sec-4-2" class="outline-3">
-<h3 id="sec-4-2"><span class="section-number-3">4.2</span> The test program</h3>
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Code inspection</h3>
 <div class="outline-text-3" id="text-4-2">
-<p>
-The test creates or deletes a random number of list elements in the
-lifo inside a loop. It understands the following command line arguments:
-</p>
-
-<p>
--t the number of threads to use for the run
-</p>
-
-<p>
--s the number of seconds to run all the threads in parallel
-</p>
-
-<p>
--f to force descheduling of threads with a given probability. If
-you provide a value \(N\), here, the probability will be \(1/N\).
-</p>
-
-<p>
--l a file to use for logging
-</p>
-
-<p>
-At compile time, you may chose between different lock primitives to
-protect the atomic pair:
-</p>
-
-<ul class="org-ul">
-<li>the futex based algorithm described here
-</li>
-
-<li>a spin lock implemented with <code>atomic_flag</code>, itself based on a
-<code>test_and_set</code> instruction/builtin.
-</li>
-
-<li><code>pthread_mutex_t</code>
-</li>
-
-<li><code>mtx_t</code>
-</li>
-
-<li>musl's lowlevel <code>lock/unlock</code> functions
-</li>
-
-<li>a spin lock implemented directly with
-<code>atomic_compare_exchange_strong_explicit</code>
-</li>
-</ul>
-
-<p>
-This is done by defining a macro <code>ATOMIC_GENERIC_LOCK</code> to some
-value when compiling <code>atomic_generic.c</code>.
-</p>
-
-<p>
-The idea of this benchmark is to have a application that runs on
-full load, stress tests the platform with a lot of allocations and
-deallocations and in the middle of that does a lot of locking and
-unlocking.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-4-3" class="outline-3">
-<h3 id="sec-4-3"><span class="section-number-3">4.3</span> The test platform</h3>
-<div class="outline-text-3" id="text-4-3">
-<p>
-For the moment I only have tested on a <code>x86_64</code> machine with 2x2
-hypethreaded cores. It has 16 byte atomic instructions (like most
-such machines have now) and uses them if you compile with
-<code>-march=native</code>. Thereby we obtain the first test to obtain the
-performance when the atomic is done on instruction level.
-</p>
-
-<p>
-All other test are compiled without that option and thus the
-compiler replaces the atomic operation by a call to the
-corresponding function of the library.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-4-4" class="outline-3">
-<h3 id="sec-4-4"><span class="section-number-3">4.4</span> Comparative performance of the different lock primitives</h3>
-<div class="outline-text-3" id="text-4-4">
-<p>
-I compared the different locks for 1 up to 256 threads. All runs
-are for 10 seconds, each point represents the mean value of 10
-experiments. The performance measure is the number of locks per
-second that the application achieves.
-</p>
-
-<div class="center">
-
-<div class="figure">
-<p><img src="benchs/benchs-comparison/test-benchs-all.png" alt="test-benchs-all.png" width="95%" />
-</p>
-</div>
-</div>
-
-<p>
-First, we see that using the instruction if it is available is a
-real benefit. In case of only a few threads it is about 2 times
-faster, in case of many threads and real congestion it is 4 times
-faster. This is unbeatable.
-</p>
-
-<p>
-To compare the lock based versions more thoroughly, let us plot
-their curves relatively, taking the <code>pthread_mutex_t</code> based version
-as a reference.  The <code>mtx_t</code> implementation has the same behavior
-as for <code>pthread_mutex_t</code>. This is not very surprising, since in
-musl these two mutex implementations share most of their code,
-still.
-</p>
-
-
-<div class="center">
-
-<div class="figure">
-<p><img src="benchs/benchs-comparison/test-benchs-relative.png" alt="test-benchs-relative.png" width="95%" />
-</p>
-</div>
-</div>
-
-<ul class="org-ul">
-<li>The spinlock based on <code>atomic_compare_exchange_strong_explicit</code>
-has the best performance of all implementations for a few
-processors. There it is about \(30\) to \(40 \%\) better than the
-<code>pthread_mutex_t</code> implementation. Then, starting at 8 threads the
-behavior becomes erratic and performance drops severely if used
-with a lot of threads.
-</li>
-
-<li>Musl's internal lock<sup><a id="fnr.1" name="fnr.1" class="footref" href="#fn.1">1</a></sup> is a bit worse for one thread, and
-then its relative performance increase to be about \(20\%\) better
-than <code>pthread_mutex_t</code>. If we have a lot of threads it is about
-\(10\%\) better.
-</li>
-
-<li>The futex based new implementation shows a mix of the other ones
-and always performs better than the <code>pthread_mutex_t</code>
-implementation. For a few threads it is \(10\) to \(20 \%\)
-better. This advantage then reduces to about \(5 \%\) for a lot of
-threads.
-</li>
-</ul>
-</div>
-
-<div id="outline-container-sec-4-4-1" class="outline-4">
-<h4 id="sec-4-4-1"><span class="section-number-4">4.4.1</span> Lower range of thread numbers</h4>
-<div class="outline-text-4" id="text-4-4-1">
+</div><div id="outline-container-sec-4-2-1" class="outline-4">
+<h4 id="sec-4-2-1"><span class="section-number-4">4.2.1</span> Lower range of thread numbers</h4>
+<div class="outline-text-4" id="text-4-2-1">
 <p>
 For this application the performance in the lower range of is
 largely dominated by the fast path, that is by a very small number
 of assembler instructions that constitute the good case, when a
-thread doesn't encounter congestion. Typical realizations of the
-four different categories result in the following memory
-instructions.
+thread doesn't encounter congestion. On a <code>x86_64</code> machine, our
+implementation of the four different categories result in the
+following memory instructions:
 </p>
 
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
@@ -1721,14 +1236,14 @@ instructions.
 </table>
 
 <p>
-The spinlock is the most efficient because it talks less to the
-memory. Only one <code>cmpxchgl</code> to test and set the flag and one
-<code>movl</code> to clear it at the end.
+The spinlock and futex implementation here have very similar
+performance, because they have a minimal number memory
+instructions.
 </p>
 
 <p>
 Musl's internal lock implementation actually looses for the
-unlock. It has four different memory instructions. To of them
+unlock. It has four different memory instructions. Two of them
 originates from the internal macro <code>a_store</code>, which needs a
 synchronization of the <code>mov</code> instruction to avoid reordering on
 the processor. It results in two instructions:
@@ -1767,64 +1282,19 @@ counter, and one <code>xchg</code> to manipulate the lock itself.
 Our implementation attempts to combine the two instructions for
 unlock into one: on the fast path we only need one atomic
 addition. By that we are better than the mutex, we save one
-<code>movl</code> instruction for the waiters counter. We are also a bit
+<code>movl</code> instruction for the waiters counter. We may be a bit
 worse than the spinlock, because that only has a write to memory
 to perform, and doesn't need information from memory to be
 returned to the CPU.
 </p>
 </div>
 </div>
-
-<div id="outline-container-sec-4-4-2" class="outline-4">
-<h4 id="sec-4-4-2"><span class="section-number-4">4.4.2</span> Higher range of thread numbers</h4>
-<div class="outline-text-4" id="text-4-4-2">
-<p>
-We see from the spinlock implementation, that spinning becomes
-expensive as soon as we exceed the number of cores (the machine
-has 4 hyperthread cores). As soon as 4 threads are stuck in the
-spin loop, the application can't go forward. So these spin loops
-are just wasted.
-</p>
-
-<p>
-The other lock implementations are quite similar and are able to
-cope with the situation. In particular, performance doesn't
-degrade below a reasonable limit. This is needed to ensure
-responsiveness of applications that come under high stress,
-usually a configuration error or even an attack. I don't think
-that the difference in performance between the implementations is
-very important, here. The scenario should be rare and what we have
-to ensure here is safety and security, not performance.
-</p>
-
-<p>
-To emphasize on the discussion about spinning I also added two
-not-so-good benchmarks to the picture. Both show what happens if
-we remove the spinning phase of the futex and musl locks. Not only
-is the performance worse for a small number of threads, also the
-performance for the many-threads congestion is really bad. This is
-because the arrival of many new threads disturbs the attempts of
-everybody going into the <code>futex_wait</code>.
-</p>
 </div>
 </div>
 </div>
-</div>
-<div id="footnotes">
-<h2 class="footnotes">Footnotes: </h2>
-<div id="text-footnotes">
-
-<div class="footdef"><sup><a id="fn.1" name="fn.1" class="footnum" href="#fnr.1">1</a></sup> <p class="footpara">
-The version shown here is actually an improved version of the
-one currently distributed with musl.
-</p></div>
-
-
-</div>
-</div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Jens Gustedt</p>
-<p class="date">Created: 2015-09-17 Do 16:51</p>
+<p class="date">Created: 2015-12-10 Do 17:39</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
