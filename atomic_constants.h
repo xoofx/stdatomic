@@ -3,8 +3,29 @@
 
 #include <stdint.h>
 
+/**
+ ** @brief Configure the atomic support of the platform and define all
+ ** constants.
+ **
+ ** Configuration tries to figure out which version of the gcc and
+ ** clang builtins is supported, and which sizes of objects may rely
+ ** on atomic instructions that are synthesized by the compiler.
+ **
+ ** The first is done with a heuristic that involves the macros
+ **  - __ATOMIC_RELAXED
+ **  - __GNUC__
+ **  - __GNUC_MINOR__
+ **
+ ** The second assumes that atomic instructions exist for 1, 2, and 4
+ ** byte types. The only additional possibility are 8 byte types. The
+ ** presence of such an instruction is checked with
+ ** __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8. In addition a check with
+ ** __SIZEOF_INT128__ tries to figure out if 8 byte resp. 128 bit
+ ** integers are present.
+ **/
+
 #if !defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1) || __GNUC__ < 4
-# error "this implementation of stdatomic need support that is compatible with the gcc ABI"
+# error "this implementation of stdatomic needs support that is compatible with the gcc ABI"
 #endif
 
 /* gcc 4.7 and 4.8 implement atomic operations but not atomic
