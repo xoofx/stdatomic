@@ -718,6 +718,87 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
      to perform, and doesn't need information from memory to be
      returned to the CPU.
 
+* Installation
+
+  As said above it will be important that your compiled library and
+  your user code agree on the model of the atomics that they have for
+  16 data types. Be careful, compiler options that change the
+  processor model can change this characteristic, e.g if you compile
+  with =gcc= and the option =-march=native=.
+
+  If your compiler (=gcc= or =clang=) already has a working
+  =stdatomic.h= file in place, you have nothing to do from that
+  part. If not, you should install all files of the form
+
+  =atomic_.....h=
+
+  in an include directory where your compiler can find it when you
+  compile application code.
+
+** Musl
+
+*** direct integration
+
+  If you have the sources of musl the easiest is to integrate the
+  library directly into the libc. To achieve that just do
+
+#+BEGIN_SRC sh
+make MUSL=your/path/to/musl musl
+#+END_SRC
+
+  and then just compile and install musl as you would usually.
+
+  By default this chooses the =futex= implementation of the generic
+  lock function.
+
+*** building externally
+
+  If you want to compile a standalone =libstdatomic.a= library archive
+  file, you first need to compile one object file that encapsulates
+  all system calls to =futex=. This can be done with the same command
+  as above
+
+#+BEGIN_SRC sh
+make MUSL=your/path/to/musl musl
+#+END_SRC
+
+  and then
+
+#+BEGIN_SRC sh
+make MUSL=your/path/to/musl libstdatomic.a
+#+END_SRC
+
+  This will compile the one file inside the musl =src= hierarchy and
+  then assemble all to one "standalone" library.
+
+** Other C libraries
+
+   Up to now I only tested with =glibc= as other C library. If you
+   have experience with other libraries please let me know.
+
+   For the moment the =futex= generic lock only works with musl, so
+   you have to chose another one when musl is not available. You
+   choose the version through a define of =ATOMIC_GENERIC_LOCK=:
+
+   - =ATOMIC_GENERIC_LOCK_PTHREAD= :: uses a =pthread_mutex_t= for the
+        lock. It will be the choice for most, unless you have a C
+        library that already implements C11 threads, then you'd use
+
+   - =ATOMIC_GENERIC_LOCK_MTX= :: and a =mtx_t=.
+
+   - =ATOMIC_GENERIC_LOCK_CMPXCHG= :: is the last resort if you have
+        neither of the two above. This implements just a spinlock. It
+        is only suited for applications that don't have a strong
+        congestion on any atomic operation. If there is a lot of
+        congestion, the application will suffer dramatically.
+
+   With this choice, you may compile the library with a simple =make=
+
+#+BEGIN_SRC sh
+make CONFIG='-DATOMIC_GENERIC_LOCK=ATOMIC_GENERIC_LOCK_PTHREAD' libatomic.a
+#+END_SRC
+
+
 * Footnotes
 
 [fn:1] The version shown here is actually an improved version of the
