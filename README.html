@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>An implementation of the C11 <code>&lt;stdatomic.h&gt;</code> interface</title>
-<!-- 2015-12-12 Sa 00:21 -->
+<!-- 2015-12-12 Sa 17:24 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Jens Gustedt" />
@@ -1309,7 +1309,7 @@ returned to the CPU.
 <p>
 As said above it will be important that your compiled library and
 your user code agree on the model of the atomics that they have for
-16 data types. Be careful, compiler options that change the
+16-byte data types. Be careful, compiler options that change the
 processor model can change this characteristic, e.g if you compile
 with <code>gcc</code> and the option <code>-march=native</code>.
 </p>
@@ -1348,7 +1348,8 @@ library directly into the libc. To achieve that just do
 </div>
 
 <p>
-and then just compile and install musl as you would usually.
+This copies all necessary code to a subdirectory of your musl
+path. Then just compile and install musl as you would do usually.
 </p>
 
 <p>
@@ -1438,7 +1439,7 @@ With this choice, you may compile the library with a simple <code>make</code>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Jens Gustedt</p>
-<p class="date">Created: 2015-12-12 Sa 00:21</p>
+<p class="date">Created: 2015-12-12 Sa 17:24</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
