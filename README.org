@@ -619,7 +619,7 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
     and test the worst-case behavior of the locking algorithm.
 
     This feature is switched on by defining the macro =ATOMIC_INJECT=
-    at compile time. The you have a thread local variable
+    at compile time. By that you have a thread local variable
     =atomic_faulty= and a function interface =atomic_inject= at your
     disposal, namely =atomic_inject= is called iff =atomic_faulty= is
     true for the calling thread.
@@ -687,7 +687,7 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
 
      Musl's internal lock implementation actually looses for the
      unlock. It has four different memory instructions. Two of them
-     originates from the internal macro =a_store=, which needs a
+     originate from the internal macro =a_store=, which needs a
      synchronization of the =mov= instruction to avoid reordering on
      the processor. It results in two instructions:
 
@@ -799,9 +799,21 @@ make MUSL=your/path/to/musl libstdatomic.a
 make CONFIG='-DATOMIC_GENERIC_LOCK=ATOMIC_GENERIC_LOCK_PTHREAD' libatomic.a
 #+END_SRC
 
+* Copyright and License
 
-* Footnotes
+** Copyright © 2015 Jens Gustedt
 
-[fn:1] The version shown here is actually an improved version of the
-one currently distributed with musl.
- 
+** Licenses
+
+This work is distributed at [[http://stdatomic.gforge.inria.fr][http://stdatomic.gforge.inria.fr]].
+
+*** Documentation
+
+[[http://creativecommons.org/licenses/by/4.0/][https://i.creativecommons.org/l/by/4.0/88x31.png]]
+All explanatory and documentary text is licensed under a
+[[http://creativecommons.org/licenses/by/4.0/][Creative Commons
+Attribution 4.0 International License]].
+
+*** Source
+
+The license for using the source code has yet to be decided.
