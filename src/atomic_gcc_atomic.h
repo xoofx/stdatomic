@@ -18,13 +18,69 @@
 #define atomic_compare_exchange_weak(X, E, V)   atomic_compare_exchange_weak_explicit((X), (E), (V), memory_order_seq_cst, memory_order_seq_cst)
 #define atomic_compare_exchange_strong(X, E, V) atomic_compare_exchange_strong_explicit((X), (E), (V), memory_order_seq_cst, memory_order_seq_cst)
 
-/* Map allexplicit macros to the corresponding builtin.          */
 /* The arithmetic operations don't have to use a memory operand. */
-#define atomic_fetch_add_explicit(X, Y, MO) __atomic_fetch_add((X), (Y), (MO))
-#define atomic_fetch_sub_explicit(X, Y, MO) __atomic_fetch_sub((X), (Y), (MO))
 #define atomic_fetch_and_explicit(X, Y, MO) __atomic_fetch_and((X), (Y), (MO))
 #define atomic_fetch_or_explicit(X, Y, MO)  __atomic_fetch_or((X), (Y), (MO))
 #define atomic_fetch_xor_explicit(X, Y, MO) __atomic_fetch_xor((X), (Y), (MO))
+
+/* gcc's implementation of the __atomic_fetch_add and
+   __atomic_fetch_sub has a bug in that it views the second argument
+   as a byte increment. Detect that X's base type is a pointer type
+   and do the correct increment in that case.
+
+   A lot of programming effort is done to ensure that the resulting
+   code is as efficient as a direct call of the builtin would be. */
+
+/* R can be of any scalar or array type. If R is a pointer or decays
+   to one, return (void*)0. Otherwise return X. */
+#define _IS_POINTER(R, X)                                       \
+  (_Generic((R)+(ptrdiff_t)0,                                   \
+            /* R is an integer that promotes to ptrdiff_t */    \
+            ptrdiff_t: (X),                                     \
+            default: (_Generic((R)-(R),                         \
+                               /* R itself can't be ptrdiff_t*/ \
+                               ptrdiff_t: (void*)0,             \
+                               default: (X)))))
+
+static inline
+uintptr_t __atomic_fetch_add_ptr(void* x,  size_t offset, int mo) {
+  _Atomic(uintptr_t)* _x = (_Atomic(uintptr_t)*)x;
+  return __atomic_fetch_add(_x, offset, mo);
+}
+
+#define atomic_fetch_add_explicit(X, Y, MO)                             \
+({                                                                      \
+  register int const _mo = (MO);                                        \
+  register size_t const _y = (Y);                                       \
+  register __typeof__(__atomic_fetch_add((X), _y, _mo)) _r = 0;         \
+  /* Compute the offset for an integer or pointer type. */              \
+  /* Ensure that the correct arithmetic for the type is used */         \
+  register uintptr_t const _offset = (uintptr_t)(_r+_y)-(uintptr_t)_r;  \
+  __typeof__(_IS_POINTER(_r, (X))) _x = (X);                            \
+  (__typeof__(_r))_Generic(_x,                                          \
+           void*: __atomic_fetch_add_ptr,                               \
+           default: __atomic_fetch_add)(_x, _offset, _mo);              \
+ })
+
+static inline
+uintptr_t __atomic_fetch_sub_ptr(void* x,  size_t offset, int mo) {
+  _Atomic(uintptr_t)* _x = (_Atomic(uintptr_t)*)x;
+  return __atomic_fetch_sub(_x, offset, mo);
+}
+
+#define atomic_fetch_sub_explicit(X, Y, MO)                             \
+({                                                                      \
+  register int const _mo = (MO);                                        \
+  register size_t const _y = (Y);                                       \
+  register __typeof__(__atomic_fetch_sub((X), _y, _mo)) _r = 0;         \
+  /* Compute the offset for an integer or pointer type. */              \
+  /* Ensure that the correct arithmetic for the type is used */         \
+  register size_t const _offset = (uintptr_t)(_r+_y)-(uintptr_t)_r;     \
+  __typeof__(_IS_POINTER(_r, (X))) _x = (X);                            \
+  (__typeof__(_r))_Generic(_x,                                          \
+           void*: __atomic_fetch_sub_ptr,                               \
+           default: __atomic_fetch_sub)(_x, _offset, _mo);              \
+ })
 
 /* The interfaces for the universal functions need to operate on
    memory operands, only. */

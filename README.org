@@ -73,6 +73,14 @@
    The header file is optional, the created function interface should
    be compatible with the header files that gcc and clang may provide.
 
+   But you should be careful with gcc's header file. Up to now
+   (Dec 2015) that header file has an unfixed bug: addition and
+   subtraction of atomic types only does the increments in bytes, and
+   not in elements of the base type of the pointer. Avoid their
+   header, as long as this bug isn't fixed.  If you are interested you
+   can follow their bug at
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=64843
+
 ** Type, constants and function interfaces
 
    These are the types and proper functions that are foreseen by the

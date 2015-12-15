@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>An implementation of the C11 <code>&lt;stdatomic.h&gt;</code> interface</title>
-<!-- 2015-12-12 Sa 23:36 -->
+<!-- 2015-12-14 Mo 23:23 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Jens Gustedt" />
@@ -283,6 +283,16 @@ library header files.
 <p>
 The header file is optional, the created function interface should
 be compatible with the header files that gcc and clang may provide.
+</p>
+
+<p>
+But you should be careful with gcc's header file. Up to now
+(Dec 2015) that header file has an unfixed bug: addition and
+subtraction of atomic types only does the increments in bytes, and
+not in elements of the base type of the pointer. Avoid their
+header, as long as this bug isn't fixed.  If you are interested you
+can follow their bug at
+<a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=64843">https://gcc.gnu.org/bugzilla/show_bug.cgi?id=64843</a>
 </p>
 </div>
 
@@ -1488,7 +1498,7 @@ The license for using the source code has yet to be decided.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Jens Gustedt</p>
-<p class="date">Created: 2015-12-12 Sa 23:36</p>
+<p class="date">Created: 2015-12-14 Mo 23:23</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
