@@ -92,6 +92,27 @@ ftx_contrib,
 \input{C11-futex-abstract}
 \end{abstract}
 
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011041.10011048</concept_id>
+<concept_desc>Software and its engineering~Runtime environments</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10011007.10011006.10011008.10011024.10011034</concept_id>
+<concept_desc>Software and its engineering~Concurrent programming structures</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Runtime environments}
+\ccsdesc[300]{Software and its engineering~Concurrent programming
+  structures}
+\printccsdesc
+
+\keywords{lock primitives, atomics, C11, futex, Linux}
 
 
 \section{Introduction}
@@ -317,11 +338,12 @@ application makes progress.
 \label{sec-4}
 
 \begin{figure*}[t]
+  \hfil
   \subfigure[lock throughput\label{fig:arm-abs}]{
-    \includegraphics[width=0.48\textwidth]{benchs/arm/test-arm-u64.png}
-  }%
+    \includegraphics[width=0.365\textwidth]{benchs/arm/test-arm-u64.png}
+  }\hfil%
   \subfigure[relative performance compared to mutex\label{fig:arm-rel}]{
-    \includegraphics[width=0.48\textwidth]{benchs/arm/test-arm-u64-relative.png}
+    \includegraphics[width=0.365\textwidth]{benchs/arm/test-arm-u64-relative.png}
   }
   \caption{benchmarks on \texttt{arm}}
   \label{fig:arm}
