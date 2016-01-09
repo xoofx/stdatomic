@@ -1037,7 +1037,7 @@
 \begin{center}
 \setlength{\unitlength}{1pc}
 \ifnum\ACM@basesize=9
-\begin{picture}(20,6) %Space for copyright notice
+\begin{picture}(20,7.0) %Space for copyright notice
 \put(0,-0.95){\crnotice{\@toappear}}
 \end{picture}
 \fi
@@ -1660,11 +1660,11 @@
 \global\copyrightetc{%
 {\noindent\confname\ \the\conf \the\confinfo}\par\smallskip
   \if@printcopyright
-    Copyright\ \the\copyrtyr\ ACM
+    \@copyrightowner
   \fi
   \if@acmowned \else\ifnum\acm@copyrightmode=2 \else \par\smallskip ACM \fi\fi
  \the\acmcopyr\ifx\@acmPrice\@empty.\else\dots\@acmPrice\fi\par\smallskip
-{\normalsize\expandafter\printdoi\expandafter{\@doi}}} 
+{DOI: \normalsize\expandafter\printdoi\expandafter{\@doi}}} 
 \toappear{\fontsize{8.5pt}{8.5pt}\fontfamily{ptm}\selectfont
   \the\boilerplate\par\smallskip
  \the\copyrightetc}
@@ -1677,7 +1677,7 @@
   \fi
   \if@acmowned ISBN \else\ifnum\acm@copyrightmode=2 ISBN \else \par\smallskip ACM  \fi\fi
  \the\acmcopyr\ifx\@acmPrice\@empty.\else\dots\@acmPrice\fi\par\smallskip
-{\small\expandafter\printdoi\expandafter{\@doi}}} 
+{DOI: \small\expandafter\printdoi\expandafter{\@doi}}} 
 \toappear{\fontsize{7.5pt}{8.5pt}\fontfamily{ptm}\selectfont
   \the\boilerplate\par\smallskip
  \the\copyrightetc}
