@@ -220,7 +220,10 @@ beautify :
 musl : ${SOURCES} ${GENERICS} ${FUTEX} atomic_pragma.h
 	-mkdir ${MUSL}/src/stdatomic 2> /dev/null || true
 	cp ${SOURCES} ${GENERICS} ${FUTEX} ${MUSL}/src/stdatomic/
-	cp atomic*.h  stdatomic-impl.h ${MUSL}/src/internal/
+	cp atomic*.h  ${MUSL}/include
+	cp stdatomic-impl.h ${MUSL}/include/stdatomic.h
+
+#	cp atomic*.h  stdatomic-impl.h ${MUSL}/src/internal/
 
 ${MUSL}/src/stdatomic/${FUTEXO} : musl
 	make -C ${MUSL} $@
