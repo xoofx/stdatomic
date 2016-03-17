@@ -1,0 +1,29 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tikz-bpmn}[2011/08/16 BPMN diagrams using the Tikz library]
+
+\RequirePackage{tikz}
+
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
+
+\tikzstyle{every task} = []
+\tikzstyle{every gateway} = []
+\tikzstyle{every sequence} = []
+\tikzstyle{every message} = []
+\tikzstyle{every association} = []
+\tikzstyle{every event} = []
+
+\tikzstyle{task} = [rectangle, draw, black,
+                      minimum width=4em, minimum height=2em,rounded corners,align=center,every task, line width=
+                      0.075em]
+
+\tikzstyle{gateway} = [diamond, draw, black,inner sep=0pt,minimum width=1em, minimum height=1em,every gateway]
+\tikzstyle{sequence} = [->,>=triangle 45,every sequence,ultra thick,line width=0.1em]
+\tikzstyle{seq} = [sequence]
+\tikzstyle{equiv} = [->,>=triangle 45,dashed,ultra thick,line width=0.1em]
+\tikzstyle{equiv2} = [equiv,-]
+\tikzstyle{message} = [o->,dashed,>=open triangle 45,every sequence]
+\tikzstyle{association} = [->,densely dotted,>=angle 45,every association]
+\tikzstyle{event} = [circle,minimum width=1.5em, minimum height=1.5em,draw,every event,line width=0.1em]
+\tikzstyle{end event} = [event,ultra thick,every event,line width=0.2em]
+\tikzstyle{intermediate event} = [event,double,every event]

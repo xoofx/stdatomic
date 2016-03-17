@@ -1,0 +1,24 @@
+#!/bin/bash
+
+OUT=poster.pdf
+
+old=$(tempfile)
+new=$(tempfile)
+
+while true; do
+    cat *.tex *.sty | md5sum > $new
+    if ! diff $old $new; then
+        cp $new $old; rm $OUT
+        if ! make; then
+            notify-send --hint=int:transient:1 "watchit" "Error :(" 
+        fi
+        if pidof evince; then
+            echo 'Evince is here!'
+            evince $OUT
+        else
+            echo 'Evince is not here!'
+            evince $OUT &
+        fi
+    fi
+    sleep 1
+done

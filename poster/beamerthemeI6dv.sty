@@ -1,0 +1,134 @@
+\ProvidesPackage{beamerthemeI6dv} % this style was created by David Vilar
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\selectcolormodel{cmyk}
+\mode<presentation>
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% http://www.colorsontheweb.com/colorwizard.asp#wizard, used start set: #0066cc
+\definecolor{i6colorblockbg}{HTML}{2C4C57}
+\definecolor{i6colorblockfg}{HTML}{FFFFFF}
+\definecolor{i6colorscheme2}{HTML}{68A0B3}  % e.g. title in headline
+\definecolor{i6colorscheme3}{HTML}{CDE0E6}  % e.g. for poster background
+\definecolor{i6colorscheme4}{HTML}{000000}
+\definecolor{i6colorschemeHeadline}{HTML}{68A0B3}  % for headline bg
+%\definecolor{i6colorschemeFootline}{HTML}{000000}  % for headline bg
+
+\definecolor{i6colorschemeFootline}{rgb}{0.426,0.648,0.277}  % for footline bg
+%\xdefinecolor{darkgreen}{HTML}{6DA647}
+\xdefinecolor{lighthead}{HTML}{68A0B3}
+
+% headline colors and fonts
+\setbeamercolor{headline}{fg=white,bg=i6colorschemeHeadline}
+\setbeamercolor{title in headline}{fg=white}
+\setbeamercolor{author in headline}{fg=white}
+\setbeamercolor{institute in headline}{fg=white}
+\setbeamercolor{logo in headline}{fg=black,bg=lightgray}
+\setbeamercolor{separation line}{bg=lighthead}
+
+% footline colors and fonts
+\setbeamercolor{footline}{bg=white,fg=i6colorschemeHeadline}
+\setbeamerfont{footline}{size=\normalsize}
+
+% body colors and fonts
+\setbeamercolor*{normal text}{fg=black,bg=i6colorscheme3}
+
+% block environment
+\setbeamercolor*{block body}{bg=white,fg=black}
+\setbeamercolor*{block title}{fg=black,bg=lighthead}
+\setbeamerfont{block title}{size=\large,series=\bf}
+
+\setbeamercolor*{block body example}{bg=white,fg=black}
+% \setbeamercolor*{block title}{fg=black,bg=lighthead}
+% \setbeamerfont{block title}{size=\large,series=\bf}
+
+% example environment
+\setbeamercolor*{example title}{fg=white,bg=lighthead}
+\setbeamerfont{example title}{size=\large,series=\bf}
+
+\setbeamercolor{alerted text}{fg=lighthead}
+
+% \setbeamertemplate{itemize items}[rectangle]
+\setbeamertemplate{navigation symbols}{}  % no navigation on a poster
+
+\newsavebox\superbox
+\newenvironment{blocker}{%
+  \begin{lrbox}{\superbox}%
+    \begin{minipage}{.95\textwidth}%
+}{
+    \end{minipage}
+  \end{lrbox}
+  \tikz\node[
+    fill=lighthead,
+    draw=lighthead,
+    line width=2pt,
+    inner sep=15pt,
+    outer sep=0pt,
+  ]{\usebox\superbox};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\setbeamertemplate{block begin}{
+%    \begin{beamercolorbox}[colsep*=1ex]{block title}%
+%        \usebeamerfont*{block title}\insertblocktitle
+%    \end{beamercolorbox}%
+%    \vspace{14.2pt}
+%    \usebeamerfont{block body}%
+%        \begin{beamercolorbox}[colsep*=0.75ex,vmode]{block body}%
+%        \rightskip=20pt\leftskip=20pt%
+%        \vspace{0.5em}%
+%    }
+%\setbeamertemplate{block end}{
+%    \vspace{0.5em}
+%    \end{beamercolorbox}
+% }
+
+\setbeamertemplate{block begin}{%
+\begin{blocker}%
+\insertblocktitle%
+\end{blocker}\\[0.4em]
+\usebeamerfont{block body}%
+\begin{lrbox}{\superbox}%
+\centering
+\begin{minipage}{0.95\textwidth}
+}
+
+\setbeamertemplate{block end}{
+      \end{minipage}
+  \end{lrbox}
+  \tikz\node[
+    fill=white,
+    draw=lighthead,
+    line width=3pt,
+    inner sep=15pt,
+    outer sep=0pt,
+  ]{\usebox\superbox};
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamertemplate{headline}{
+    \leavevmode
+    % I redid this in Tikz.
+}
+
+\setbeamertemplate{footline}{
+    \begin{beamercolorbox}[wd=\paperwidth]{upper separation line foot}
+        \rule{0pt}{0.15em}
+    \end{beamercolorbox}
+
+    \begin{beamercolorbox}{footline}%
+        \vskip 1.2em
+        \center
+        \begin{tikzpicture}
+            \node at (0.2\textwidth, 0) (loria) {\includegraphics[height=4em]{logos/inria}};
+            \node at (0.4\textwidth, 0) (inria) {\includegraphics[height=5em]{logos/icube}};
+            %\node at (0.6\textwidth, 0) (inria) {\includegraphics[height=4.2em]{logos/unistra}};
+            %\node at (0.8\textwidth, 0) (inria) {\includegraphics[height=5.5em]{logos/cnrs}};
+        \end{tikzpicture}
+        \vskip 2em
+    \end{beamercolorbox}
+}
+
+\mode<all>

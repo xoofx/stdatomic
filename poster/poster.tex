@@ -1,0 +1,310 @@
+\documentclass[xetex,final,10pt]{beamer}
+
+% 8em ~ 12cm
+% 1cm ~ 0.66em
+
+\usetheme{I6dv}
+
+\usepackage{type1cm}
+\usepackage{calc}
+\usepackage{times}
+\usepackage{amsmath,amsthm, amssymb, latexsym}
+\usepackage{fontspec}
+\usepackage{xunicode} %Unicode extras!
+\usepackage{xltxtra}  %Fixes
+\usepackage{tikz}
+\usepackage{tikz-bpmn}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{rotating}
+\usepackage{relsize}
+\usepackage{setspace}
+\usepackage{hyperref}
+\definecolor{light-gray}{gray}{0.97}
+\usepackage{listings}
+\usepackage{listings-C}
+\usepackage{listings-modernC}
+\lstloadlanguages{C11,C99}
+\lstset{
+language=[errnoPOSIX]{C},
+language=[tgmath]{C},
+language=[threads]{C},
+language=[stdatomic]{C},
+language=[boundschecking]{C},
+language=[99]{C},
+language={C11},
+style=modernC,
+basicstyle=\tt\normalsize,
+moreemph=[5]{
+futex_wait,
+futex_wake,
+},
+moreemph=[3]{
+smpl_lock,
+smpl_unlock,
+smpl, ftx,
+ftx_bit,
+ftx_fetch_add,
+ftx_cmpxch,
+ftx_load,
+ftx_lock,
+ftx_unlock,
+ftx_mask,
+ftx_count,
+ftx_set,
+ftx_lkd,
+ftx_contrib,
+},
+numbers=none,
+}
+
+\newcommand{\titleone}[1]{\fontsize{1.75cm}{1em}\selectfont#1}
+
+\newcommand{\mojtitle}{%
+    \titleone{%
+      Futex based locks for C11's generic atomics}
+  }
+
+
+\usetikzlibrary{positioning,calc,fit}
+\boldmath
+\usepackage[english]{babel}
+\usepackage[orientation=portrait,size=A1]{beamerposter}
+\setbeamersize{text margin left=30mm}
+\setbeamersize{text margin right=30mm}
+\title{Futex based locks for C11's generic atomics}
+\author{Jens Gustedt}
+\institute{INRIA}
+
+\tikzstyle{every picture}=[line width=1.2pt]
+
+\setbeamertemplate{itemize items}[circle]
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subsubbody}{size=\normalsize}
+
+\newcommand{\bigme}[2]{{\normalsize\raisebox{#1}{#2}}}
+\newcommand{\fat}[1]{\textbf{#1}}
+
+\setsansfont[
+ Path=fonts/,
+ BoldFont={Aller_Bd.ttf},
+ ItalicFont={Aller_It.ttf},
+ BoldItalicFont={Aller_BdIt.ttf}
+ ]{Aller_Rg.ttf}
+
+\setmonofont[Path=fonts/,Scale=0.9]{VeraMono.ttf}
+
+\setlist[itemize,1]{itemsep=0.5ex,leftmargin=2.5em,itemindent=0em,labelsep=0.3em,
+      label=\scalebox{1.0}{\textbullet},
+      after=\vspace{.25\baselineskip},before=\vspace{.25\baselineskip}}
+
+\setlist[itemize,2]{leftmargin=1.5em,label=-}
+
+\setlist[description]{itemsep=0.5ex,leftmargin=2.5em,itemindent=0em,labelsep=0.3em}
+
+\begin{document}%
+\pgfdeclarelayer{backg}%
+\pgfsetlayers{backg,main}
+%
+    \begin{frame}[fragile]%
+    \small% TODO
+%
+% BACKGROUND
+%
+\begin{tikzpicture}[remember picture,overlay]%
+    \node [xshift=-18em,yshift=1em] at (current page.south west) {
+        \begin{tikzpicture}[remember picture,overlay,scale=5,opacity=0.4]
+            \foreach \i in {1,1.5,...,50}
+                \draw[white,line width=0.15em] (0, {2*\i}) -- ({100/\i}, 0);
+        \end{tikzpicture}
+    };
+\end{tikzpicture}%
+%
+\begin{tikzpicture}[remember picture,overlay]%
+    \node [xshift=24em,yshift=5em] at (current page.north east) {
+        \begin{tikzpicture}[remember picture,overlay,scale=5,opacity=0.4]
+            \foreach \i in {1,1.5,...,50}
+                \draw[white,line width=0.15em] (0, {-2*\i}) -- (-{100/\i}, 0);
+        \end{tikzpicture}
+    };
+\end{tikzpicture}%
+%
+\begin{tikzpicture}[remember picture,overlay]%
+    \node(headline) [xshift=0em,yshift=-1.5em,align=center,white,text width=\paperwidth,
+             fill=i6colorblockbg] at (current page.north) {
+        \\[11.5em]
+        \usebeamercolor{title in headline}{
+            \color{white} % fg
+            \begin{minipage}{\textwidth}
+                \begin{center}
+                \ \\[1.8em]
+                {\Huge\bfseries\mojtitle }\\[1em]
+                {\huge{}Jens Gustedt}\\[0.7em]
+                {\large{}\href{mailto:jens.gustedt@inria.fr}{jens.gustedt@inria.fr}}\\[0.9em]
+                {\LARGE{}INRIA, ICube, Université de Strasbourg}
+                \end{center}
+            \end{minipage}
+            \ \\[1.5em]
+        }
+    };
+    \draw[line width=0.15em,lighthead] (headline.south west) -- (headline.south east);
+\end{tikzpicture}%
+%
+\vskip 16em
+\newcommand{\odstep}{\vskip 0.48em}
+
+\begin{center}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \begin{block}{\bigme{0em}{Unreproducible research}%
+            \\[-1.1em]}
+
+
+            \end{block}
+            \odstep
+
+\begin{block}{\bigme{-3pt}{Large-scale experiments}\\[-0.9em]}
+
+\end{block}
+\odstep
+
+\newcommand{\solucja}[2]{%
+    \href{#2}{\textbf{#1}}}
+
+\begin{block}{\bigme{-3pt}{Existing solutions}\\[-0.9em]}
+The problem is attacked by various approaches:
+
+\begin{itemize}
+    \item simulation (e.g.,
+        \solucja{Simgrid}{http://simgrid.gforge.inria.fr/})
+        - reproducibility via a simplified model
+\end{itemize}
+\end{block}
+\odstep
+
+\newcommand{\litera}[1]{\makebox[1em][c]{(#1)}}
+
+\begin{block}{\bigme{-3pt}{Experimental workflow engine (XPFlow)}%
+\\[-0.9em]}
+Our method consists in modeling the experiment as \fat{workflows}:
+%and then
+%execute it using an \fat{experiment engine} that controls
+%every aspect of execution from \fat{reservation of nodes} to
+%\fat{data analysis}.
+% \\[0.3em]
+%The advantages are:
+\begin{itemize}
+    \item[\litera{a}] the experiment is \fat{implicitly documented}
+    \item[\litera{b}] the structure is \fat{modular}
+    \item[\litera{c}] people can
+        \fat{reuse solutions} to common problems
+        % (\fat{scalability}, \fat{failure
+        % handling}, \fat{efficient distributed operations}, etc.)
+    \item[\litera{d}] \textbf{provenance} of data
+        is traced
+    \item[\litera{e}] rich \textbf{monitoring} possibilities
+    are available
+    \item[\litera{f}] offers pluggable \fat{experiment designs}
+\end{itemize}
+
+            \end{block}
+\odstep
+
+\newcommand{\cimark}[2]{[\href{#2}{#1}]}
+
+\newcommand{\bink}[2]{%
+    \href{#2}{\normalsize{}[ {#1}\:]}\quad%
+}
+
+        \end{column}
+        \begin{column}{0.48\textwidth}
+
+\newsavebox\blockbox
+\newenvironment{myblock}{%
+  \begin{lrbox}{\blockbox}%
+
+    \begin{minipage}{.95\textwidth}
+}{
+    \end{minipage}
+  \end{lrbox}
+  \tikz\node[
+    fill=white,
+    draw=lighthead,
+    line width=3pt,
+    inner sep=15pt,
+    outer sep=0pt,
+  ]{\usebox\blockbox};
+}
+
+\newcommand{\skipper}{\vskip 1em}
+
+\begin{myblock}{}
+(a) Workflow representation is easy to understand\\[-0.5em]
+\begin{lstlisting}
+typedef _Atomic(int) smpl;
+void smpl_lock(smpl* lck) {
+ for (;;) {
+  int prev = atomic_exchange(lck, 1);
+  if (!prev) break;
+  futex_wait(lck, prev);
+ }
+}
+void smpl_unlock(smpl* lck) {
+ atomic_store(lck, 0);
+ futex_wake(lck, 1);
+}
+\end{lstlisting}
+\end{myblock}
+\skipper
+
+\begin{myblock}{}
+\begin{lstlisting}
+typedef _Atomic(unsigned) ftx;
+#define ftx_set(VAL)  (0x80000000u | (VAL))
+#define ftx_lkd(VAL)  (0x80000000u & (VAL))
+
+void ftx_lock(ftx* lck) {
+ unsigned cur = 0;
+ if (!ftx_cmpxch(lck, &cur, ftx_set(1))) {
+  cur = ftx_fetch_add(lck, 1) + 1;
+  for (;;) {
+   while (!ftx_lkd(cur)) {
+    if (ftx_cmpxch(lck, &cur, ftx_set(cur))) return;
+    for (unsigned i = 0; i < E && ftx_lkd(cur); i++)
+     cur = ftx_load(lck);
+   }
+   while (ftx_lkd(cur)) {
+    futex_wait(lck, cur);
+    cur = ftx_load(lck);
+   }
+  }
+ }
+}
+\end{lstlisting}
+\end{myblock}
+\skipper
+
+\begin{myblock}{}
+(b) Parts of experiments can be changed, replaced or modified
+\begin{center}
+  \includegraphics[width=0.65\textwidth]{../benchs/arm/test-arm-u64.png}
+\end{center}\vskip 0.7em
+\end{myblock}
+\skipper
+
+\begin{myblock}{}
+(b) Parts of experiments can be changed, replaced or modified
+\begin{center}
+  \includegraphics[width=0.65\textwidth]{../benchs/arm/test-arm-u64-relative.png}
+\end{center}\vskip 0.7em
+\end{myblock}
+\skipper
+
+
+        \end{column}
+
+    \end{columns}
+\end{center}
+\end{frame}
+
+\end{document}
