@@ -151,63 +151,131 @@ numbers=none,
 \end{tikzpicture}%
 %
 \vskip 16em
-\newcommand{\odstep}{\vskip 0.48em}
+\newcommand{\odstep}{\vskip 8ex}
 
 \begin{center}
     \begin{columns}[t]
         \begin{column}{0.48\textwidth}
-            \begin{block}{\bigme{0em}{Unreproducible research}%
+            \begin{block}{\bigme{0em}{Tools for data consistency and
+                  races: {\color{red}Atomics}}%
             \\[-1.1em]}
+
+          \begin{itemize}
+          \item {\color{red}Atomic instructions} are present in all modern processors.
+          \item They are the basis of all thread level parallelism:
+            \begin{itemize}
+            \item Schedule concurrent tasks.
+            \item Deal with concurent data access.
+            \end{itemize}
+          \item C11 introduced atomic data types and operations.
+          \item If atomics for a particular have no hardware support:
+            \begin{itemize}
+            \item generic atomics
+            \end{itemize}
+          \item ... {\color{red}need an efficient OS-supported lock.}
+          \end{itemize}
 
 
             \end{block}
             \odstep
 
-\begin{block}{\bigme{-3pt}{Large-scale experiments}\\[-0.9em]}
+            \begin{block}{\bigme{0em}{Tools for data consistency and
+                  races: {\color{red}\texttt{futex}}}%
+            \\[-1.1em]}
 
+          \begin{itemize}
+          \item In addition to atomics, and OS needs an efficient tool
+            to have threads wait (sleep).
+          \item Linux has {\color{red}\texttt{futex}}.
+          \item Combines atomic data and an OS wait queue.
+            \begin{itemize}
+            \item \lstinline{futex_wait} guarantees that the value of the
+              lock is what we think
+            \item \lstinline{futex_wake} can wake up one or several threads
+            \end{itemize}
+          \end{itemize}
+
+
+            \end{block}
+            \odstep
+
+\begin{block}{\bigme{-3pt}{A new generic lock algorithm using futex system calls}\\[-0.9em]}
+
+  \begin{itemize}
+  \item ideas:
+    \begin{itemize}
+    \item combine lock and wait counter in one atomic data
+    \item count the right thing
+      \begin{itemize}
+      \item number of threads inside critical section
+      \item not only those inside \lstinline{futex_wait}
+      \end{itemize}
+    \item do \emph{some} active spinning before going into
+      \lstinline{futex_wait}
+    \item but not too much.
+    \end{itemize}
+  \item reduces the number of synchronous memory operations and bandwidth
+  \item can be proven to be deadlock free
+  \end{itemize}
 \end{block}
 \odstep
 
 \newcommand{\solucja}[2]{%
     \href{#2}{\textbf{#1}}}
 
-\begin{block}{\bigme{-3pt}{Existing solutions}\\[-0.9em]}
-The problem is attacked by various approaches:
+\begin{block}{
+    \bigme{3pt}
+    {Benchmarks}
+    %\\[-0.9em]
+  }
+  Benchmark a \emph{\color{red}worst case} code for locks:
+  \begin{itemize}
+  \item High frequency update of a dynamic data structure.
+  \item High load with a lot of threads.
+  \item High probability of failure for the access.
+  \end{itemize}
 
-\begin{itemize}
-    \item simulation (e.g.,
-        \solucja{Simgrid}{http://simgrid.gforge.inria.fr/})
-        - reproducibility via a simplified model
-\end{itemize}
+  Put the system under \emph{\color{red}heavy stress.}\\[2ex]
+
+  Platform:
+  \begin{itemize}
+  \item a 4 core ARM
+  \item Alpine Linux\hfill \url{https://www.alpinelinux.org/}
+  \item based on \texttt{musl}\hfill http://www.musl-libc.org/
+  \end{itemize}
+
+
 \end{block}
 \odstep
 
 \newcommand{\litera}[1]{\makebox[1em][c]{(#1)}}
 
-\begin{block}{\bigme{-3pt}{Experimental workflow engine (XPFlow)}%
-\\[-0.9em]}
-Our method consists in modeling the experiment as \fat{workflows}:
-%and then
-%execute it using an \fat{experiment engine} that controls
-%every aspect of execution from \fat{reservation of nodes} to
-%\fat{data analysis}.
-% \\[0.3em]
-%The advantages are:
-\begin{itemize}
-    \item[\litera{a}] the experiment is \fat{implicitly documented}
-    \item[\litera{b}] the structure is \fat{modular}
-    \item[\litera{c}] people can
-        \fat{reuse solutions} to common problems
-        % (\fat{scalability}, \fat{failure
-        % handling}, \fat{efficient distributed operations}, etc.)
-    \item[\litera{d}] \textbf{provenance} of data
-        is traced
-    \item[\litera{e}] rich \textbf{monitoring} possibilities
-    are available
-    \item[\litera{f}] offers pluggable \fat{experiment designs}
-\end{itemize}
+\begin{block}{
+    \bigme{3pt}{Analysis}%
+    %\\[-0.9em]
+  }
 
-            \end{block}
+  Good combination of
+  \begin{itemize}
+  \item spinlock stragegy for few congestions
+  \item OS wait strategy for congestion
+  \end{itemize}
+
+
+  Outperforms native approaches
+
+  \begin{itemize}
+  \item \texttt{Gcc} builtin strategy
+  \item native mutex
+  \item \texttt{musl}'s internal lock
+  \end{itemize}
+\end{block}
+\odstep
+
+\begin{block}{Perspective}
+  Integrate the new strategy in \texttt{musl}
+\end{block}
+
 \odstep
 
 \newcommand{\cimark}[2]{[\href{#2}{#1}]}
@@ -238,8 +306,7 @@ Our method consists in modeling the experiment as \fat{workflows}:
 
 \newcommand{\skipper}{\vskip 1em}
 
-\begin{myblock}{}
-(a) Workflow representation is easy to understand\\[-0.5em]
+\begin{myblock}{A simple \texttt{futex}-based lock.}
 \begin{lstlisting}
 typedef _Atomic(int) smpl;
 void smpl_lock(smpl* lck) {
@@ -257,7 +324,7 @@ void smpl_unlock(smpl* lck) {
 \end{myblock}
 \skipper
 
-\begin{myblock}{}
+\begin{myblock}{The new counter based locking strategy}
 \begin{lstlisting}
 typedef _Atomic(unsigned) ftx;
 #define ftx_set(VAL)  (0x80000000u | (VAL))
@@ -284,16 +351,14 @@ void ftx_lock(ftx* lck) {
 \end{myblock}
 \skipper
 
-\begin{myblock}{}
-(b) Parts of experiments can be changed, replaced or modified
+\begin{myblock}{lock throughput on an ARM platform}
 \begin{center}
   \includegraphics[width=0.65\textwidth]{../benchs/arm/test-arm-u64.png}
 \end{center}\vskip 0.7em
 \end{myblock}
 \skipper
 
-\begin{myblock}{}
-(b) Parts of experiments can be changed, replaced or modified
+\begin{myblock}{Relative performance}
 \begin{center}
   \includegraphics[width=0.65\textwidth]{../benchs/arm/test-arm-u64-relative.png}
 \end{center}\vskip 0.7em
