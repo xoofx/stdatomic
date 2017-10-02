@@ -726,6 +726,7 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
      to perform, and doesn't need information from memory to be
      returned to the CPU.
 
+
 * Installation
 
   As said above it will be important that your compiled library and
@@ -742,7 +743,7 @@ __attribute__((__aligned__(sizeof(toto)))) _Atomic(toto) toto2;
 
   in an include directory where your compiler can find it when you
   compile application code.
-
+  
 ** Musl
 
 *** direct integration
@@ -807,21 +808,13 @@ make MUSL=your/path/to/musl libstdatomic.a
 make CONFIG='-DATOMIC_GENERIC_LOCK=ATOMIC_GENERIC_LOCK_PTHREAD' libatomic.a
 #+END_SRC
 
-* Copyright and License
 
-** Copyright © 2015 Jens Gustedt
+* Terms
 
-** Licenses
+** Copyright and License
+
+#+INCLUDE: "./COPYRIGHT" src txt 
+
+** Distribution
 
 This work is distributed at [[http://stdatomic.gforge.inria.fr][http://stdatomic.gforge.inria.fr]].
-
-*** Documentation
-
-[[http://creativecommons.org/licenses/by/4.0/][https://i.creativecommons.org/l/by/4.0/88x31.png]]
-All explanatory and documentary text is licensed under a
-[[http://creativecommons.org/licenses/by/4.0/][Creative Commons
-Attribution 4.0 International License]].
-
-*** Source
-
-The license for using the source code has yet to be decided.
